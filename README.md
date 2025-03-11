@@ -1,6 +1,4 @@
-当然，这是完整版的更新后的README.md内容：
 
-````markdown
 # 智能股市分析平台
 
 一个基于Next.js、Prisma、Redis和Supabase构建的股市分析应用，利用AI提供市场见解和交易建议。
