@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model MarketAnalysis {
+  id              String   @id @default(uuid())
+  date            String   @unique // 格式可以是 "YYYY-MM-DD"
+  summary         String   @db.Text // AI对股市的简单点评
+  sentimentScore  Float    // AI对股市的情绪评分 (例如 -10 到 10 的范围)
+  safetyScore     Float    // AI对股市的安全交易评分 (例如 0 到 100 的范围)
+  marketTrend     String   // 市场整体趋势 (例如 "bullish", "bearish", "neutral")
+  volatilityLevel Float    // 波动性水平 (例如 0 到 100 的范围)
+  topGainers      Json?    // 当日表现最好的股票列表
+  topLosers       Json?    // 当日表现最差的股票列表
+  keyEvents       String?  @db.Text // 影响市场的关键事件
+  tradingSuggestions String? @db.Text // AI提供的交易建议
+  sectors         Json?    // 各行业板块的表现数据
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
