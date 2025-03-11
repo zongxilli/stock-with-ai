@@ -2,8 +2,6 @@
 
 一个基于Next.js、Prisma和Supabase构建的股市分析应用，利用AI提供市场见解和交易建议。
 
-![项目预览](https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png)
-
 ## ✨ 功能特点
 
 - **市场分析仪表盘** - 直观展示市场趋势、情绪评分和波动性分析
@@ -19,7 +17,7 @@
 ### 前提条件
 
 - Node.js 18+ 和 npm/yarn
-- PostgreSQL数据库或Supabase账号
+- Supabase账号 (已设置)
 
 ### 安装步骤
 
@@ -38,21 +36,11 @@ npm install
 yarn install
 ```
 
-3. 设置环境变量
-- `.env.local`并填入必要的环境变量：
+3. 配置环境变量
 
-```
-# 数据库连接
-DATABASE_URL="postgresql://username:password@localhost:5432/stockwithai"
-DIRECT_URL="postgresql://username:password@localhost:5432/stockwithai"
-```
-
-- `.env`并填入必要的环境变量：
-```
-# Supabase认证
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
+环境变量已配置：
+- `.env` - 包含数据库连接信息
+- `.env.local` - 包含Supabase认证信息
 
 4. 初始化数据库
 
