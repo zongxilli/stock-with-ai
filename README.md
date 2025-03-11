@@ -45,8 +45,10 @@ yarn install
 # 数据库连接
 DATABASE_URL="postgresql://username:password@localhost:5432/stockwithai"
 DIRECT_URL="postgresql://username:password@localhost:5432/stockwithai"
+```
 
 - `.env`并填入必要的环境变量：
+```
 # Supabase认证
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
