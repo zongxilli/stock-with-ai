@@ -1,4 +1,3 @@
-
 # 智能股市分析平台
 
 一个基于Next.js、Prisma、Redis和Supabase构建的股市分析应用，利用AI提供市场见解和交易建议。
@@ -30,7 +29,6 @@
 git clone https://github.com/your-username/stock-with-ai.git
 cd stock-with-ai
 ```
-````
 
 2. 安装依赖
 
