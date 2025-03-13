@@ -7,7 +7,7 @@ import { ArrowUpRight, ArrowDownRight, RotateCcw } from 'lucide-react';
 import { Card, CardContent } from '@/components/custom/card';
 import { Button } from '@/components/ui/button';
 
-// 指数数据类型定义
+// Define index data type
 interface IndexData {
 	symbol: string;
 	name: string;
@@ -46,32 +46,32 @@ export default function MainIndexes({
 				await onRefresh();
 				setLastUpdated(new Date().toLocaleTimeString());
 			} catch (error) {
-				console.error('刷新数据失败:', error);
+				console.error('Failed to refresh data:', error);
 			} finally {
 				setIsLoading(false);
 			}
 		}
 	};
 
-	// 格式化数字
+	// Format numbers
 	const formatNumber = (num: number | undefined) => {
 		if (num === undefined) return 'N/A';
-		return num.toLocaleString('zh-CN', {
+		return num.toLocaleString('en-US', {
 			minimumFractionDigits: 2,
 			maximumFractionDigits: 2,
 		});
 	};
 
-	// 格式化日期时间
+	// Format date and time
 	const formatDateTime = (timestamp: number | undefined) => {
 		if (!timestamp) return 'N/A';
-		return new Date(timestamp * 1000).toLocaleString('zh-CN');
+		return new Date(timestamp * 1000).toLocaleString('en-US');
 	};
 
 	if (indices.length === 0) {
 		return (
 			<div className='w-full p-4 text-center'>
-				<p>加载股指数据中...</p>
+				<p>Loading market indices data...</p>
 			</div>
 		);
 	}
@@ -79,11 +79,11 @@ export default function MainIndexes({
 	return (
 		<div className='w-full mb-6'>
 			<div className='flex justify-between items-center mb-4'>
-				<h2 className='text-xl font-semibold'>主要股指</h2>
+				<h2 className='text-xl font-semibold'>Major Market Indices</h2>
 				<div className='flex items-center gap-2'>
 					{lastUpdated && (
 						<span className='text-xs text-muted-foreground'>
-							最后更新: {lastUpdated}
+							Last updated: {lastUpdated}
 						</span>
 					)}
 					<Button
@@ -96,7 +96,7 @@ export default function MainIndexes({
 							size={16}
 							className={`mr-1 ${isLoading ? 'animate-spin' : ''}`}
 						/>
-						刷新
+						Refresh
 					</Button>
 				</div>
 			</div>
@@ -138,7 +138,7 @@ export default function MainIndexes({
 								<div className='grid grid-cols-2 gap-2 mt-2 text-sm'>
 									<div className='flex justify-between'>
 										<span className='text-muted-foreground'>
-											最高
+											High
 										</span>
 										<span>
 											{formatNumber(index.dayHigh)}
@@ -146,7 +146,7 @@ export default function MainIndexes({
 									</div>
 									<div className='flex justify-between'>
 										<span className='text-muted-foreground'>
-											最低
+											Low
 										</span>
 										<span>
 											{formatNumber(index.dayLow)}
@@ -155,7 +155,8 @@ export default function MainIndexes({
 								</div>
 
 								<div className='text-xs text-muted-foreground mt-2'>
-									市场时间: {formatDateTime(index.marketTime)}
+									Market time:{' '}
+									{formatDateTime(index.marketTime)}
 								</div>
 							</div>
 						</CardContent>
