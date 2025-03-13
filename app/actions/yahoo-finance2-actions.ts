@@ -42,10 +42,16 @@ export async function getMainIndices() {
 			})
 		);
 
-		// 保存结果到Redis缓存，设置8秒过期时间（略大于前端5秒刷新间隔）
-		await setCache('main_indices', results, 4);
+		// 创建包含数据和更新时间的对象
+		const resultWithTimestamp = {
+			data: results,
+			lastUpdated: new Date().toISOString(), // 使用ISO格式便于后续处理
+		};
 
-		return results;
+		// 保存结果到Redis缓存
+		await setCache('main_indices', resultWithTimestamp, 10);
+
+		return resultWithTimestamp;
 	} catch (error) {
 		console.error('Failed to fetch market indices:', error);
 		throw new Error('Failed to fetch market indices');

@@ -36,14 +36,16 @@ export const useMarketStore = create<MarketState>((set) => ({
 	// 获取指数数据的方法
 	fetchIndices: async () => {
 		try {
-			const data = await getMainIndices();
+			const response = await getMainIndices();
 			set({
-				indices: data,
-				lastUpdated: new Date().toLocaleTimeString(),
+				indices: response.data, // 现在数据在 response.data 中
+				lastUpdated: new Date(
+					response.lastUpdated
+				).toLocaleTimeString(), // 使用服务器提供的时间戳
 				loading: false,
 				error: null,
 			});
-			return data;
+			return response.data;
 		} catch (error) {
 			console.error('加载股指数据失败:', error);
 			set({

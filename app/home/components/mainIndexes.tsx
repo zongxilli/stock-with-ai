@@ -19,7 +19,7 @@ export default function MainIndexes() {
 		// 初始加载
 		fetchIndices();
 
-		// 设置自动刷新定时器 - 每5秒刷新一次
+		// 设置自动刷新定时器
 		const refreshInterval = setInterval(() => {
 			fetchIndices();
 		}, 5000);
