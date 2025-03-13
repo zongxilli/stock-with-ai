@@ -28,7 +28,7 @@ const ThemeSwitcher = () => {
 
 	return (
 		<IconButton onClick={toggleTheme} aria-label='Toggle Theme'>
-			{theme === 'dark' ? (
+			{theme === 'light' ? (
 				<Sun size={18} className='text-muted-foreground' />
 			) : (
 				<Moon size={18} className='text-muted-foreground' />
