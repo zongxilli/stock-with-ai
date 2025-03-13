@@ -89,7 +89,7 @@ export default function HomePage() {
 
 	return (
 		<div className='w-full'>
-			{/* 主要股指组件 */}
+			{/* 主要股指组件 - 传递初始空数组，以便组件显示骨架屏 */}
 			<MainIndexes
 				initialData={indicesData}
 				onRefresh={loadIndicesData}

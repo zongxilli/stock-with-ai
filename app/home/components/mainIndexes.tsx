@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 
 import { MarketCard } from '@/components/custom/card';
+import { MarketCardSkeleton } from '@/components/custom/marketCardSkeleton';
 
 interface IndexData {
 	symbol: string;
@@ -20,12 +21,17 @@ interface MainIndexesProps {
 	onRefresh?: () => Promise<void>;
 }
 
+// 预定义的期货和商品代码列表，用于生成骨架屏
+const FUTURES_SYMBOLS = ['ES=F', 'YM=F', 'NQ=F', 'RTY=F'];
+const COMMODITIES_SYMBOLS = ['CL=F', 'GC=F'];
+
 export default function MainIndexes({
 	initialData,
 	onRefresh,
 }: MainIndexesProps) {
 	const [indices, setIndices] = useState<IndexData[]>(initialData || []);
 	const [lastUpdated, setLastUpdated] = useState<string>('');
+	const [loading, setLoading] = useState<boolean>(initialData?.length === 0);
 
 	// 初始化和自动刷新
 	useEffect(() => {
@@ -33,6 +39,9 @@ export default function MainIndexes({
 		if (initialData && initialData.length > 0) {
 			setIndices(initialData);
 			setLastUpdated(new Date().toLocaleTimeString());
+			setLoading(false);
+		} else {
+			setLoading(true);
 		}
 
 		// 设置自动刷新定时器 - 每5秒刷新一次
@@ -56,33 +65,32 @@ export default function MainIndexes({
 		if (initialData && initialData.length > 0) {
 			setIndices(initialData);
 			setLastUpdated(new Date().toLocaleTimeString());
+			setLoading(false);
 		}
 	}, [initialData]);
 
 	// 分类指数
 	const categorizeIndices = () => {
-		const futuresSymbols = ['ES=F', 'YM=F', 'NQ=F', 'RTY=F'];
-		const commoditiesSymbols = ['CL=F', 'GC=F'];
-
 		return {
 			futures: indices.filter((item) =>
-				futuresSymbols.includes(item.symbol)
+				FUTURES_SYMBOLS.includes(item.symbol)
 			),
 			commodities: indices.filter((item) =>
-				commoditiesSymbols.includes(item.symbol)
+				COMMODITIES_SYMBOLS.includes(item.symbol)
 			),
 		};
 	};
 
 	const categories = categorizeIndices();
 
-	if (indices.length === 0) {
-		return (
-			<div className='w-full p-4 text-center bg-green-50'>
-				<p>正在加载市场数据...</p>
-			</div>
-		);
-	}
+	// 渲染骨架屏
+	const renderSkeletons = (count: number) => {
+		return Array(count)
+			.fill(0)
+			.map((_, index) => (
+				<MarketCardSkeleton key={`skeleton-${index}`} />
+			));
+	};
 
 	return (
 		<div className='w-full mb-6'>
@@ -92,16 +100,18 @@ export default function MainIndexes({
 				<div>
 					<h3 className='text-lg font-medium mb-3'>期货</h3>
 					<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3'>
-						{categories.futures.map((item) => (
-							<MarketCard
-								key={item.symbol}
-								name={item.name}
-								price={item.price}
-								change={item.change}
-								changePercent={item.changePercent}
-								className='bg-card hover:bg-card/90 transition-colors'
-							/>
-						))}
+						{loading
+							? renderSkeletons(FUTURES_SYMBOLS.length)
+							: categories.futures.map((item) => (
+									<MarketCard
+										key={item.symbol}
+										name={item.name}
+										price={item.price}
+										change={item.change}
+										changePercent={item.changePercent}
+										className='bg-card hover:bg-card/90 transition-colors'
+									/>
+								))}
 					</div>
 				</div>
 
@@ -109,23 +119,25 @@ export default function MainIndexes({
 				<div>
 					<h3 className='text-lg font-medium mb-3'>商品</h3>
 					<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3'>
-						{categories.commodities.map((item) => (
-							<MarketCard
-								key={item.symbol}
-								name={item.name}
-								price={item.price}
-								change={item.change}
-								changePercent={item.changePercent}
-								className='bg-card hover:bg-card/90 transition-colors'
-							/>
-						))}
+						{loading
+							? renderSkeletons(COMMODITIES_SYMBOLS.length)
+							: categories.commodities.map((item) => (
+									<MarketCard
+										key={item.symbol}
+										name={item.name}
+										price={item.price}
+										change={item.change}
+										changePercent={item.changePercent}
+										className='bg-card hover:bg-card/90 transition-colors'
+									/>
+								))}
 					</div>
 				</div>
 			</div>
 
 			{/* 更新时间提示 */}
 			<div className='text-xs text-right text-gray-500 mt-4'>
-				最后更新: {lastUpdated}
+				{loading ? '加载中...' : `最后更新: ${lastUpdated}`}
 			</div>
 		</div>
 	);
