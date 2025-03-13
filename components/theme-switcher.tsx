@@ -17,7 +17,7 @@ const ThemeSwitcher = () => {
 				aria-label='Loading Theme'
 				disabled
 				className='opacity-0'
-				children={null}
+				children={<Sun size={18} className='text-muted-foreground' />}
 			/>
 		);
 	}

@@ -57,7 +57,7 @@ export default function MainIndexes() {
 			<div className='space-y-6'>
 				{/* 期货卡片 */}
 				<div>
-					<h3 className='text-lg font-medium mb-3'>期货</h3>
+					<h3 className='text-lg font-medium mb-3'>Futures</h3>
 					<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3'>
 						{loading
 							? renderSkeletons(FUTURES_SYMBOLS.length)
@@ -76,7 +76,7 @@ export default function MainIndexes() {
 
 				{/* 商品卡片 */}
 				<div>
-					<h3 className='text-lg font-medium mb-3'>商品</h3>
+					<h3 className='text-lg font-medium mb-3'>Commodities</h3>
 					<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3'>
 						{loading
 							? renderSkeletons(COMMODITIES_SYMBOLS.length)
@@ -96,7 +96,7 @@ export default function MainIndexes() {
 
 			{/* 更新时间提示 */}
 			<div className='text-xs text-right text-gray-500 mt-4'>
-				{loading ? '加载中...' : `最后更新: ${lastUpdated}`}
+				{loading ? 'Loading...' : `Last updated: ${lastUpdated}`}
 			</div>
 		</div>
 	);
