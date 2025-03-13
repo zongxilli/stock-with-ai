@@ -31,7 +31,7 @@ export async function getMainIndices() {
 				const quote = await yahooFinance.quote(symbol);
 				return {
 					symbol,
-					name: quote.shortName || getIndexFullName(symbol), // 优先使用API返回的名称
+					name: getIndexFullName(symbol), // 优先使用API返回的名称
 					price: quote.regularMarketPrice,
 					change: quote.regularMarketChange,
 					changePercent: quote.regularMarketChangePercent,
