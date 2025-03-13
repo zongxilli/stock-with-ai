@@ -1,73 +1,32 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import { MarketCard } from '@/components/custom/card';
 import { MarketCardSkeleton } from '@/components/custom/marketCardSkeleton';
-
-interface IndexData {
-	symbol: string;
-	name: string;
-	price: number;
-	change: number;
-	changePercent: number;
-	dayHigh: number;
-	dayLow: number;
-	marketTime: number;
-}
-
-interface MainIndexesProps {
-	initialData?: IndexData[];
-	onRefresh?: () => Promise<void>;
-}
+import { useMarketStore } from '@/stores/marketStore';
 
 // 预定义的期货和商品代码列表，用于生成骨架屏
 const FUTURES_SYMBOLS = ['ES=F', 'YM=F', 'NQ=F', 'RTY=F'];
 const COMMODITIES_SYMBOLS = ['CL=F', 'GC=F'];
 
-export default function MainIndexes({
-	initialData,
-	onRefresh,
-}: MainIndexesProps) {
-	const [indices, setIndices] = useState<IndexData[]>(initialData || []);
-	const [lastUpdated, setLastUpdated] = useState<string>('');
-	const [loading, setLoading] = useState<boolean>(initialData?.length === 0);
+export default function MainIndexes() {
+	// 从store获取状态和方法
+	const { indices, lastUpdated, loading, fetchIndices } = useMarketStore();
 
 	// 初始化和自动刷新
 	useEffect(() => {
-		// 设置初始数据
-		if (initialData && initialData.length > 0) {
-			setIndices(initialData);
-			setLastUpdated(new Date().toLocaleTimeString());
-			setLoading(false);
-		} else {
-			setLoading(true);
-		}
+		// 初始加载
+		fetchIndices();
 
 		// 设置自动刷新定时器 - 每5秒刷新一次
-		const refreshInterval = setInterval(async () => {
-			if (onRefresh) {
-				try {
-					await onRefresh();
-					setLastUpdated(new Date().toLocaleTimeString());
-				} catch (error) {
-					console.error('无法刷新市场数据:', error);
-				}
-			}
+		const refreshInterval = setInterval(() => {
+			fetchIndices();
 		}, 5000);
 
 		// 清理定时器
 		return () => clearInterval(refreshInterval);
-	}, [initialData, onRefresh]);
-
-	// 接收新数据更新状态
-	useEffect(() => {
-		if (initialData && initialData.length > 0) {
-			setIndices(initialData);
-			setLastUpdated(new Date().toLocaleTimeString());
-			setLoading(false);
-		}
-	}, [initialData]);
+	}, [fetchIndices]);
 
 	// 分类指数
 	const categorizeIndices = () => {

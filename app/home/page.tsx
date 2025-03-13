@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 
 import { addFakeDataToRedis, getAllRedisData } from '../actions/redis-actions';
-import { getMainIndices } from '../actions/yahoo-finance2-actions';
 
 import MainIndexes from './components/mainIndexes';
 
@@ -17,28 +16,13 @@ export default function HomePage() {
 	);
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState('');
-	const [indicesData, setIndicesData] = useState<any[]>([]);
 	// 仅在客户端使用时间戳
 	const [timeStamp, setTimeStamp] = useState<string>('');
 
-	// 初始化加载 - 获取股指数据
+	// 仅在客户端设置时间戳
 	useEffect(() => {
-		loadIndicesData();
-
-		// 仅在客户端设置时间戳
 		setTimeStamp(new Date().toISOString());
 	}, []);
-
-	// 加载股指数据
-	const loadIndicesData = async () => {
-		try {
-			const data = await getMainIndices();
-			setIndicesData(data);
-		} catch (error) {
-			console.error('加载股指数据失败:', error);
-			setMessage('加载股指数据失败');
-		}
-	};
 
 	// 加载最新市场分析
 	const loadMarketAnalysis = async () => {
@@ -89,11 +73,8 @@ export default function HomePage() {
 
 	return (
 		<div className='w-full'>
-			{/* 主要股指组件 - 传递初始空数组，以便组件显示骨架屏 */}
-			<MainIndexes
-				initialData={indicesData}
-				onRefresh={loadIndicesData}
-			/>
+			{/* 主要股指组件 - 现在直接使用store，不需要传递props */}
+			<MainIndexes />
 
 			<h1 className='text-2xl font-bold mb-4'>市场分析仪表盘</h1>
 
