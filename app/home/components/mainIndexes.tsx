@@ -52,7 +52,7 @@ export default function MainIndexes() {
 	};
 
 	return (
-		<div className='w-full mb-6'>
+		<div className='w-full'>
 			{/* 市场数据区 */}
 			<div className='space-y-6'>
 				{/* 期货卡片 */}

@@ -72,8 +72,8 @@ export default function HomePage() {
 	};
 
 	return (
-		<div className='w-full'>
-			{/* 主要股指组件 - 现在直接使用store，不需要传递props */}
+		<div className='w-full flex-col gap-6'>
+			{/* 主要股指组件*/}
 			<MainIndexes />
 
 			<h1 className='text-2xl font-bold mb-4'>
