@@ -47,7 +47,9 @@ export default function MainIndexes() {
 		return Array(count)
 			.fill(0)
 			.map((_, index) => (
-				<MarketCardSkeleton key={`skeleton-${index}`} />
+				<div className='max-w-full w-96' key={`skeleton-${index}`}>
+					<MarketCardSkeleton />
+				</div>
 			));
 	};
 
@@ -58,18 +60,22 @@ export default function MainIndexes() {
 				{/* 期货卡片 */}
 				<div>
 					<h3 className='text-lg font-medium mb-3'>Futures</h3>
-					<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3'>
+					<div className='grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3'>
 						{loading
 							? renderSkeletons(FUTURES_SYMBOLS.length)
 							: categories.futures.map((item) => (
-									<MarketCard
+									<div
+										className='max-w-full w-96'
 										key={item.symbol}
-										name={item.name}
-										price={item.price}
-										change={item.change}
-										changePercent={item.changePercent}
-										className='bg-card hover:bg-card/90 transition-colors'
-									/>
+									>
+										<MarketCard
+											name={item.name}
+											price={item.price}
+											change={item.change}
+											changePercent={item.changePercent}
+											className='bg-card hover:bg-card/90 transition-colors'
+										/>
+									</div>
 								))}
 					</div>
 				</div>
@@ -77,18 +83,22 @@ export default function MainIndexes() {
 				{/* 商品卡片 */}
 				<div>
 					<h3 className='text-lg font-medium mb-3'>Commodities</h3>
-					<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3'>
+					<div className='grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3'>
 						{loading
 							? renderSkeletons(COMMODITIES_SYMBOLS.length)
 							: categories.commodities.map((item) => (
-									<MarketCard
+									<div
+										className='max-w-full w-96'
 										key={item.symbol}
-										name={item.name}
-										price={item.price}
-										change={item.change}
-										changePercent={item.changePercent}
-										className='bg-card hover:bg-card/90 transition-colors'
-									/>
+									>
+										<MarketCard
+											name={item.name}
+											price={item.price}
+											change={item.change}
+											changePercent={item.changePercent}
+											className='bg-card hover:bg-card/90 transition-colors'
+										/>
+									</div>
 								))}
 					</div>
 				</div>

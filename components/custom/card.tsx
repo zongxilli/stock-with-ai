@@ -111,7 +111,7 @@ const MarketCard = React.forwardRef<HTMLDivElement, MarketCardProps>(
 		return (
 			<Card
 				ref={ref}
-				className={cn('overflow-hidden w-52 h-20', className)}
+				className={cn('overflow-hidden w-full h-20', className)}
 				{...props}
 			>
 				<div className='p-3'>
