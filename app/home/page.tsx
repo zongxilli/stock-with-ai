@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { addFakeDataToRedis, getAllRedisData } from '../actions/redis-actions';
+import { getMainIndices } from '../actions/yahoo-finance2-actions';
+
+import MainIndexes from './components/mainIndexes';
 
 import { getLatestMarketAnalysis } from '@/app/actions/marketAnalysis';
 import { Button } from '@/components/ui/button';
@@ -14,6 +17,23 @@ export default function HomePage() {
 	);
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState('');
+	const [indicesData, setIndicesData] = useState<any[]>([]);
+
+	// 初始化加载 - 获取股指数据
+	useEffect(() => {
+		loadIndicesData();
+	}, []);
+
+	// 加载股指数据
+	const loadIndicesData = async () => {
+		try {
+			const data = await getMainIndices();
+			setIndicesData(data);
+		} catch (error) {
+			console.error('加载股指数据失败:', error);
+			setMessage('加载股指数据失败');
+		}
+	};
 
 	// 加载最新市场分析
 	const loadMarketAnalysis = async () => {
@@ -21,6 +41,7 @@ export default function HomePage() {
 		try {
 			const data = await getLatestMarketAnalysis();
 			setMarketAnalysis(data);
+			setMessage('成功加载市场分析数据');
 		} catch (error) {
 			console.error('加载市场分析失败:', error);
 			setMessage('加载市场分析失败');
@@ -49,6 +70,7 @@ export default function HomePage() {
 		try {
 			const data = await getAllRedisData();
 			setRedisData(data);
+			setMessage('成功加载Redis数据');
 		} catch (error) {
 			console.error('获取Redis数据失败:', error);
 			setMessage('获取Redis数据失败');
@@ -57,7 +79,13 @@ export default function HomePage() {
 	};
 
 	return (
-		<div className='p-6'>
+		<div className='w-full'>
+			{/* 主要股指组件 */}
+			<MainIndexes
+				initialData={indicesData}
+				onRefresh={loadIndicesData}
+			/>
+
 			<h1 className='text-2xl font-bold mb-4'>市场分析仪表盘</h1>
 
 			{/* 按钮组 */}
