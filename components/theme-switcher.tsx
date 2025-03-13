@@ -1,22 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 import { IconButton } from '@/components/custom/iconButton';
+import { useIsMounted } from '@/hooks/useIsMounted';
 
 const ThemeSwitcher = () => {
-	const [mounted, setMounted] = useState(false);
+	const isMounted = useIsMounted();
 	const { theme, setTheme } = useTheme();
 
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	if (!mounted) {
-		return null;
+	if (!isMounted) {
+		// 提供一个占位符保持布局稳定
+		return (
+			<IconButton
+				aria-label='Loading Theme'
+				disabled
+				className='opacity-0'
+				children={null}
+			/>
+		);
 	}
 
 	const toggleTheme = () => {
