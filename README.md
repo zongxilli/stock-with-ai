@@ -1,198 +1,214 @@
-# 智能股市分析平台
+# Smart Stock Market Analysis Platform
 
-一个基于Next.js、Prisma、Redis和Supabase构建的股市分析应用，利用AI提供市场见解和交易建议。
+A stock market analysis application built with Next.js, Prisma, Redis, and Supabase, leveraging AI to provide market insights and trading recommendations.
 
-## ✨ 功能特点
+## ✨ Features
 
-- **市场分析仪表盘** - 直观展示市场趋势、情绪评分和波动性分析
-- **投资建议** - 基于AI分析的交易建议和行业洞察
-- **全栈技术** - 使用Next.js App Router架构，支持服务端和客户端组件
-- **数据持久化** - 通过Prisma ORM连接PostgreSQL数据库
-- **高性能缓存** - 使用Redis缓存频繁访问的数据，提升应用性能
-- **用户认证** - 基于Supabase的安全用户验证系统
-- **响应式UI** - 使用Tailwind CSS和shadcn/ui组件库构建的现代界面
-- **深色/浅色模式** - 支持主题切换
+- **Market Analysis Dashboard** - Intuitive visualization of market trends, sentiment scores, and volatility analysis
+- **Real-time Market Data** - Track futures and commodities with auto-refreshing data (5-second intervals)
+- **Investment Recommendations** - AI-powered trading suggestions and sector insights
+- **Dark/Light Mode** - Theme switching for comfortable viewing in any environment
+- **Full-stack Architecture** - Using Next.js App Router with server and client components
+- **Data Persistence** - PostgreSQL database managed through Prisma ORM
+- **High-performance Caching** - Redis for frequently accessed data, improving application performance
+- **Secure Authentication** - User authentication system based on Supabase
+- **Responsive UI** - Modern interface built with Tailwind CSS and shadcn/ui component library
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 前提条件
+### Prerequisites
 
-- Node.js 18+ 和 npm/yarn
-- Supabase账号 (已设置)
-- Redis数据库 (本地或云服务，如Redis Cloud)
+- Node.js 18+ and npm/yarn
+- Supabase account (set up)
+- Redis database (local or cloud service like Redis Cloud)
 
-### 安装步骤
+### Installation Steps
 
-1. 克隆仓库
+1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/stock-with-ai.git
-cd stock-with-ai
+git clone https://github.com/your-username/smart-stock-analysis.git
+cd smart-stock-analysis
 ```
 
-2. 安装依赖
+2. Install dependencies
 
 ```bash
 npm install
-# 或
+# or
 yarn install
 ```
 
-3. 配置环境变量
+3. Configure environment variables
 
-环境变量已配置：
+Environment variables are already configured:
 
-- `.env` - 包含数据库连接信息
-- `.env.local` - 包含Supabase认证信息和Redis连接URL
+- `.env` - Contains database connection information
+- `.env.local` - Contains Supabase authentication info and Redis connection URL
 
-示例 `.env.local` 配置：
+Example `.env.local` configuration:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=你的Supabase_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=你的Supabase密钥
-REDIS_URL=redis://default:你的密码@redis-host:port
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+REDIS_URL=redis://default:your_password@redis-host:port
 ```
 
-4. 初始化数据库
+4. Initialize the database
 
 ```bash
-# 执行prisma迁移
+# Run prisma migrations
 npx prisma migrate dev
 
-# 填充示例数据
+# Seed sample data
 npm run seed
 ```
 
-5. 运行开发服务器
+5. Run the development server
 
 ```bash
 npm run dev
-# 或
+# or
 yarn dev
 ```
 
-6. 打开浏览器访问 [http://localhost:3000](http://localhost:3000)
+6. Open your browser and visit [http://localhost:3000](http://localhost:3000)
 
-## 📚 项目结构说明
+## 📚 Project Structure
 
 ```
-stock-with-ai/
-├── app/                  # Next.js 13+ App Router目录
-│   ├── actions/          # 服务器端动作(Server Actions)
-│   │   └── redis-actions.ts # Redis操作动作
-│   ├── (auth-pages)/     # 认证相关页面路由组
-│   ├── home/             # 首页
-│   └── protected/        # 需要登录才能访问的页面
-├── components/           # 可复用的React组件
-├── lib/                  # 核心库文件
-│   ├── prisma.ts         # Prisma客户端初始化
-│   ├── redis.ts          # Redis客户端初始化和工具函数
-│   ├── services/         # 服务层
-│   └── utils.ts          # 通用工具函数
-├── prisma/               # Prisma相关文件
-│   ├── migrations/       # 数据库迁移文件
-│   ├── schema.prisma     # 数据库模型定义
-│   └── seeds/            # 数据填充脚本
-└── utils/                # 实用工具
-    └── supabase/         # Supabase客户端工具
+smart-stock-analysis/
+├── app/                  # Next.js 13+ App Router directory
+│   ├── actions/          # Server Actions
+│   │   ├── marketAnalysis.ts    # Market data actions
+│   │   ├── redis-actions.ts     # Redis operations
+│   │   └── yahoo-finance2-actions.ts # Yahoo Finance API integration
+│   ├── (auth-pages)/     # Authentication-related page routes
+│   ├── home/             # Home page and components
+│   └── protected/        # Pages requiring authentication
+├── components/           # Reusable React components
+│   ├── custom/           # Custom components like cards and market elements
+│   └── ui/               # UI components from shadcn/ui
+├── hooks/                # Custom React hooks
+├── lib/                  # Core library files
+│   ├── prisma.ts         # Prisma client initialization
+│   ├── redis.ts          # Redis client initialization and utility functions
+│   ├── services/         # Service layer
+│   └── utils.ts          # General utility functions
+├── prisma/               # Prisma-related files
+│   ├── migrations/       # Database migration files
+│   ├── schema.prisma     # Database model definitions
+│   └── seeds/            # Data seeding scripts
+├── stores/               # State management with Zustand
+└── utils/                # Utility tools
+    └── supabase/         # Supabase client utilities
 ```
 
-## 💡 技术栈简介
+## 💡 Technology Stack
 
-- **Next.js**：基于React的全栈框架，支持服务端渲染(SSR)、静态生成(SSG)和客户端渲染
-- **Prisma**：现代ORM(对象关系映射)工具，简化数据库操作
-- **Redis**：高性能内存数据库，用于缓存和临时数据存储
-- **Supabase**：开源的Firebase替代品，提供认证、数据库等服务
-- **PostgreSQL**：强大的开源关系型数据库
-- **TypeScript**：JavaScript的超集，提供类型检查
-- **Tailwind CSS**：实用优先的CSS框架
-- **shadcn/ui**：基于Radix UI的组件库，高度可定制
+- **Next.js**: Full-stack React framework supporting SSR, SSG, and client-side rendering
+- **Prisma**: Modern ORM tool simplifying database operations
+- **Redis**: High-performance in-memory database for caching and temporary data storage
+- **Supabase**: Open-source Firebase alternative providing authentication and database services
+- **PostgreSQL**: Powerful open-source relational database
+- **TypeScript**: JavaScript superset providing type checking
+- **Tailwind CSS**: Utility-first CSS framework
+- **shadcn/ui**: Component library based on Radix UI, highly customizable
+- **Zustand**: Lightweight state management solution
+- **Yahoo Finance API**: Real-time financial data integration
+- **Recharts**: Composable charting library for data visualization
 
-## 📊 数据模型
+## 📊 Data Models
 
-项目使用的主要数据模型`MarketAnalysis`包含以下字段：
+The main data model `MarketAnalysis` includes the following fields:
 
-- `id`: UUID - 唯一标识符
-- `date`: String - 分析日期
-- `summary`: String - 市场总结
-- `sentimentScore`: Float - 市场情绪评分
-- `safetyScore`: Float - 安全交易评分
-- `marketTrend`: String - 市场趋势(看涨/看跌/中性)
-- `volatilityLevel`: Float - 波动级别
-- `topGainers`: Json - 表现最佳的股票
-- `topLosers`: Json - 表现最差的股票
-- `keyEvents`: String - 关键市场事件
-- `tradingSuggestions`: String - 交易建议
-- `sectors`: Json - 行业分析数据
+- `id`: UUID - Unique identifier
+- `date`: String - Analysis date
+- `summary`: String - Market summary
+- `sentimentScore`: Float - Market sentiment score
+- `safetyScore`: Float - Safety trading score
+- `marketTrend`: String - Market trend (bullish/bearish/neutral)
+- `volatilityLevel`: Float - Volatility level
+- `topGainers`: Json - Best-performing stocks
+- `topLosers`: Json - Worst-performing stocks
+- `keyEvents`: String - Key market events
+- `tradingSuggestions`: String - Trading recommendations
+- `sectors`: Json - Industry sector analysis data
 
-## 🔧 常用命令
+## 🔧 Common Commands
 
 ```bash
-# 开发模式
+# Development mode
 npm run dev
 
-# 构建项目
+# Build project
 npm run build
 
-# 生产环境运行
+# Production run
 npm run start
 
-# 数据填充
+# Database seeding
 npm run seed
 
-# 代码风格检查
+# Code style check
 npm run lint
 
-# 代码风格自动修复
+# Automatic code style fix
 npm run lint:fix
 ```
 
-## 🗄️ Redis数据管理
+## 🗄️ Redis Data Management
 
-本项目使用Redis作为缓存层，提供以下功能：
+This project uses Redis as a caching layer, providing the following features:
 
-- 缓存频繁访问的市场分析数据，减少数据库查询
-- 存储临时数据和会话信息
-- 提高应用响应速度和用户体验
+- Caching frequently accessed market analysis data, reducing database queries
+- Storing temporary data and session information
+- Improving application response speed and user experience
 
-Redis数据操作示例：
+Redis data operations example:
 
 ```typescript
 import { setCache, getCache } from '@/lib/redis';
 
-// 存储数据到Redis (设置1小时过期)
+// Store data in Redis (set 1-hour expiration)
 await setCache('market:latest', marketData, 3600);
 
-// 从Redis获取数据
+// Get data from Redis
 const cachedData = await getCache('market:latest');
 
-// 如果缓存未命中，则从数据库获取
+// If cache miss, get from database
 if (!cachedData) {
-	// 从数据库获取数据...
+	// Get data from database...
 }
 ```
 
-在首页上，你可以使用简单的UI界面操作Redis：
+On the home page, real-time market data is cached for 4 seconds to balance freshness and performance.
 
-- 添加随机数据到Redis
-- 查看当前Redis中的所有数据
-- 直观了解Redis的工作机制
+## 📈 Real-time Market Data
 
-## 📝 后续计划
+The platform integrates with Yahoo Finance API to provide real-time updates on:
 
-- [ ] 添加实时市场数据API集成
-- [ ] 实现个人投资组合管理
-- [ ] 开发自动化交易策略测试平台
-- [ ] 加入社区功能，分享投资见解
-- [ ] 优化移动端体验
-- [ ] 扩展Redis缓存策略，提升应用性能
-- [ ] 实现Redis缓存与数据库之间的数据同步
+- **Futures Markets**: S&P, Dow, Nasdaq, and Russell 2000
+- **Commodities**: Crude Oil and Gold
 
-## 📄 许可证
+Data is refreshed automatically every 5 seconds to provide timely market information.
+
+## 📝 Future Plans
+
+- [ ] Enhanced AI analysis with predictive capabilities
+- [ ] Personal portfolio management
+- [ ] Automated trading strategy testing platform
+- [ ] Community features for sharing investment insights
+- [ ] Mobile app development
+- [ ] Advanced Redis caching strategies for improved performance
+- [ ] Data synchronization between Redis cache and database
+- [ ] Additional technical indicators and chart patterns recognition
+
+## 📄 License
 
 [MIT](LICENSE)
 
-## 🙏 致谢
+## 🙏 Acknowledgements
 
 - [Next.js](https://nextjs.org/)
 - [Supabase](https://supabase.com/)
@@ -200,3 +216,4 @@ if (!cachedData) {
 - [Redis](https://redis.io/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [shadcn/ui](https://ui.shadcn.com/)
+- [Yahoo Finance](https://finance.yahoo.com/)
