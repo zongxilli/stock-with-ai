@@ -19,7 +19,7 @@ module.exports = defineConfig([
 		// 所有JavaScript和TypeScript文件的基本配置
 		files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
 		rules: {
-			'no-console': 'warn',
+			// 'no-console': 'warn',
 			semi: ['warn', 'always'],
 			quotes: ['warn', 'single'],
 			'no-unused-vars': 'off',
