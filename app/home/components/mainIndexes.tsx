@@ -2,11 +2,6 @@
 
 import { useState, useEffect } from 'react';
 
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
-
-import { Card, CardContent } from '@/components/custom/card';
-
-// 定义指数数据类型
 interface IndexData {
 	symbol: string;
 	name: string;
@@ -45,10 +40,10 @@ export default function MainIndexes({
 					await onRefresh();
 					setLastUpdated(new Date().toLocaleTimeString());
 				} catch (error) {
-					console.error('Failed to refresh indices data:', error);
+					console.error('Failed to refresh market data:', error);
 				}
 			}
-		}, 5000); // 5秒刷新一次
+		}, 5000);
 
 		// 清理定时器
 		return () => clearInterval(refreshInterval);
@@ -71,104 +66,146 @@ export default function MainIndexes({
 		});
 	};
 
-	// 格式化日期和时间
-	const formatDateTime = (timestamp: number | undefined) => {
-		if (!timestamp) return 'N/A';
-
-		// 确保时间戳是13位的毫秒格式
-		const timestampMs =
-			String(timestamp).length === 10
-				? timestamp * 1000 // 如果是10位秒级时间戳，转换为毫秒
-				: timestamp; // 如果已经是13位毫秒级时间戳，保持不变
-
-		try {
-			return new Date(timestampMs).toLocaleString('en-US');
-		} catch (error) {
-			console.error('Invalid date format:', timestamp);
-			return 'N/A';
-		}
+	// 格式化价格变化
+	const formatChange = (change: number | undefined) => {
+		if (change === undefined) return 'N/A';
+		return change > 0 ? `+${formatNumber(change)}` : formatNumber(change);
 	};
+
+	// 格式化百分比变化
+	const formatPercentChange = (change: number | undefined) => {
+		if (change === undefined) return 'N/A';
+		return change > 0
+			? `(+${change.toFixed(2)}%)`
+			: `(${change.toFixed(2)}%)`;
+	};
+
+	// 分类指数
+	const categorizeIndices = () => {
+		const futuresSymbols = ['ES=F', 'YM=F', 'NQ=F', 'RTY=F'];
+		const commoditiesSymbols = ['CL=F', 'GC=F'];
+
+		return {
+			futures: indices.filter((item) =>
+				futuresSymbols.includes(item.symbol)
+			),
+			commodities: indices.filter((item) =>
+				commoditiesSymbols.includes(item.symbol)
+			),
+		};
+	};
+
+	const categories = categorizeIndices();
 
 	if (indices.length === 0) {
 		return (
 			<div className='w-full p-4 text-center'>
-				<p>Loading market indices data...</p>
+				<p>Loading market data...</p>
 			</div>
 		);
 	}
 
+	// 创建小型图表图标 (模拟)
+	const MiniChart = ({ positive }: { positive: boolean }) => (
+		<div
+			className={`h-6 w-16 flex items-center ${positive ? 'text-green-500' : 'text-red-500'}`}
+		>
+			<svg viewBox='0 0 50 12' className='w-full h-full'>
+				<path
+					d={
+						positive
+							? 'M0,6 Q5,2 10,7 T20,6 T30,5 T40,2 T50,4'
+							: 'M0,6 Q5,10 10,3 T20,6 T30,7 T40,10 T50,8'
+					}
+					fill='none'
+					stroke='currentColor'
+					strokeWidth='1.5'
+				/>
+			</svg>
+		</div>
+	);
+
 	return (
 		<div className='w-full mb-6'>
-			<div className='flex justify-between items-center mb-4'>
-				<h2 className='text-xl font-semibold'>Major Market Indices</h2>
-				{lastUpdated && (
-					<span className='text-xs text-muted-foreground'>
-						Last updated: {lastUpdated}
-					</span>
-				)}
+			{/* 页签栏 */}
+			<div className='flex border-b mb-4'>
+				<div className='px-4 py-2 text-white bg-blue-600 font-medium rounded-t-md'>
+					US
+				</div>
+				<div className='px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer'>
+					Europe
+				</div>
+				<div className='px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer'>
+					Asia
+				</div>
+				<div className='px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer'>
+					Rates
+				</div>
+				<div className='px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer'>
+					Commodities
+				</div>
 			</div>
 
-			<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-				{indices.map((index) => (
-					<Card key={index.symbol} className='overflow-hidden'>
-						<CardContent className='p-4'>
-							<div className='flex flex-col gap-2'>
-								<div className='flex justify-between items-start'>
-									<h3 className='font-semibold'>
-										{index.name}
-									</h3>
-									<span className='text-xs text-muted-foreground'>
-										{index.symbol}
-									</span>
-								</div>
-
-								<div className='flex justify-between items-end'>
-									<span className='text-2xl font-bold'>
-										{formatNumber(index.price)}
-									</span>
-									<div
-										className={`flex items-center ${index.change >= 0 ? 'text-green-500' : 'text-red-500'}`}
-									>
-										{index.change >= 0 ? (
-											<ArrowUpRight size={18} />
-										) : (
-											<ArrowDownRight size={18} />
-										)}
-										<span className='font-medium'>
-											{formatNumber(index.change)} (
-											{formatNumber(index.changePercent)}
-											%)
-										</span>
-									</div>
-								</div>
-
-								<div className='grid grid-cols-2 gap-2 mt-2 text-sm'>
-									<div className='flex justify-between'>
-										<span className='text-muted-foreground'>
-											High
-										</span>
-										<span>
-											{formatNumber(index.dayHigh)}
-										</span>
-									</div>
-									<div className='flex justify-between'>
-										<span className='text-muted-foreground'>
-											Low
-										</span>
-										<span>
-											{formatNumber(index.dayLow)}
-										</span>
-									</div>
-								</div>
-
-								<div className='text-xs text-muted-foreground mt-2'>
-									Market time:{' '}
-									{formatDateTime(index.marketTime)}
-								</div>
+			{/* 市场数据 */}
+			<div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0.5 border border-gray-200 rounded-md overflow-hidden bg-gray-200'>
+				{/* 期货 */}
+				{categories.futures.map((item) => (
+					<div key={item.symbol} className='bg-black text-white p-4'>
+						<div className='text-sm font-medium mb-1'>
+							{item.name}
+						</div>
+						<div className='text-xl font-bold'>
+							{formatNumber(item.price)}
+						</div>
+						<div className='flex items-center space-x-2'>
+							<MiniChart positive={item.change >= 0} />
+							<div
+								className={
+									item.change >= 0
+										? 'text-green-500'
+										: 'text-red-500'
+								}
+							>
+								<span>{formatChange(item.change)}</span>
+								<span className='ml-1'>
+									{formatPercentChange(item.changePercent)}
+								</span>
 							</div>
-						</CardContent>
-					</Card>
+						</div>
+					</div>
 				))}
+
+				{/* 商品 */}
+				{categories.commodities.map((item) => (
+					<div key={item.symbol} className='bg-black text-white p-4'>
+						<div className='text-sm font-medium mb-1'>
+							{item.name}
+						</div>
+						<div className='text-xl font-bold'>
+							{formatNumber(item.price)}
+						</div>
+						<div className='flex items-center space-x-2'>
+							<MiniChart positive={item.change >= 0} />
+							<div
+								className={
+									item.change >= 0
+										? 'text-green-500'
+										: 'text-red-500'
+								}
+							>
+								<span>{formatChange(item.change)}</span>
+								<span className='ml-1'>
+									{formatPercentChange(item.changePercent)}
+								</span>
+							</div>
+						</div>
+					</div>
+				))}
+			</div>
+
+			{/* 更新时间提示 */}
+			<div className='text-xs text-right text-gray-500 mt-1'>
+				Last updated: {lastUpdated}
 			</div>
 		</div>
 	);

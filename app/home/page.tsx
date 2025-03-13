@@ -18,10 +18,15 @@ export default function HomePage() {
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState('');
 	const [indicesData, setIndicesData] = useState<any[]>([]);
+	// 仅在客户端使用时间戳
+	const [timeStamp, setTimeStamp] = useState<string>('');
 
 	// 初始化加载 - 获取股指数据
 	useEffect(() => {
 		loadIndicesData();
+
+		// 仅在客户端设置时间戳
+		setTimeStamp(new Date().toISOString());
 	}, []);
 
 	// 加载股指数据
@@ -42,6 +47,8 @@ export default function HomePage() {
 			const data = await getLatestMarketAnalysis();
 			setMarketAnalysis(data);
 			setMessage('成功加载市场分析数据');
+			// 更新时间戳
+			setTimeStamp(new Date().toISOString());
 		} catch (error) {
 			console.error('加载市场分析失败:', error);
 			setMessage('加载市场分析失败');
@@ -71,6 +78,8 @@ export default function HomePage() {
 			const data = await getAllRedisData();
 			setRedisData(data);
 			setMessage('成功加载Redis数据');
+			// 更新时间戳
+			setTimeStamp(new Date().toISOString());
 		} catch (error) {
 			console.error('获取Redis数据失败:', error);
 			setMessage('获取Redis数据失败');
@@ -115,6 +124,16 @@ export default function HomePage() {
 			{message && (
 				<div className='p-3 mb-4 bg-muted border rounded-md'>
 					{message}
+				</div>
+			)}
+
+			{/* 最近更新时间戳 - 使用suppressHydrationWarning */}
+			{timeStamp && (
+				<div
+					suppressHydrationWarning
+					className='text-xs text-muted-foreground mb-4'
+				>
+					Market data updated at: {timeStamp}
 				</div>
 			)}
 
