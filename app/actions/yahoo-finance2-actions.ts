@@ -26,7 +26,7 @@ export async function getMainIndices() {
 				const quote = await yahooFinance.quote(symbol);
 				return {
 					symbol,
-					name: getIndexFullName(symbol),
+					name: quote.shortName || getIndexFullName(symbol), // 优先使用API返回的名称
 					price: quote.regularMarketPrice,
 					change: quote.regularMarketChange,
 					changePercent: quote.regularMarketChangePercent,
@@ -38,24 +38,24 @@ export async function getMainIndices() {
 		);
 
 		// 保存结果到Redis缓存，设置5分钟过期时间
-		await setCache('main_indices', results, 300);
+		await setCache('main_indices', results, 15);
 
 		return results;
 	} catch (error) {
-		console.error('获取股指数据失败:', error);
-		throw new Error('获取股指数据失败');
+		console.error('Failed to fetch market indices:', error);
+		throw new Error('Failed to fetch market indices');
 	}
 }
 
-// 获取指数的完整名称
+// 获取指数的完整英文名称（作为备用）
 function getIndexFullName(symbol: string): string {
 	switch (symbol) {
 		case '^GSPC':
-			return '标普500指数';
+			return 'S&P 500 Index';
 		case '^DJI':
-			return '道琼斯工业平均指数';
+			return 'Dow Jones Industrial Average';
 		case '^IXIC':
-			return '纳斯达克综合指数';
+			return 'NASDAQ Composite';
 		default:
 			return symbol;
 	}
