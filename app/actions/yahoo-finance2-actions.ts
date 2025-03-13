@@ -12,11 +12,16 @@ export async function getMainIndices() {
 		return cachedIndices;
 	}
 
-	// 需要获取的主要指数代码
+	// 需要获取的期货和商品代码
 	const symbols = [
-		'^GSPC', // 标普500
-		'^DJI', // 道琼斯工业平均指数
-		'^IXIC', // 纳斯达克综合指数
+		// 期货
+		'ES=F', // 标普500期货
+		'YM=F', // 道琼斯期货
+		'NQ=F', // 纳斯达克期货
+		'RTY=F', // 罗素2000期货
+		// 商品
+		'CL=F', // 原油期货
+		'GC=F', // 黄金期货
 	];
 
 	try {
@@ -37,8 +42,8 @@ export async function getMainIndices() {
 			})
 		);
 
-		// 保存结果到Redis缓存，设置5分钟过期时间
-		await setCache('main_indices', results, 15);
+		// 保存结果到Redis缓存，设置8秒过期时间（略大于前端5秒刷新间隔）
+		await setCache('main_indices', results, 4);
 
 		return results;
 	} catch (error) {
@@ -47,15 +52,23 @@ export async function getMainIndices() {
 	}
 }
 
-// 获取指数的完整英文名称（作为备用）
+// 获取期货和商品的简短名称
 function getIndexFullName(symbol: string): string {
 	switch (symbol) {
-		case '^GSPC':
-			return 'S&P 500 Index';
-		case '^DJI':
-			return 'Dow Jones Industrial Average';
-		case '^IXIC':
-			return 'NASDAQ Composite';
+		// 期货
+		case 'ES=F':
+			return 'S&P Futures';
+		case 'YM=F':
+			return 'Dow Futures';
+		case 'NQ=F':
+			return 'Nasdaq Futures';
+		case 'RTY=F':
+			return 'Russell 2000';
+		// 商品
+		case 'CL=F':
+			return 'Crude Oil';
+		case 'GC=F':
+			return 'Gold';
 		default:
 			return symbol;
 	}
