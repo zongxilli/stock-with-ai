@@ -26,7 +26,8 @@
 		"prisma": "^6.4.1",
 		"react": "19.0.0",
 		"react-dom": "19.0.0",
-		"redis": "^4.7.0"
+		"redis": "^4.7.0",
+		"yahoo-finance2": "^2.13.3"
 	},
 	"devDependencies": {
 		"@types/node": "22.10.2",
