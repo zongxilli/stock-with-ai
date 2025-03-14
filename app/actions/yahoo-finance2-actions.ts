@@ -84,6 +84,9 @@ export async function getStockRealTimeData(symbol: string) {
 			open: quote.regularMarketOpen,
 			fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
 			fiftyTwoWeekLow: quote.fiftyTwoWeekLow,
+			// 新增市场状态信息
+			marketState: quote.marketState, // 'REGULAR', 'PRE', 'POST', 'CLOSED' 等
+			exchangeName: quote.fullExchangeName || quote.exchange,
 			lastUpdated: new Date().toISOString(),
 		};
 

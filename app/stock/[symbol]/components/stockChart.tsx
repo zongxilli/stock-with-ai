@@ -26,6 +26,8 @@ interface StockChartProps {
 	isPartialDay?: boolean; // 表示是否是交易中的部分日数据
 	previousClose?: number; // 前一交易日收盘价
 	currentPrice?: number; // 当前价格
+	marketState?: string; // 市场状态：REGULAR（交易中）, PRE（盘前）, POST（盘后）, CLOSED（已关闭）
+	exchangeName?: string; // 交易所名称
 }
 
 export default function StockChart({
@@ -34,10 +36,43 @@ export default function StockChart({
 	isPartialDay,
 	previousClose,
 	currentPrice,
+	marketState,
+	exchangeName,
 }: StockChartProps) {
 	// 获取当前主题
 	const { theme } = useTheme();
 	const isDarkTheme = theme === 'dark';
+
+	// 确定是否显示交易状态提示
+	const showMarketStatus = range === '1d' && marketState && exchangeName;
+
+	// 根据市场状态生成状态文本
+	const getMarketStatusText = () => {
+		if (!marketState) return '';
+
+		// 获取交易所缩写
+		let exchangeShort = 'ET'; // 默认使用美东时间
+		if (exchangeName) {
+			if (exchangeName.includes('NASDAQ')) exchangeShort = 'NASDAQ';
+			else if (exchangeName.includes('NYSE')) exchangeShort = 'NYSE';
+			else if (exchangeName.includes('Shanghai')) exchangeShort = 'SSE';
+			else if (exchangeName.includes('Shenzhen')) exchangeShort = 'SZSE';
+			else if (exchangeName.includes('Hong Kong')) exchangeShort = 'HKEX';
+		}
+
+		switch (marketState) {
+			case 'REGULAR':
+				return `Market hours • ${exchangeShort} • Trading in progress`;
+			case 'PRE':
+				return `Pre-market • ${exchangeShort}`;
+			case 'POST':
+				return `After hours • ${exchangeShort}`;
+			case 'CLOSED':
+				return `Market closed • ${exchangeShort}`;
+			default:
+				return `${marketState} • ${exchangeShort}`;
+		}
+	};
 
 	// 如果没有数据，显示提示信息
 	if (!data || data.length === 0) {
@@ -233,9 +268,9 @@ export default function StockChart({
 
 	return (
 		<div className='h-full w-full'>
-			{isPartialDay && range === '1d' && (
+			{showMarketStatus && (
 				<div className='text-xs text-muted-foreground mb-2 text-center'>
-					Market hours: 9:30 AM - 4:00 PM ET • Trading in progress
+					{getMarketStatusText()}
 				</div>
 			)}
 

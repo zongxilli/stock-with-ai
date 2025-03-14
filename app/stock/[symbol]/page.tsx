@@ -25,6 +25,8 @@ interface StockRealTimeData {
 	open: number;
 	fiftyTwoWeekHigh: number;
 	fiftyTwoWeekLow: number;
+	marketState?: string; // 新增：市场状态
+	exchangeName?: string; // 新增：交易所名称
 	lastUpdated: string;
 }
 
@@ -212,6 +214,8 @@ export default function StockPage() {
 						isPartialDay={chartData.isPartialDay}
 						previousClose={realTimeData?.previousClose}
 						currentPrice={realTimeData?.price}
+						marketState={realTimeData?.marketState}
+						exchangeName={realTimeData?.exchangeName}
 					/>
 				)}
 			</div>
