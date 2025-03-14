@@ -217,7 +217,7 @@ export default function StockPage() {
 			{/* 显示最后更新时间 */}
 			{lastUpdated && (
 				<div className='text-xs text-right text-gray-500 mt-4'>
-					Last updated: {lastUpdated} (Auto-refreshing)
+					Last updated: {lastUpdated}
 				</div>
 			)}
 		</div>
