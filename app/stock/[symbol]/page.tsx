@@ -210,6 +210,8 @@ export default function StockPage() {
 						data={chartData.quotes}
 						range={range}
 						isPartialDay={chartData.isPartialDay}
+						previousClose={realTimeData?.previousClose}
+						currentPrice={realTimeData?.price}
 					/>
 				)}
 			</div>

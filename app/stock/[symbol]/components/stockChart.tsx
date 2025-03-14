@@ -24,12 +24,16 @@ interface StockChartProps {
 	}>;
 	range: string;
 	isPartialDay?: boolean; // 表示是否是交易中的部分日数据
+	previousClose?: number; // 前一交易日收盘价
+	currentPrice?: number; // 当前价格
 }
 
 export default function StockChart({
 	data,
 	range,
 	isPartialDay,
+	previousClose,
+	currentPrice,
 }: StockChartProps) {
 	// 获取当前主题
 	const { theme } = useTheme();
@@ -164,20 +168,31 @@ export default function StockChart({
 		return null;
 	};
 
-	// 找到最后一个有效的价格点（用于确定颜色趋势）
-	const validDataPoints = data.filter((item) => item.close !== null);
-	const firstValidPrice =
-		validDataPoints.length > 0 ? validDataPoints[0].close : null;
-	const lastValidPrice =
-		validDataPoints.length > 0
-			? validDataPoints[validDataPoints.length - 1].close
-			: null;
+	// 使用当前价格与前一交易日收盘价比较来确定涨跌趋势
+	let isPositiveTrend = false;
 
-	// 确定股票价格走势的颜色
-	const isPositiveTrend =
-		lastValidPrice !== null &&
-		firstValidPrice !== null &&
-		lastValidPrice >= firstValidPrice;
+	// 1D视图：使用当前价格与前一交易日收盘价比较
+	if (
+		range === '1d' &&
+		currentPrice !== undefined &&
+		previousClose !== undefined
+	) {
+		isPositiveTrend = currentPrice >= previousClose;
+	} else {
+		// 其他视图：使用图表数据中的第一个和最后一个价格点比较
+		const validDataPoints = data.filter((item) => item.close !== null);
+		const firstValidPrice =
+			validDataPoints.length > 0 ? validDataPoints[0].close : null;
+		const lastValidPrice =
+			validDataPoints.length > 0
+				? validDataPoints[validDataPoints.length - 1].close
+				: null;
+
+		isPositiveTrend =
+			lastValidPrice !== null &&
+			firstValidPrice !== null &&
+			lastValidPrice >= firstValidPrice;
+	}
 
 	// 获取图表颜色 - 只在1D视图根据涨跌使用红绿色，其他视图使用蓝色
 	const getChartColor = () => {
