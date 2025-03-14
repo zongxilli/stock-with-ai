@@ -213,33 +213,6 @@ export default function StockChart({
 		? 'rgba(255, 255, 255, 0.7)'
 		: 'rgba(0, 0, 0, 0.7)';
 
-	// 处理部分交易日视图特殊标记
-	const renderPartialDayMarker = () => {
-		if (isPartialDay && range === '1d') {
-			// 找到第一个没有数据的点
-			const firstNullIndex = data.findIndex(
-				(item) => item.close === null
-			);
-			if (firstNullIndex === -1) return null;
-
-			// 计算这个点在图表上的位置百分比
-			const position = (firstNullIndex / data.length) * 100;
-
-			return (
-				<line
-					x1={`${position}%`}
-					y1='0%'
-					x2={`${position}%`}
-					y2='100%'
-					stroke={axisColor}
-					strokeWidth='1'
-					strokeDasharray='5,5'
-				/>
-			);
-		}
-		return null;
-	};
-
 	// 生成渐变ID - 使其唯一以避免多个图表共享相同渐变
 	const gradientId = `colorClose_${range}_${isPositiveTrend ? 'up' : 'down'}`;
 
@@ -301,9 +274,6 @@ export default function StockChart({
 					/>
 
 					<Tooltip content={<CustomTooltip />} />
-
-					{/* 自定义部分交易日标记 */}
-					{renderPartialDayMarker()}
 
 					<Area
 						type='monotone'
