@@ -47,7 +47,7 @@ export function Footer() {
 
 export function Body(children: React.ReactNode) {
 	return (
-		<div className='container p-4 md:p-6 lg:p-8 flex-col justify-center items-center mt-16 mb-4 bg-red-50'>
+		<div className='container p-4 md:p-6 lg:p-8 flex-col justify-center items-center mt-16 mb-4'>
 			{children}
 		</div>
 	);

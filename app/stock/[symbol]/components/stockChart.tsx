@@ -1,5 +1,6 @@
 'use client';
 
+import { useTheme } from 'next-themes';
 import {
 	Area,
 	AreaChart,
@@ -10,7 +11,6 @@ import {
 	YAxis,
 } from 'recharts';
 
-// 更新 props 类型定义，添加 isPartialDay 属性
 interface StockChartProps {
 	data: Array<{
 		date: Date;
@@ -23,7 +23,7 @@ interface StockChartProps {
 		adjclose?: number | null;
 	}>;
 	range: string;
-	isPartialDay?: boolean; // 新增属性，表示是否是交易中的部分日数据
+	isPartialDay?: boolean; // 表示是否是交易中的部分日数据
 }
 
 export default function StockChart({
@@ -31,6 +31,10 @@ export default function StockChart({
 	range,
 	isPartialDay,
 }: StockChartProps) {
+	// 获取当前主题
+	const { theme } = useTheme();
+	const isDarkTheme = theme === 'dark';
+
 	// 如果没有数据，显示提示信息
 	if (!data || data.length === 0) {
 		return (
@@ -115,24 +119,18 @@ export default function StockChart({
 			}
 
 			return (
-				<div className='bg-popover border rounded shadow-md p-3 text-sm'>
+				<div className='bg-popover border rounded shadow-md p-3 text-sm text-popover-foreground'>
 					<p className='font-medium mb-1'>
 						{dataPoint.dateFormatted}
 					</p>
-					<p className='text-muted-foreground'>
-						Open: {formatPrice(dataPoint.open)}
-					</p>
-					<p className='text-muted-foreground'>
-						High: {formatPrice(dataPoint.high)}
-					</p>
-					<p className='text-muted-foreground'>
-						Low: {formatPrice(dataPoint.low)}
-					</p>
+					<p>Open: {formatPrice(dataPoint.open)}</p>
+					<p>High: {formatPrice(dataPoint.high)}</p>
+					<p>Low: {formatPrice(dataPoint.low)}</p>
 					<p className='font-medium'>
 						Close: {formatPrice(dataPoint.close)}
 					</p>
 					{dataPoint.volume && (
-						<p className='text-muted-foreground mt-1'>
+						<p className='mt-1'>
 							Volume: {dataPoint.volume.toLocaleString()}
 						</p>
 					)}
@@ -152,12 +150,44 @@ export default function StockChart({
 			: null;
 
 	// 确定股票价格走势的颜色
-	const trendColor =
+	const isPositiveTrend =
 		lastValidPrice !== null &&
 		firstValidPrice !== null &&
-		lastValidPrice >= firstValidPrice
-			? 'var(--chart-1)' // 绿色
-			: 'var(--destructive)'; // 红色
+		lastValidPrice >= firstValidPrice;
+
+	// 获取图表颜色 - 只在1D视图根据涨跌使用红绿色，其他视图使用蓝色
+	const getChartColor = () => {
+		if (range === '1d') {
+			// 在1D视图下根据涨跌使用红绿色
+			if (isPositiveTrend) {
+				// 上涨为绿色
+				return isDarkTheme
+					? 'hsl(142, 71%, 45%)'
+					: 'hsl(142, 76%, 36%)'; // 更亮/更暗的绿色
+			} else {
+				// 下跌为红色
+				return isDarkTheme ? 'hsl(0, 84%, 60%)' : 'hsl(0, 84%, 60%)'; // 红色
+			}
+		} else {
+			// 其他视图使用蓝色
+			return isDarkTheme ? 'hsl(220, 70%, 60%)' : 'hsl(220, 70%, 50%)'; // 亮蓝/暗蓝
+		}
+	};
+
+	const trendColor = getChartColor();
+
+	// 确定网格线和轴线颜色
+	const gridColor = isDarkTheme
+		? 'rgba(255, 255, 255, 0.1)'
+		: 'rgba(0, 0, 0, 0.1)';
+	const axisColor = isDarkTheme
+		? 'rgba(255, 255, 255, 0.3)'
+		: 'rgba(0, 0, 0, 0.3)';
+
+	// 确定文字颜色
+	const textColor = isDarkTheme
+		? 'rgba(255, 255, 255, 0.7)'
+		: 'rgba(0, 0, 0, 0.7)';
 
 	// 处理部分交易日视图特殊标记
 	const renderPartialDayMarker = () => {
@@ -177,7 +207,7 @@ export default function StockChart({
 					y1='0%'
 					x2={`${position}%`}
 					y2='100%'
-					stroke='var(--muted-foreground)'
+					stroke={axisColor}
 					strokeWidth='1'
 					strokeDasharray='5,5'
 				/>
@@ -185,6 +215,9 @@ export default function StockChart({
 		}
 		return null;
 	};
+
+	// 生成渐变ID - 使其唯一以避免多个图表共享相同渐变
+	const gradientId = `colorClose_${range}_${isPositiveTrend ? 'up' : 'down'}`;
 
 	return (
 		<div className='h-full w-full'>
@@ -201,7 +234,7 @@ export default function StockChart({
 				>
 					<defs>
 						<linearGradient
-							id='colorClose'
+							id={gradientId}
 							x1='0'
 							y1='0'
 							x2='0'
@@ -222,23 +255,23 @@ export default function StockChart({
 
 					<CartesianGrid
 						strokeDasharray='3 3'
-						stroke='var(--border)'
+						stroke={gridColor}
 						vertical={false}
 					/>
 
 					<XAxis
 						dataKey='dateFormatted'
-						tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
+						tick={{ fontSize: 12, fill: textColor }}
 						ticks={generateXAxisTicks()}
 						tickMargin={10}
-						axisLine={{ stroke: 'var(--border)' }}
+						axisLine={{ stroke: axisColor }}
 					/>
 
 					<YAxis
 						domain={yAxisDomain}
 						tickFormatter={formatPrice}
-						tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
-						axisLine={{ stroke: 'var(--border)' }}
+						tick={{ fontSize: 12, fill: textColor }}
+						axisLine={{ stroke: axisColor }}
 						tickMargin={10}
 						width={60}
 					/>
@@ -253,12 +286,12 @@ export default function StockChart({
 						dataKey='close'
 						stroke={trendColor}
 						fillOpacity={1}
-						fill='url(#colorClose)'
+						fill={`url(#${gradientId})`}
 						strokeWidth={2}
 						connectNulls={false} // 不连接null值点
 						activeDot={{
 							r: 6,
-							stroke: 'var(--background)',
+							stroke: isDarkTheme ? '#121212' : '#ffffff',
 							strokeWidth: 2,
 						}}
 					/>

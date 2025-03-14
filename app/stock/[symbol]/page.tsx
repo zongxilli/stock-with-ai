@@ -1,24 +1,35 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
 
-import StockChart from './components/stockChart';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
+
 import RangeSelector from './components/rangeSelector';
+import StockChart from './components/stockChart';
 
 import { getStockChartData } from '@/app/actions/yahoo-chart-actions';
 
 export default function StockPage() {
 	const params = useParams();
 	const searchParams = useSearchParams();
+	const router = useRouter();
 	const symbol = Array.isArray(params.symbol)
 		? params.symbol[0]
 		: params.symbol;
-	const range = searchParams.get('range') || '1mo';
+
+	// 获取时间范围，如果没有指定，默认为1年(1y)
+	const range = searchParams.get('range') || '1y';
 
 	const [chartData, setChartData] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+
+	// 如果没有指定时间范围，重定向到默认的1年范围
+	useEffect(() => {
+		if (!searchParams.get('range') && symbol) {
+			router.replace(`/stock/${symbol}?range=1y`);
+		}
+	}, [searchParams, symbol, router]);
 
 	useEffect(() => {
 		async function fetchChartData() {
@@ -26,7 +37,7 @@ export default function StockPage() {
 			setError(null);
 			try {
 				if (!symbol) {
-					setError('股票代码不能为空');
+					setError('Stock symbol cannot be empty');
 					setLoading(false);
 					return;
 				}
@@ -34,9 +45,9 @@ export default function StockPage() {
 				setChartData(data);
 			} catch (err) {
 				setError(
-					`无法加载股票数据: ${err instanceof Error ? err.message : String(err)}`
+					`Failed to load stock data: ${err instanceof Error ? err.message : String(err)}`
 				);
-				console.error('加载股票数据失败:', err);
+				console.error('Failed to load stock data:', err);
 			} finally {
 				setLoading(false);
 			}
