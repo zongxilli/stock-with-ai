@@ -96,7 +96,14 @@ export default function StockChart({
 
 	// 根据数据点生成X轴刻度
 	const generateXAxisTicks = () => {
-		return tickIndexes.map((index) => data[index].dateFormatted);
+		return tickIndexes.map((index) => {
+			const dateRaw = data[index].dateFormatted;
+			// 对于5天视图，只在X轴显示日期部分，不显示时间
+			if (range === '5d') {
+				return dateRaw.split(' ')[0]; // 只返回日期部分 MM/DD
+			}
+			return dateRaw;
+		});
 	};
 
 	// 自定义tooltip内容
@@ -118,11 +125,28 @@ export default function StockChart({
 				);
 			}
 
+			// 获取完整的日期时间显示
+			let fullDateTime = dataPoint.dateFormatted;
+
+			// 自定义全日期时间格式
+			if (dataPoint.date) {
+				const date = new Date(dataPoint.date);
+				if (range === '5d') {
+					// 对于5D视图，确保显示完整的日期时间信息
+					const options: Intl.DateTimeFormatOptions = {
+						weekday: 'short',
+						month: 'short',
+						day: 'numeric',
+						hour: '2-digit',
+						minute: '2-digit',
+					};
+					fullDateTime = date.toLocaleString('en-US', options);
+				}
+			}
+
 			return (
 				<div className='bg-popover border rounded shadow-md p-3 text-sm text-popover-foreground'>
-					<p className='font-medium mb-1'>
-						{dataPoint.dateFormatted}
-					</p>
+					<p className='font-medium mb-1'>{fullDateTime}</p>
 					<p>Open: {formatPrice(dataPoint.open)}</p>
 					<p>High: {formatPrice(dataPoint.high)}</p>
 					<p>Low: {formatPrice(dataPoint.low)}</p>

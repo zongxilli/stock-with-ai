@@ -155,12 +155,21 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 
 // 格式化日期显示
 function formatDate(date: Date, range: string): string {
-	if (range === '1d' || range === '5d') {
-		// 对于短期数据，显示时:分
+	if (range === '1d') {
+		// 对于1天数据，只显示时:分
 		return date.toLocaleTimeString([], {
 			hour: '2-digit',
 			minute: '2-digit',
 		});
+	} else if (range === '5d') {
+		// 对于5天数据，显示MM/DD HH:MM格式
+		const day = date.getDate().toString().padStart(2, '0');
+		const month = (date.getMonth() + 1).toString().padStart(2, '0');
+		const hours = date.getHours().toString().padStart(2, '0');
+		const minutes = date.getMinutes().toString().padStart(2, '0');
+
+		// 对于X轴标签，只返回MM/DD格式
+		return `${month}/${day} ${hours}:${minutes}`;
 	} else if (range === '1mo' || range === '3mo') {
 		// 对于中期数据，显示月/日
 		return date.toLocaleDateString([], {
