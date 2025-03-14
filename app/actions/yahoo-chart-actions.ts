@@ -78,8 +78,9 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				isPartialDay: now < marketClose, // 标记是否是交易中的部分日数据
 			};
 
-			// 针对1D视图，使用较短的缓存时间
-			await setCache(cacheKey, chartData, 15); // 15秒缓存
+			// 缓存设置 - 根据需要调整
+			// 为1D视图设置较长缓存时间，因为我们已经单独获取实时价格数据
+			await setCache(cacheKey, chartData, 60); // 1分钟缓存
 
 			return chartData;
 		} else {
@@ -137,7 +138,7 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 
 			// 设置缓存时间
 			let cacheTime = 60; // 默认1分钟
-			if (range === '5d') cacheTime = 60;
+			if (range === '5d') cacheTime = 120; // 2分钟
 			if (range === '1mo') cacheTime = 300; // 5分钟
 			if (range === '3mo' || range === '6mo') cacheTime = 1800; // 30分钟
 			if (range === '1y' || range === '5y') cacheTime = 3600; // 1小时

@@ -56,6 +56,49 @@ export async function getMainIndices() {
 	}
 }
 
+// 新增：获取单个股票的实时价格数据
+export async function getStockRealTimeData(symbol: string) {
+	try {
+		// 尝试从Redis缓存获取数据
+		const cacheKey = `stock_realtime:${symbol}`;
+		const cachedData = await getCache(cacheKey);
+		if (cachedData) {
+			return cachedData;
+		}
+
+		// 请求Yahoo Finance获取实时数据
+		const quote = await yahooFinance.quote(symbol);
+
+		// 提取需要的数据
+		const stockData = {
+			symbol: quote.symbol,
+			name: quote.shortName || quote.longName || quote.symbol,
+			price: quote.regularMarketPrice,
+			change: quote.regularMarketChange,
+			changePercent: quote.regularMarketChangePercent,
+			dayHigh: quote.regularMarketDayHigh,
+			dayLow: quote.regularMarketDayLow,
+			marketTime: quote.regularMarketTime,
+			marketVolume: quote.regularMarketVolume,
+			previousClose: quote.regularMarketPreviousClose,
+			open: quote.regularMarketOpen,
+			fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
+			fiftyTwoWeekLow: quote.fiftyTwoWeekLow,
+			lastUpdated: new Date().toISOString(),
+		};
+
+		// 保存结果到Redis缓存，设置4秒过期时间
+		await setCache(cacheKey, stockData, 4);
+
+		return stockData;
+	} catch (error) {
+		console.error(`获取股票${symbol}实时数据失败:`, error);
+		throw new Error(
+			`获取股票实时数据失败: ${error instanceof Error ? error.message : String(error)}`
+		);
+	}
+}
+
 // 获取各市场指数的全名
 function getIndexFullName(symbol: string): string {
 	switch (symbol) {
