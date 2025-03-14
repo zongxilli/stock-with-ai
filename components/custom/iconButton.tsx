@@ -14,7 +14,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
 		return (
 			<button
 				className={cn(
-					'p-2 rounded-full transition-colors hover:bg-muted flex items-center justify-center',
+					'w-10 h-10 m-auto rounded-full transition-colors hover:bg-muted flex items-center justify-center',
 					className
 				)}
 				ref={ref}

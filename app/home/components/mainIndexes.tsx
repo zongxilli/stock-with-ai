@@ -48,7 +48,7 @@ export default function MainIndexes() {
 	};
 
 	return (
-		<div className='w-full'>
+		<div className=''>
 			{/* 市场数据区 */}
 			<div className='space-y-6'>
 				{/* 所有市场指数卡片 */}
