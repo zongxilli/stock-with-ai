@@ -69,10 +69,6 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					// 期货通常有不同的交易时间，也不需要标准的填充
 					shouldFillMissingData = false;
 					break;
-				// case 'FOREX':
-					// 外汇几乎24小时交易，不需要填充
-					// shouldFillMissingData = false;
-					// break;
 				case 'OPTION':
 					// 期权通常与标的资产交易时间相同
 					shouldFillMissingData = true;
