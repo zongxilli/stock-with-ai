@@ -123,9 +123,13 @@ export default function StockPage() {
 	const params = useParams();
 	const searchParams = useSearchParams();
 	const router = useRouter();
-	const symbol = Array.isArray(params.symbol)
-		? params.symbol[0]
-		: params.symbol;
+
+	// 解码 symbol 参数
+	const symbol = !params.symbol
+		? ''
+		: decodeURIComponent(
+				Array.isArray(params.symbol) ? params.symbol[0] : params.symbol
+			);
 
 	// 使用自定义钩子保持滚动位置
 	usePreserveScroll();

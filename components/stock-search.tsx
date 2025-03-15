@@ -48,7 +48,8 @@ export function StockSearch() {
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		if (symbol.trim()) {
-			router.push(`/stock/${symbol.trim().toUpperCase()}`);
+			// 直接使用symbol，不进行编码
+			router.push(`/stock/${symbol.trim()}`);
 			setIsDropdownOpen(false);
 
 			setSymbol('');
@@ -59,6 +60,7 @@ export function StockSearch() {
 	// 选择搜索结果
 	const handleSelectResult = (result: StockSearchResult) => {
 		if (result.symbol) {
+			// 直接使用symbol，不进行编码
 			router.push(`/stock/${result.symbol}`);
 			setSymbol(result.symbol);
 			setIsDropdownOpen(false);

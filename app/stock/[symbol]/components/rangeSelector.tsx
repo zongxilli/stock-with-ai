@@ -34,7 +34,7 @@ export default function RangeSelector({
 			// 保存当前滚动位置
 			const scrollPosition = window.scrollY;
 
-			// 修改URL但不触发完全刷新
+			// 修改URL但不触发完全刷新，不对symbol进行编码
 			router.push(`/stock/${symbol}?range=${rangeValue}`, {
 				scroll: false,
 			});
