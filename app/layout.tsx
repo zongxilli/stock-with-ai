@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ThemeProvider } from 'next-themes';
 
 import { EnvVarWarning } from '@/components/env-var-warning';
+import ErrorBoundary from '@/components/error/error-boundary';
 import HeaderAuth from '@/components/header-auth';
 import { StockSearch } from '@/components/stock-search';
 import { ThemeSwitcher } from '@/components/theme-switcher';
@@ -86,13 +87,13 @@ export default function RootLayout({
 					enableSystem
 					disableTransitionOnChange
 				>
-					<main>
-						<Navbar />
-
-						{Body(children)}
-
-						<Footer />
-					</main>
+					<ErrorBoundary>
+						<main>
+							<Navbar />
+							{Body(children)}
+							<Footer />
+						</main>
+					</ErrorBoundary>
 				</ThemeProvider>
 			</body>
 		</html>
