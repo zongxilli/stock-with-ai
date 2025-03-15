@@ -50,6 +50,9 @@ export function StockSearch() {
 		if (symbol.trim()) {
 			router.push(`/stock/${symbol.trim().toUpperCase()}`);
 			setIsDropdownOpen(false);
+
+			setSymbol('');
+			setSearchResults([]);
 		}
 	};
 
