@@ -6,28 +6,104 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
 import RangeSelector from './components/rangeSelector';
 import StockChart from './components/stockChart';
+import StockDetailsGrid from './components/stockDetails';
 
 import { getStockChartData } from '@/app/actions/yahoo-chart-actions';
 import { getStockRealTimeData } from '@/app/actions/yahoo-finance2-actions';
+import { usePreserveScroll } from '@/hooks/usePreserveScroll';
 
 // 定义股票实时数据类型
 interface StockRealTimeData {
+	// 基本识别信息
 	symbol: string;
 	name: string;
+
+	// 价格和涨跌信息
 	price: number;
 	change: number;
 	changePercent: number;
 	dayHigh: number;
 	dayLow: number;
-	marketTime: number;
-	marketVolume: number;
 	previousClose: number;
 	open: number;
+
+	// 成交量信息
+	marketVolume: number;
+
+	// 52周高低点
 	fiftyTwoWeekHigh: number;
 	fiftyTwoWeekLow: number;
-	marketState?: string; // 新增：市场状态
-	exchangeName?: string; // 新增：交易所名称
+
+	// 市场信息
+	marketTime: number;
+	marketState?: string; // 'REGULAR', 'PRE', 'POST', 'CLOSED' 等
+	exchangeName?: string;
+
+	// 交易数据
+	bid?: number;
+	ask?: number;
+	bidSize?: number;
+	askSize?: number;
+
+	// 成交量统计
+	avgVolume?: number;
+	avgVolume10Day?: number;
+
+	// 市值和贝塔系数
+	marketCap?: number;
+	beta?: number;
+
+	// 财务比率
+	peRatio?: number;
+	forwardPE?: number;
+	eps?: number;
+
+	// 股息信息
+	dividendRate?: number;
+	dividendYield?: number;
+	exDividendDate?: string;
+	dividendDate?: string;
+
+	// 财务表现指标
+	profitMargins?: number;
+	revenueGrowth?: number;
+	earningsGrowth?: number;
+	returnOnAssets?: number;
+	returnOnEquity?: number;
+
+	// 分析师建议
+	targetHigh?: number;
+	targetLow?: number;
+	targetMean?: number;
+	targetMedian?: number;
+	recommendationMean?: number;
+	recommendationKey?: string;
+	numberOfAnalysts?: number;
+
+	// 财报日期
+	earningsDate?: string;
+
+	// 现金流和债务信息
+	totalCash?: number;
+	totalCashPerShare?: number;
+	totalDebt?: number;
+	debtToEquity?: number;
+
+	// 财务指标
+	currentRatio?: number;
+	quickRatio?: number;
+	freeCashflow?: number;
+
+	// 其他统计数据
+	sharesOutstanding?: number;
+	heldPercentInsiders?: number;
+	heldPercentInstitutions?: number;
+	shortRatio?: number;
+	floatShares?: number;
+
+	// 元数据
 	lastUpdated: string;
+	currency?: string;
 }
 
 export default function StockPage() {
@@ -37,6 +113,9 @@ export default function StockPage() {
 	const symbol = Array.isArray(params.symbol)
 		? params.symbol[0]
 		: params.symbol;
+
+	// 使用自定义钩子保持滚动位置
+	usePreserveScroll();
 
 	// 获取时间范围，如果没有指定，默认为1年(1y)
 	const range = searchParams.get('range') || '1y';
@@ -53,7 +132,7 @@ export default function StockPage() {
 	// 如果没有指定时间范围，重定向到默认的1年范围
 	useEffect(() => {
 		if (!searchParams.get('range') && symbol) {
-			router.replace(`/stock/${symbol}?range=1y`);
+			router.replace(`/stock/${symbol}?range=1y`, { scroll: false });
 		}
 	}, [searchParams, symbol, router]);
 
@@ -225,6 +304,77 @@ export default function StockPage() {
 				<div className='text-xs text-right text-gray-500 mt-4'>
 					Last updated: {lastUpdated}
 				</div>
+			)}
+
+			{/* 添加股票详情网格 */}
+			{realTimeData && (
+				<StockDetailsGrid
+					// 基本价格信息
+					previousClose={realTimeData.previousClose}
+					open={realTimeData.open}
+					bid={realTimeData.bid}
+					ask={realTimeData.ask}
+					bidSize={realTimeData.bidSize}
+					askSize={realTimeData.askSize}
+					// 价格范围
+					daysRange={{
+						low: realTimeData.dayLow,
+						high: realTimeData.dayHigh,
+					}}
+					weekRange={{
+						low: realTimeData.fiftyTwoWeekLow,
+						high: realTimeData.fiftyTwoWeekHigh,
+					}}
+					// 交易量数据
+					volume={realTimeData.marketVolume}
+					avgVolume={realTimeData.avgVolume}
+					avgVolume10Day={realTimeData.avgVolume10Day}
+					// 市场数据
+					marketCap={realTimeData.marketCap}
+					beta={realTimeData.beta}
+					// 财务比率
+					peRatio={realTimeData.peRatio}
+					forwardPE={realTimeData.forwardPE}
+					eps={realTimeData.eps}
+					profitMargins={realTimeData.profitMargins}
+					returnOnAssets={realTimeData.returnOnAssets}
+					returnOnEquity={realTimeData.returnOnEquity}
+					// 股息信息
+					earningsDate={realTimeData.earningsDate}
+					dividendRate={realTimeData.dividendRate}
+					dividendYield={realTimeData.dividendYield}
+					exDividendDate={realTimeData.exDividendDate}
+					dividendDate={realTimeData.dividendDate}
+					// 分析师评级和目标价格
+					targetHigh={realTimeData.targetHigh}
+					targetLow={realTimeData.targetLow}
+					targetMean={realTimeData.targetMean}
+					targetMedian={realTimeData.targetMedian}
+					numberOfAnalysts={realTimeData.numberOfAnalysts}
+					recommendationMean={realTimeData.recommendationMean}
+					recommendationKey={realTimeData.recommendationKey}
+					// 成长和业绩
+					revenueGrowth={realTimeData.revenueGrowth}
+					earningsGrowth={realTimeData.earningsGrowth}
+					// 现金和债务
+					totalCash={realTimeData.totalCash}
+					totalCashPerShare={realTimeData.totalCashPerShare}
+					totalDebt={realTimeData.totalDebt}
+					debtToEquity={realTimeData.debtToEquity}
+					currentRatio={realTimeData.currentRatio}
+					quickRatio={realTimeData.quickRatio}
+					freeCashflow={realTimeData.freeCashflow}
+					// 持股信息
+					sharesOutstanding={realTimeData.sharesOutstanding}
+					floatShares={realTimeData.floatShares}
+					heldPercentInsiders={realTimeData.heldPercentInsiders}
+					heldPercentInstitutions={
+						realTimeData.heldPercentInstitutions
+					}
+					shortRatio={realTimeData.shortRatio}
+					// 其他信息
+					currency={realTimeData.currency}
+				/>
 			)}
 		</div>
 	);

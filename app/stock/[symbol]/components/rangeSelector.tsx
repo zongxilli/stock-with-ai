@@ -1,6 +1,8 @@
 'use client';
 
-import Link from 'next/link';
+import { useCallback } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
 
@@ -13,6 +15,8 @@ export default function RangeSelector({
 	currentRange,
 	symbol,
 }: RangeSelectorProps) {
+	const router = useRouter();
+
 	// 定义可用的时间范围选项
 	const ranges = [
 		{ label: '1D', value: '1d' },
@@ -24,12 +28,31 @@ export default function RangeSelector({
 		{ label: '5Y', value: '5y' },
 	];
 
+	// 使用客户端路由而不是Link组件，以便于保持滚动位置
+	const handleRangeChange = useCallback(
+		(rangeValue: string) => {
+			// 保存当前滚动位置
+			const scrollPosition = window.scrollY;
+
+			// 修改URL但不触发完全刷新
+			router.push(`/stock/${symbol}?range=${rangeValue}`, {
+				scroll: false,
+			});
+
+			// 使用setTimeout确保在路由更新后恢复滚动位置
+			setTimeout(() => {
+				window.scrollTo(0, scrollPosition);
+			}, 0);
+		},
+		[router, symbol]
+	);
+
 	return (
 		<div className='flex flex-wrap gap-2'>
 			{ranges.map((range) => (
-				<Link
+				<button
 					key={range.value}
-					href={`/stock/${symbol}?range=${range.value}`}
+					onClick={() => handleRangeChange(range.value)}
 					className={cn(
 						'px-3 py-1 rounded-md text-sm font-medium transition-colors',
 						currentRange === range.value
@@ -38,7 +61,7 @@ export default function RangeSelector({
 					)}
 				>
 					{range.label}
-				</Link>
+				</button>
 			))}
 		</div>
 	);
