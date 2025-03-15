@@ -20,17 +20,20 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 		let period2 = now;
 		let interval = '1d';
 
+		// 首先获取证券的基本信息，用于确定证券类型
+		const quoteData = await yahooFinance.quote(symbol);
+
+		// 检查报价数据是否有效
+		if (!quoteData || !quoteData.regularMarketTime) {
+			throw new Error(`无法获取${symbol}的实时市场数据`);
+		}
+
+		// 获取证券类型
+		const quoteType = quoteData.quoteType || 'UNKNOWN';
+
 		// 特殊处理1D视图
 		if (range === '1d') {
 			interval = '5m';
-
-			// 首先获取股票实时报价来检查市场状态
-			const quoteData = await yahooFinance.quote(symbol);
-
-			// 检查报价数据是否有效
-			if (!quoteData || !quoteData.regularMarketTime) {
-				throw new Error(`无法获取${symbol}的实时市场数据`);
-			}
 
 			// 根据marketState判断市场当前状态
 			// 可能的值: REGULAR(正常交易), PRE(盘前), POST(盘后), CLOSED(已关闭)
@@ -45,13 +48,52 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 			const tradingDay = new Date(lastTradeDate);
 			tradingDay.setHours(0, 0, 0, 0);
 
-			// 交易开始时间通常为9:30 AM EST
-			period1 = new Date(tradingDay);
-			period1.setHours(9, 30, 0, 0);
+			// 交易时间根据证券类型设置
+			let tradingStartHour = 9;
+			let tradingStartMinute = 30;
+			let tradingEndHour = 16;
+			let tradingEndMinute = 0;
+			let shouldFillMissingData = true;
 
-			// 交易结束时间通常为4:00 PM EST
+			// 根据证券类型调整交易时间和数据填充策略
+			switch (quoteType) {
+				case 'CRYPTOCURRENCY':
+					// 加密货币24小时交易，不需要填充数据
+					tradingStartHour = 0;
+					tradingStartMinute = 0;
+					tradingEndHour = 23;
+					tradingEndMinute = 59;
+					shouldFillMissingData = false;
+					break;
+				case 'FUTURE':
+					// 期货通常有不同的交易时间，也不需要标准的填充
+					shouldFillMissingData = false;
+					break;
+				// case 'FOREX':
+					// 外汇几乎24小时交易，不需要填充
+					// shouldFillMissingData = false;
+					// break;
+				case 'OPTION':
+					// 期权通常与标的资产交易时间相同
+					shouldFillMissingData = true;
+					break;
+				case 'EQUITY':
+				case 'ETF':
+				case 'MUTUALFUND':
+				case 'INDEX':
+				default:
+					// 使用标准交易时间 9:30 AM - 4:00 PM
+					shouldFillMissingData = true;
+					break;
+			}
+
+			// 交易开始时间
+			period1 = new Date(tradingDay);
+			period1.setHours(tradingStartHour, tradingStartMinute, 0, 0);
+
+			// 交易结束时间
 			period2 = new Date(tradingDay);
-			period2.setHours(16, 0, 0, 0);
+			period2.setHours(tradingEndHour, tradingEndMinute, 0, 0);
 
 			try {
 				// 查询Yahoo Finance获取交易日的数据
@@ -69,20 +111,24 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					throw new Error(`无法获取${symbol}的历史数据`);
 				}
 
-				// 生成完整的交易时间点
-				const completeTimeline = generateTradingTimeline(
-					period1,
-					period2
-				);
+				// 仅对特定类型的证券填充完整交易时间点
+				let processedQuotes = result.quotes;
+				if (shouldFillMissingData && isMarketOpen) {
+					// 生成完整的交易时间点
+					const completeTimeline = generateTradingTimeline(
+						period1,
+						period2
+					);
 
-				// 将实际数据与完整时间轴合并
-				const mergedData = mergeDataWithTimeline(
-					result.quotes,
-					completeTimeline
-				);
+					// 将实际数据与完整时间轴合并
+					processedQuotes = mergeDataWithTimeline(
+						result.quotes,
+						completeTimeline
+					);
+				}
 
 				// 添加格式化的日期字符串
-				const formattedData = mergedData.map((quote) => ({
+				const formattedData = processedQuotes.map((quote) => ({
 					...quote,
 					dateFormatted: quote.date
 						? formatDate(quote.date, range)
@@ -99,6 +145,7 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					tradingDate: lastTradeDate.toLocaleDateString(),
 					exchangeName:
 						quoteData.fullExchangeName || quoteData.exchange,
+					quoteType: quoteType, // 添加证券类型信息
 				};
 
 				// 返回图表元数据和处理后的报价数据
@@ -119,7 +166,7 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					innerError
 				);
 				throw new Error(
-					`未找到股票代码: ${symbol}。请检查股票代码并重试。`
+					`未找到证券代码: ${symbol}。请检查代码并重试。`
 				);
 			}
 		} else {
@@ -179,6 +226,7 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					meta: result.meta,
 					quotes: formattedData,
 					isPartialDay: false,
+					quoteType: quoteType, // 添加证券类型信息
 				};
 
 				// 设置缓存时间
@@ -196,14 +244,14 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					innerError
 				);
 				throw new Error(
-					`未找到股票代码: ${symbol}。请检查股票代码并重试。`
+					`未找到证券代码: ${symbol}。请检查代码并重试。`
 				);
 			}
 		}
 	} catch (error) {
-		console.error(`获取股票${symbol}图表数据失败:`, error);
+		console.error(`获取${symbol}图表数据失败:`, error);
 		throw new Error(
-			`获取股票图表数据失败: ${error instanceof Error ? error.message : String(error)}`
+			`获取图表数据失败: ${error instanceof Error ? error.message : String(error)}`
 		);
 	}
 }
