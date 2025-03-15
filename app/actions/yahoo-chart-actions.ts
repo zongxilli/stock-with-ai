@@ -24,60 +24,34 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 		if (range === '1d') {
 			interval = '5m';
 
-			// 获取今天的日期并检查是否是交易日
-			const isWeekend = now.getDay() === 0 || now.getDay() === 6; // 0是周日，6是周六
+			// 首先获取股票实时报价来检查市场状态
+			const quoteData = await yahooFinance.quote(symbol);
 
-			// 获取今天的开盘时间 (通常是9:30 AM 东部时间)
-			const marketOpen = new Date(now);
-			marketOpen.setHours(9, 30, 0, 0);
+			// 根据marketState判断市场当前状态
+			// 可能的值: REGULAR(正常交易), PRE(盘前), POST(盘后), CLOSED(已关闭)
+			const marketState = quoteData.marketState || 'CLOSED';
+			const isMarketOpen = marketState === 'REGULAR';
 
-			// 获取今天的收盘时间 (通常是4:00 PM 东部时间)
-			const marketClose = new Date(now);
-			marketClose.setHours(16, 0, 0, 0);
-
-			// 检查当前是否在交易时段
-			const isMarketHours =
-				now >= marketOpen && now <= marketClose && !isWeekend;
-
-			// 如果当前不在交易时段，尝试获取最近一个交易日的数据
-			if (!isMarketHours) {
-				// 如果是周末或已过收盘时间，获取最近一个交易日的完整数据
+			// 如果市场已关闭或不在交易中
+			if (!isMarketOpen) {
+				// 获取上一个交易日的数据
 				try {
-					// 在周一获取上周五的数据；周六、周日获取上周五的数据；交易日收盘后获取当天的数据
-					let previousTradingDay = new Date(now);
+					// 使用Yahoo Finance的实时数据中的regularMarketTime作为最后交易时间
+					const lastTradeTime = quoteData.regularMarketTime
+						? new Date(quoteData.regularMarketTime)
+						: new Date(); // 如果没有时间数据，使用当前时间
 
-					if (isWeekend) {
-						// 找到上一个周五
-						const daysToSubtract = now.getDay() === 0 ? 2 : 1; // 周日减2天，周六减1天
-						previousTradingDay.setDate(
-							now.getDate() - daysToSubtract
-						);
-					} else if (now > marketClose) {
-						// 当天已收盘，使用当天数据
-						previousTradingDay.setHours(0, 0, 0, 0); // 设置为当天开始
-					} else if (now < marketOpen) {
-						// 当天未开盘，使用前一个交易日数据
-						previousTradingDay.setDate(now.getDate() - 1);
+					// 设置查询的起止时间为上一个交易日
+					const previousTradingDay = new Date(lastTradeTime);
 
-						// 如果前一天是周末，继续向前找
-						const previousDay = previousTradingDay.getDay();
-						if (previousDay === 0) {
-							// 如果是周日
-							previousTradingDay.setDate(
-								previousTradingDay.getDate() - 2
-							); // 获取周五数据
-						} else if (previousDay === 6) {
-							// 如果是周六
-							previousTradingDay.setDate(
-								previousTradingDay.getDate() - 1
-							); // 获取周五数据
-						}
-					}
+					// 设置为当天开始
+					previousTradingDay.setHours(0, 0, 0, 0);
 
-					// 设置查询的起止时间为上一个交易日的开盘到收盘
+					// 交易开始时间通常为9:30 AM EST
 					period1 = new Date(previousTradingDay);
 					period1.setHours(9, 30, 0, 0);
 
+					// 交易结束时间通常为4:00 PM EST
 					period2 = new Date(previousTradingDay);
 					period2.setHours(16, 0, 0, 0);
 
@@ -147,23 +121,46 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				}
 			}
 
-			// 以下是正常交易时段的处理逻辑，保持原样
-			// 设置period1为今天的开盘时间
-			period1 = marketOpen;
+			// 以下是正常交易时段的处理逻辑
+			// 使用基于当前时间的默认交易时间
+			// 为避免属性访问错误，不再直接访问currentTradingPeriod
+			let marketOpenTime: Date;
+			let marketCloseTime: Date;
+
+			// 设置今天的开盘时间 (通常是9:30 AM 东部时间)
+			marketOpenTime = new Date(now);
+			marketOpenTime.setHours(9, 30, 0, 0);
+
+			// 设置今天的收盘时间 (通常是4:00 PM 东部时间)
+			marketCloseTime = new Date(now);
+			marketCloseTime.setHours(16, 0, 0, 0);
+
+			// 使用regularMarketTime作为当前交易日的参考
+			if (quoteData.regularMarketTime) {
+				const marketDate = new Date(quoteData.regularMarketTime);
+
+				// 只更新日期部分，保持时间部分不变
+				marketOpenTime.setFullYear(
+					marketDate.getFullYear(),
+					marketDate.getMonth(),
+					marketDate.getDate()
+				);
+				marketCloseTime.setFullYear(
+					marketDate.getFullYear(),
+					marketDate.getMonth(),
+					marketDate.getDate()
+				);
+			}
+
+			period1 = marketOpenTime;
 
 			// 如果当前时间已经超过收盘时间，则使用收盘时间作为period2
-			if (now > marketClose) {
-				period2 = marketClose;
-			} else {
-				// 否则使用当前时间作为period2
-				period2 = now;
+			if (now > marketCloseTime) {
+				period2 = marketCloseTime;
 			}
 
 			// 生成完整的交易时间点
-			const completeTimeline = generateTradingTimeline(
-				marketOpen,
-				marketClose
-			);
+			const completeTimeline = generateTradingTimeline(period1, period2);
 
 			try {
 				// 正常查询Yahoo Finance获取可用数据
@@ -199,12 +196,11 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				const chartData = {
 					meta: result.meta,
 					quotes: formattedData,
-					isPartialDay: now < marketClose, // 标记是否是交易中的部分日数据
+					isPartialDay: now < marketCloseTime, // 标记是否是交易中的部分日数据
 					isPreviousTradingDay: false, // 这是当前交易日数据
 				};
 
-				// 缓存设置 - 根据需要调整
-				// 为1D视图设置较长缓存时间，因为我们已经单独获取实时价格数据
+				// 缓存设置 - 为1D视图设置较短缓存时间
 				await setCache(cacheKey, chartData, 60); // 1分钟缓存
 
 				return chartData;
