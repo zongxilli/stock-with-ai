@@ -17,7 +17,7 @@ export default function RangeSelector({
 }: RangeSelectorProps) {
 	const router = useRouter();
 
-	// 定义可用的时间范围选项
+	// 定义可用的时间范围选项，增加了MAX选项
 	const ranges = [
 		{ label: '1D', value: '1d' },
 		{ label: '5D', value: '5d' },
@@ -26,6 +26,7 @@ export default function RangeSelector({
 		{ label: '6M', value: '6mo' },
 		{ label: '1Y', value: '1y' },
 		{ label: '5Y', value: '5y' },
+		{ label: 'MAX', value: 'max' }, // 新增MAX选项，显示全部历史数据
 	];
 
 	// 使用客户端路由而不是Link组件，以便于保持滚动位置

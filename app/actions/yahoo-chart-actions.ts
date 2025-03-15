@@ -197,6 +197,11 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					period1 = new Date(now);
 					period1.setFullYear(now.getFullYear() - 5);
 					break;
+				case 'max':
+					// 对于max，我们设置一个非常早的日期，比如1950年
+					// 这样就能获取到股票上市以来的所有数据
+					period1 = new Date(1950, 0, 1);
+					break;
 				default:
 					period1 = new Date(now);
 					period1.setMonth(now.getMonth() - 1);

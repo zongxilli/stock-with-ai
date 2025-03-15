@@ -120,6 +120,9 @@ export default function StockChart({
 		xAxisTickCount = 7; // 对于1D视图，显示更多时间点
 	} else if (range === '5d') {
 		xAxisTickCount = Math.min(6, Math.ceil(data.length / 10));
+	} else if (range === 'max') {
+		// 对于MAX视图，我们希望显示足够的年份，但不要过多
+		xAxisTickCount = Math.min(10, Math.ceil(data.length / 250));
 	} else if (data.length > 30) {
 		xAxisTickCount = Math.min(10, Math.ceil(data.length / 15));
 	}
@@ -188,6 +191,14 @@ export default function StockChart({
 						day: 'numeric',
 						hour: '2-digit',
 						minute: '2-digit',
+					};
+					fullDateTime = date.toLocaleString('en-US', options);
+				} else if (range === 'max') {
+					// 对于MAX视图，显示完整的年月日
+					const options: Intl.DateTimeFormatOptions = {
+						year: 'numeric',
+						month: 'short',
+						day: 'numeric',
 					};
 					fullDateTime = date.toLocaleString('en-US', options);
 				}
@@ -281,6 +292,12 @@ export default function StockChart({
 			{showMarketStatus && (
 				<div className='text-xs text-muted-foreground mb-2 text-center'>
 					{getMarketStatusText()}
+				</div>
+			)}
+
+			{range === 'max' && data.length > 0 && (
+				<div className='text-xs text-muted-foreground mb-2 text-center'>
+					All historical data from {data[0].dateFormatted} to present
 				</div>
 			)}
 
