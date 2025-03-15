@@ -60,6 +60,9 @@ export function StockSearch() {
 			setSymbol(result.symbol);
 			setIsDropdownOpen(false);
 		}
+
+		setSymbol('');
+		setSearchResults([]);
 	};
 
 	// 点击外部关闭下拉菜单
@@ -195,7 +198,7 @@ export function StockSearch() {
 												result.symbol}
 										</div>
 									</div>
-									<div className='text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground'>
+									<div className='text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground divide-solid border-2 border-indigo-700'>
 										{getTypeLabel(result.type)}
 									</div>
 								</div>
