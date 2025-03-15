@@ -49,40 +49,57 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				marketClose
 			);
 
-			// 正常查询Yahoo Finance获取可用数据
-			const queryOptions = {
-				period1,
-				period2,
-				interval: interval as any,
-				includePrePost: false,
-			};
+			try {
+				// 正常查询Yahoo Finance获取可用数据
+				const queryOptions = {
+					period1,
+					period2,
+					interval: interval as any,
+					includePrePost: false,
+				};
 
-			const result = await yahooFinance.chart(symbol, queryOptions);
+				const result = await yahooFinance.chart(symbol, queryOptions);
 
-			// 将实际数据与完整时间轴合并
-			const mergedData = mergeDataWithTimeline(
-				result.quotes,
-				completeTimeline
-			);
+				// 检查结果是否有效
+				if (!result || !result.quotes || result.quotes.length === 0) {
+					throw new Error(`No chart data found for ${symbol}`);
+				}
 
-			// 添加格式化的日期字符串
-			const formattedData = mergedData.map((quote) => ({
-				...quote,
-				dateFormatted: quote.date ? formatDate(quote.date, range) : '',
-			}));
+				// 将实际数据与完整时间轴合并
+				const mergedData = mergeDataWithTimeline(
+					result.quotes,
+					completeTimeline
+				);
 
-			// 返回图表元数据和处理后的报价数据
-			const chartData = {
-				meta: result.meta,
-				quotes: formattedData,
-				isPartialDay: now < marketClose, // 标记是否是交易中的部分日数据
-			};
+				// 添加格式化的日期字符串
+				const formattedData = mergedData.map((quote) => ({
+					...quote,
+					dateFormatted: quote.date
+						? formatDate(quote.date, range)
+						: '',
+				}));
 
-			// 缓存设置 - 根据需要调整
-			// 为1D视图设置较长缓存时间，因为我们已经单独获取实时价格数据
-			await setCache(cacheKey, chartData, 60); // 1分钟缓存
+				// 返回图表元数据和处理后的报价数据
+				const chartData = {
+					meta: result.meta,
+					quotes: formattedData,
+					isPartialDay: now < marketClose, // 标记是否是交易中的部分日数据
+				};
 
-			return chartData;
+				// 缓存设置 - 根据需要调整
+				// 为1D视图设置较长缓存时间，因为我们已经单独获取实时价格数据
+				await setCache(cacheKey, chartData, 60); // 1分钟缓存
+
+				return chartData;
+			} catch (innerError) {
+				console.error(
+					`Yahoo Finance Chart API错误 (${symbol}):`,
+					innerError
+				);
+				throw new Error(
+					`Stock symbol not found: ${symbol}. Please check the symbol and try again.`
+				);
+			}
 		} else {
 			// 对于其他时间范围的处理保持不变
 			switch (range) {
@@ -116,35 +133,50 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					period1.setMonth(now.getMonth() - 1);
 			}
 
-			const queryOptions = {
-				period1,
-				period2,
-				interval: interval as any,
-				includePrePost: false,
-			};
+			try {
+				const queryOptions = {
+					period1,
+					period2,
+					interval: interval as any,
+					includePrePost: false,
+				};
 
-			const result = await yahooFinance.chart(symbol, queryOptions);
+				const result = await yahooFinance.chart(symbol, queryOptions);
 
-			const formattedData = result.quotes.map((quote) => ({
-				...quote,
-				dateFormatted: formatDate(quote.date, range),
-			}));
+				// 检查结果是否有效
+				if (!result || !result.quotes || result.quotes.length === 0) {
+					throw new Error(`No chart data found for ${symbol}`);
+				}
 
-			const chartData = {
-				meta: result.meta,
-				quotes: formattedData,
-				isPartialDay: false,
-			};
+				const formattedData = result.quotes.map((quote) => ({
+					...quote,
+					dateFormatted: formatDate(quote.date, range),
+				}));
 
-			// 设置缓存时间
-			let cacheTime = 60; // 默认1分钟
-			if (range === '5d') cacheTime = 120; // 2分钟
-			if (range === '1mo') cacheTime = 300; // 5分钟
-			if (range === '3mo' || range === '6mo') cacheTime = 1800; // 30分钟
-			if (range === '1y' || range === '5y') cacheTime = 3600; // 1小时
+				const chartData = {
+					meta: result.meta,
+					quotes: formattedData,
+					isPartialDay: false,
+				};
 
-			await setCache(cacheKey, chartData, cacheTime);
-			return chartData;
+				// 设置缓存时间
+				let cacheTime = 60; // 默认1分钟
+				if (range === '5d') cacheTime = 120; // 2分钟
+				if (range === '1mo') cacheTime = 300; // 5分钟
+				if (range === '3mo' || range === '6mo') cacheTime = 1800; // 30分钟
+				if (range === '1y' || range === '5y') cacheTime = 3600; // 1小时
+
+				await setCache(cacheKey, chartData, cacheTime);
+				return chartData;
+			} catch (innerError) {
+				console.error(
+					`Yahoo Finance Chart API错误 (${symbol}):`,
+					innerError
+				);
+				throw new Error(
+					`Stock symbol not found: ${symbol}. Please check the symbol and try again.`
+				);
+			}
 		}
 	} catch (error) {
 		console.error(`获取股票${symbol}图表数据失败:`, error);

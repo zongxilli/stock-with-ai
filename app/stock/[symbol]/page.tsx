@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { Home, RefreshCw, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
 import RangeSelector from './components/rangeSelector';
@@ -10,6 +12,7 @@ import StockDetailsGrid from './components/stockDetails';
 
 import { getStockChartData } from '@/app/actions/yahoo-chart-actions';
 import { getStockRealTimeData } from '@/app/actions/yahoo-finance2-actions';
+import { Button } from '@/components/ui/button';
 import { usePreserveScroll } from '@/hooks/usePreserveScroll';
 
 // 定义股票实时数据类型
@@ -106,6 +109,16 @@ interface StockRealTimeData {
 	currency?: string;
 }
 
+// 热门股票推荐列表
+const POPULAR_STOCKS = [
+	{ symbol: 'AAPL', name: 'Apple Inc.' },
+	{ symbol: 'MSFT', name: 'Microsoft Corporation' },
+	{ symbol: 'GOOGL', name: 'Alphabet Inc.' },
+	{ symbol: 'AMZN', name: 'Amazon.com, Inc.' },
+	{ symbol: 'TSLA', name: 'Tesla, Inc.' },
+	{ symbol: 'META', name: 'Meta Platforms, Inc.' },
+];
+
 export default function StockPage() {
 	const params = useParams();
 	const searchParams = useSearchParams();
@@ -128,6 +141,8 @@ export default function StockPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [lastUpdated, setLastUpdated] = useState<string>('');
+	// 新增：标记是否停止自动刷新
+	const [stopAutoRefresh, setStopAutoRefresh] = useState(false);
 
 	// 如果没有指定时间范围，重定向到默认的1年范围
 	useEffect(() => {
@@ -141,15 +156,24 @@ export default function StockPage() {
 		try {
 			if (!symbol) {
 				setError('Stock symbol cannot be empty');
+				setStopAutoRefresh(true); // 停止自动刷新
 				return;
 			}
 			const data = await getStockChartData(symbol, range);
 			setChartData(data);
 		} catch (err) {
-			setError(
-				`Failed to load chart data: ${err instanceof Error ? err.message : String(err)}`
-			);
+			const errorMsg = `Failed to load chart data: ${err instanceof Error ? err.message : String(err)}`;
+			setError(errorMsg);
 			console.error('Failed to load chart data:', err);
+
+			// 如果错误消息包含"symbol not found"或类似内容，停止自动刷新
+			if (
+				errorMsg.toLowerCase().includes('symbol not found') ||
+				errorMsg.toLowerCase().includes('stock symbol not found') ||
+				errorMsg.toLowerCase().includes('找不到股票')
+			) {
+				setStopAutoRefresh(true);
+			}
 		}
 	};
 
@@ -163,12 +187,34 @@ export default function StockPage() {
 			setRealTimeData(data);
 			setLastUpdated(new Date().toLocaleTimeString());
 			setLoading(false);
+			// 如果之前有错误但现在成功获取了数据，清除错误
+			if (error) {
+				setError(null);
+				setStopAutoRefresh(false); // 恢复自动刷新
+			}
 		} catch (err) {
 			console.error('Failed to load real-time data:', err);
-			// 不要设置error，以便仍然可以显示图表
-		} finally {
+			const errorMsg = err instanceof Error ? err.message : String(err);
+			setError(errorMsg);
 			setLoading(false);
+
+			// 如果错误消息包含"symbol not found"或类似内容，停止自动刷新
+			if (
+				errorMsg.toLowerCase().includes('symbol not found') ||
+				errorMsg.toLowerCase().includes('stock symbol not found') ||
+				errorMsg.toLowerCase().includes('找不到股票')
+			) {
+				setStopAutoRefresh(true);
+			}
 		}
+	};
+
+	// 处理数据刷新
+	const handleRefresh = () => {
+		setLoading(true);
+		setStopAutoRefresh(false); // 手动刷新时，重置自动刷新状态
+		fetchRealTimeData();
+		fetchChartData();
 	};
 
 	// 初始加载图表数据
@@ -181,16 +227,22 @@ export default function StockPage() {
 		// 立即获取实时数据
 		fetchRealTimeData();
 
-		// 设置定时器，每5秒刷新一次实时数据
-		const refreshInterval = setInterval(() => {
-			fetchRealTimeData();
-		}, 5000); // 每5秒刷新一次
+		// 只有在未停止自动刷新的情况下才设置定时器
+		let refreshInterval: NodeJS.Timeout | null = null;
+
+		if (!stopAutoRefresh) {
+			refreshInterval = setInterval(() => {
+				fetchRealTimeData();
+			}, 5000); // 每5秒刷新一次
+		}
 
 		// 组件卸载时清除定时器
 		return () => {
-			clearInterval(refreshInterval);
+			if (refreshInterval) {
+				clearInterval(refreshInterval);
+			}
 		};
-	}, [symbol]); // 只在股票代码变化时重置定时器
+	}, [symbol, stopAutoRefresh]); // 依赖项增加stopAutoRefresh
 
 	// 显示公司名称和股票代码
 	const stockName =
@@ -200,6 +252,64 @@ export default function StockPage() {
 		symbol;
 	const stockSymbol =
 		realTimeData?.symbol || chartData?.meta?.symbol || symbol;
+
+	// 如果有错误，显示错误界面
+	if (error && !loading && stopAutoRefresh) {
+		return (
+			<div className='w-full px-6 py-8'>
+				<div className='flex flex-col items-center justify-center py-12 text-center'>
+					<div className='mb-6 flex items-center justify-center'>
+						<AlertTriangle size={48} className='text-destructive' />
+					</div>
+					<h1 className='text-3xl font-bold mb-4'>
+						Symbol Not Found
+					</h1>
+					<p className='text-lg text-muted-foreground mb-6 max-w-lg'>
+						{error}
+					</p>
+
+					<div className='flex flex-wrap gap-4 mb-8'>
+						<Button asChild variant='outline' size='lg'>
+							<Link href='/home'>
+								<Home className='mr-2 h-5 w-5' />
+								Back to Home
+							</Link>
+						</Button>
+						<Button
+							onClick={handleRefresh}
+							variant='outline'
+							size='lg'
+						>
+							<RefreshCw className='mr-2 h-5 w-5' />
+							Try Again
+						</Button>
+					</div>
+
+					<div className='mt-6'>
+						<h2 className='text-xl font-semibold mb-4'>
+							Popular Stocks
+						</h2>
+						<div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3'>
+							{POPULAR_STOCKS.map((stock) => (
+								<Link
+									key={stock.symbol}
+									href={`/stock/${stock.symbol}`}
+									className='bg-card hover:bg-card/90 transition-colors border rounded-lg px-4 py-3 text-center'
+								>
+									<div className='font-bold'>
+										{stock.symbol}
+									</div>
+									<div className='text-sm text-muted-foreground truncate'>
+										{stock.name}
+									</div>
+								</Link>
+							))}
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className='w-full px-6 py-8'>
@@ -280,7 +390,7 @@ export default function StockPage() {
 					</div>
 				)}
 
-				{error && (
+				{error && !chartData && (
 					<div className='h-full w-full flex items-center justify-center'>
 						<div className='text-destructive'>{error}</div>
 					</div>
@@ -300,9 +410,20 @@ export default function StockPage() {
 			</div>
 
 			{/* 显示最后更新时间 */}
-			{lastUpdated && (
+			{lastUpdated && !stopAutoRefresh && (
 				<div className='text-xs text-right text-gray-500 mt-4'>
 					Last updated: {lastUpdated}
+				</div>
+			)}
+
+			{/* 如果自动刷新被停止但界面未完全切换到错误页面，显示错误状态 */}
+			{stopAutoRefresh && error && !loading && (
+				<div className='flex justify-end items-center mt-4 gap-2'>
+					<span className='text-sm text-destructive'>{error}</span>
+					<Button onClick={handleRefresh} variant='outline' size='sm'>
+						<RefreshCw className='mr-2 h-4 w-4' />
+						Retry
+					</Button>
 				</div>
 			)}
 
