@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { useTheme } from 'next-themes';
 import {
@@ -11,6 +11,7 @@ import {
 	Tooltip,
 	XAxis,
 	YAxis,
+	ReferenceLine,
 } from 'recharts';
 
 interface StockChartProps {
@@ -51,6 +52,14 @@ export default function StockChart({
 
 	// 动画状态控制
 	const [animateWave, setAnimateWave] = useState(false);
+	// 添加脉冲动画状态
+	const [pulseTrigger, setPulseTrigger] = useState(0);
+	// 添加上次价格变动参考值
+	const lastPriceRef = useRef<number | undefined>(undefined);
+	// 添加价格变动方向
+	const [priceDirection, setPriceDirection] = useState<'up' | 'down' | null>(
+		null
+	);
 
 	// 确定是否显示交易状态提示
 	const showMarketStatus =
@@ -292,8 +301,44 @@ export default function StockChart({
 	// 生成渐变ID - 使其唯一以避免多个图表共享相同渐变
 	const gradientId = `colorClose_${range}_${isPositiveTrend ? 'up' : 'down'}`;
 
-	// 只用于呼吸效果的渐变ID
+	// 呼吸效果渐变ID
 	const breatheGradientId = `${gradientId}_breathe`;
+
+	// 脉冲效果渐变ID
+	const pulseGradientId = `${gradientId}_pulse`;
+
+	// 价格变动闪光效果的渐变ID
+	const flashGradientId = `${gradientId}_flash`;
+
+	// 监控价格变化，触发脉冲动画
+	useEffect(() => {
+		if (
+			range === '1d' &&
+			marketState === 'REGULAR' &&
+			currentPrice !== undefined
+		) {
+			if (
+				lastPriceRef.current !== undefined &&
+				lastPriceRef.current !== currentPrice
+			) {
+				// 判断价格变动方向
+				if (currentPrice > lastPriceRef.current) {
+					setPriceDirection('up');
+				} else if (currentPrice < lastPriceRef.current) {
+					setPriceDirection('down');
+				}
+
+				// 触发脉冲动画
+				setPulseTrigger((prev) => prev + 1);
+
+				// 短暂显示闪光效果后重置
+				setTimeout(() => {
+					setPriceDirection(null);
+				}, 1500);
+			}
+			lastPriceRef.current = currentPrice;
+		}
+	}, [currentPrice, range, marketState]);
 
 	// 市场开放时启用呼吸动画
 	useEffect(() => {
@@ -338,13 +383,18 @@ export default function StockChart({
 								stopOpacity={0.8}
 							/>
 							<stop
+								offset='50%'
+								stopColor={trendColor}
+								stopOpacity={0.4}
+							/>
+							<stop
 								offset='95%'
 								stopColor={trendColor}
 								stopOpacity={0.1}
 							/>
 						</linearGradient>
 
-						{/* 呼吸效果渐变 - 只在市场开放时使用 */}
+						{/* 增强的呼吸效果渐变 - 市场开放时使用 */}
 						{range === '1d' && marketState === 'REGULAR' && (
 							<linearGradient
 								id={breatheGradientId}
@@ -361,8 +411,8 @@ export default function StockChart({
 									{animateWave && (
 										<animate
 											attributeName='stop-opacity'
-											values='0.8;0.9;0.8;0.7;0.8'
-											dur='2s'
+											values='0.8;0.9;0.95;0.9;0.8;0.75;0.8'
+											dur='3s'
 											repeatCount='indefinite'
 										/>
 									)}
@@ -370,13 +420,13 @@ export default function StockChart({
 								<stop
 									offset='50%'
 									stopColor={trendColor}
-									stopOpacity={0.5}
+									stopOpacity={0.4}
 								>
 									{animateWave && (
 										<animate
 											attributeName='stop-opacity'
-											values='0.5;0.6;0.5;0.4;0.5'
-											dur='2s'
+											values='0.4;0.5;0.55;0.5;0.4;0.35;0.4'
+											dur='3s'
 											repeatCount='indefinite'
 										/>
 									)}
@@ -389,13 +439,114 @@ export default function StockChart({
 									{animateWave && (
 										<animate
 											attributeName='stop-opacity'
-											values='0.1;0.15;0.1;0.05;0.1'
-											dur='2s'
+											values='0.1;0.15;0.2;0.15;0.1;0.08;0.1'
+											dur='3s'
 											repeatCount='indefinite'
 										/>
 									)}
 								</stop>
 							</linearGradient>
+						)}
+
+						{/* 价格波动脉冲效果 */}
+						{range === '1d' && marketState === 'REGULAR' && (
+							<>
+								{/* 价格上涨闪光效果 */}
+								<radialGradient
+									id={`${flashGradientId}_up`}
+									cx='50%'
+									cy='50%'
+									r='50%'
+									fx='50%'
+									fy='50%'
+								>
+									<stop
+										offset='0%'
+										stopColor='#00ff00'
+										stopOpacity='0.3'
+									>
+										{priceDirection === 'up' && (
+											<animate
+												attributeName='stopOpacity'
+												values='0.3;0.1;0'
+												dur='1.5s'
+												begin={`${pulseTrigger}`}
+												repeatCount='1'
+											/>
+										)}
+									</stop>
+									<stop
+										offset='100%'
+										stopColor='#00ff00'
+										stopOpacity='0'
+									/>
+								</radialGradient>
+
+								{/* 价格下跌闪光效果 */}
+								<radialGradient
+									id={`${flashGradientId}_down`}
+									cx='50%'
+									cy='50%'
+									r='50%'
+									fx='50%'
+									fy='50%'
+								>
+									<stop
+										offset='0%'
+										stopColor='#ff0000'
+										stopOpacity='0.3'
+									>
+										{priceDirection === 'down' && (
+											<animate
+												attributeName='stopOpacity'
+												values='0.3;0.1;0'
+												dur='1.5s'
+												begin={`${pulseTrigger}`}
+												repeatCount='1'
+											/>
+										)}
+									</stop>
+									<stop
+										offset='100%'
+										stopColor='#ff0000'
+										stopOpacity='0'
+									/>
+								</radialGradient>
+
+								{/* 高级脉冲动画渐变 */}
+								<linearGradient
+									id={pulseGradientId}
+									x1='0'
+									y1='0'
+									x2='0'
+									y2='1'
+								>
+									<stop
+										offset='5%'
+										stopColor={trendColor}
+										stopOpacity='0.8'
+									>
+										{animateWave && (
+											<animate
+												attributeName='stop-color'
+												values={`${trendColor};${trendColor}90;${trendColor}`}
+												dur='2s'
+												repeatCount='indefinite'
+											/>
+										)}
+									</stop>
+									<stop
+										offset='50%'
+										stopColor={trendColor}
+										stopOpacity='0.5'
+									/>
+									<stop
+										offset='95%'
+										stopColor={trendColor}
+										stopOpacity='0.05'
+									/>
+								</linearGradient>
+							</>
 						)}
 					</defs>
 
@@ -424,6 +575,47 @@ export default function StockChart({
 
 					<Tooltip content={<CustomTooltip />} />
 
+					{/* 显示前收盘价参考线（仅限1D图表） */}
+					{range === '1d' && previousClose && (
+						<ReferenceLine
+							y={previousClose}
+							stroke={
+								isDarkTheme
+									? 'rgba(255,255,255,0.3)'
+									: 'rgba(0,0,0,0.3)'
+							}
+							strokeDasharray='3 3'
+							label={{
+								value: `Previous Close: $${previousClose.toFixed(2)}`,
+								position: 'insideBottomRight',
+								fill: textColor,
+								fontSize: 11,
+							}}
+						/>
+					)}
+
+					{/* 价格闪光效果 - 价格变动时的视觉反馈 */}
+					{range === '1d' &&
+						marketState === 'REGULAR' &&
+						priceDirection && (
+							<rect
+								x='0'
+								y='0'
+								width='100%'
+								height='100%'
+								fill={`url(#${flashGradientId}_${priceDirection})`}
+								fillOpacity='0.5'
+							>
+								<animate
+									attributeName='fillOpacity'
+									values='0.5;0.3;0.1;0'
+									dur='1.5s'
+									begin='0s'
+									repeatCount='1'
+								/>
+							</rect>
+						)}
+
 					<Area
 						type='monotone'
 						dataKey='close'
@@ -440,7 +632,25 @@ export default function StockChart({
 							r: 6,
 							stroke: isDarkTheme ? '#121212' : '#ffffff',
 							strokeWidth: 2,
+							// 添加点击时的动画
+							onMouseOver: (props: any) => {
+								const dot = props.cx
+									? document.querySelector(
+											`circle[cx="${props.cx}"][cy="${props.cy}"]`
+										)
+									: null;
+								if (dot) {
+									dot.setAttribute('r', '8');
+									setTimeout(
+										() => dot.setAttribute('r', '6'),
+										300
+									);
+								}
+							},
 						}}
+						// 为曲线添加动画效果
+						animationDuration={1000}
+						animationEasing='ease-in-out'
 					/>
 				</AreaChart>
 			</ResponsiveContainer>
