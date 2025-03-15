@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import { useTheme } from 'next-themes';
 import {
 	Area,
@@ -46,6 +48,9 @@ export default function StockChart({
 	// 获取当前主题
 	const { theme } = useTheme();
 	const isDarkTheme = theme === 'dark';
+
+	// 动画状态控制
+	const [animateWave, setAnimateWave] = useState(false);
 
 	// 确定是否显示交易状态提示
 	const showMarketStatus =
@@ -287,6 +292,18 @@ export default function StockChart({
 	// 生成渐变ID - 使其唯一以避免多个图表共享相同渐变
 	const gradientId = `colorClose_${range}_${isPositiveTrend ? 'up' : 'down'}`;
 
+	// 只用于呼吸效果的渐变ID
+	const breatheGradientId = `${gradientId}_breathe`;
+
+	// 市场开放时启用呼吸动画
+	useEffect(() => {
+		if (range === '1d' && marketState === 'REGULAR') {
+			setAnimateWave(true);
+		} else {
+			setAnimateWave(false);
+		}
+	}, [range, marketState]);
+
 	return (
 		<div className='h-full w-full'>
 			{showMarketStatus && (
@@ -307,6 +324,7 @@ export default function StockChart({
 					margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
 				>
 					<defs>
+						{/* 基础渐变色 */}
 						<linearGradient
 							id={gradientId}
 							x1='0'
@@ -325,6 +343,60 @@ export default function StockChart({
 								stopOpacity={0.1}
 							/>
 						</linearGradient>
+
+						{/* 呼吸效果渐变 - 只在市场开放时使用 */}
+						{range === '1d' && marketState === 'REGULAR' && (
+							<linearGradient
+								id={breatheGradientId}
+								x1='0'
+								y1='0'
+								x2='0'
+								y2='1'
+							>
+								<stop
+									offset='5%'
+									stopColor={trendColor}
+									stopOpacity={0.8}
+								>
+									{animateWave && (
+										<animate
+											attributeName='stop-opacity'
+											values='0.8;0.9;0.8;0.7;0.8'
+											dur='2s'
+											repeatCount='indefinite'
+										/>
+									)}
+								</stop>
+								<stop
+									offset='50%'
+									stopColor={trendColor}
+									stopOpacity={0.5}
+								>
+									{animateWave && (
+										<animate
+											attributeName='stop-opacity'
+											values='0.5;0.6;0.5;0.4;0.5'
+											dur='2s'
+											repeatCount='indefinite'
+										/>
+									)}
+								</stop>
+								<stop
+									offset='95%'
+									stopColor={trendColor}
+									stopOpacity={0.1}
+								>
+									{animateWave && (
+										<animate
+											attributeName='stop-opacity'
+											values='0.1;0.15;0.1;0.05;0.1'
+											dur='2s'
+											repeatCount='indefinite'
+										/>
+									)}
+								</stop>
+							</linearGradient>
+						)}
 					</defs>
 
 					<CartesianGrid
@@ -357,7 +429,11 @@ export default function StockChart({
 						dataKey='close'
 						stroke={trendColor}
 						fillOpacity={1}
-						fill={`url(#${gradientId})`}
+						fill={
+							range === '1d' && marketState === 'REGULAR'
+								? `url(#${breatheGradientId})`
+								: `url(#${gradientId})`
+						}
 						strokeWidth={2}
 						connectNulls={false} // 不连接null值点
 						activeDot={{
