@@ -12,7 +12,7 @@ import './globals.css';
 
 export function Navbar() {
 	return (
-		<nav className='fixed top-0 left-0 w-full flex justify-between border-b border-b-foreground/10 h-16 bg-card'>
+		<nav className='z-50 fixed top-0 left-0 w-full flex justify-between border-b border-b-foreground/10 h-16 bg-card'>
 			<div className='container flex gap-5 items-center font-semibold'>
 				<Link href={'/home'} className='shrink-0'>
 					Stock AI
