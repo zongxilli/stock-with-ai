@@ -143,6 +143,7 @@ export default function StockPage() {
 		null
 	);
 	const [loading, setLoading] = useState(true);
+	const [chartLoading, setChartLoading] = useState(false); // 新增：图表加载状态
 	const [error, setError] = useState<string | null>(null);
 	const [lastUpdated, setLastUpdated] = useState<string>('');
 	// 新增：标记是否停止自动刷新
@@ -163,12 +164,19 @@ export default function StockPage() {
 				setStopAutoRefresh(true); // 停止自动刷新
 				return;
 			}
+
+			// 设置加载状态为true，并立即清空之前的图表数据
+			setChartLoading(true);
+			setChartData(null);
+
 			const data = await getStockChartData(symbol, range);
 			setChartData(data);
+			setChartLoading(false);
 		} catch (err) {
 			const errorMsg = `Failed to load chart data: ${err instanceof Error ? err.message : String(err)}`;
 			setError(errorMsg);
 			console.error('Failed to load chart data:', err);
+			setChartLoading(false);
 
 			// 如果错误消息包含"symbol not found"或类似内容，停止自动刷新
 			if (
@@ -381,12 +389,16 @@ export default function StockPage() {
 
 			{/* 时间范围选择器 */}
 			<div className='mb-4'>
-				<RangeSelector currentRange={range} symbol={symbol || ''} />
+				<RangeSelector
+					currentRange={range}
+					symbol={symbol || ''}
+					isLoading={chartLoading}
+				/>
 			</div>
 
 			{/* 图表区域 */}
 			<div className='w-full h-[500px] rounded-lg border p-4 bg-card'>
-				{!chartData && loading && (
+				{(chartLoading || (!chartData && loading)) && (
 					<div className='h-full w-full flex items-center justify-center'>
 						<div className='animate-pulse text-muted-foreground'>
 							Loading chart data...
@@ -394,13 +406,13 @@ export default function StockPage() {
 					</div>
 				)}
 
-				{error && !chartData && (
+				{error && !chartData && !chartLoading && (
 					<div className='h-full w-full flex items-center justify-center'>
 						<div className='text-destructive'>{error}</div>
 					</div>
 				)}
 
-				{chartData && (
+				{chartData && !chartLoading && (
 					<StockChart
 						data={chartData.quotes}
 						range={range}

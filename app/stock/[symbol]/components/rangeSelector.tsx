@@ -9,11 +9,13 @@ import { cn } from '@/lib/utils';
 interface RangeSelectorProps {
 	currentRange: string;
 	symbol: string;
+	isLoading?: boolean; // 新增：加载状态属性
 }
 
 export default function RangeSelector({
 	currentRange,
 	symbol,
+	isLoading = false, // 默认为false
 }: RangeSelectorProps) {
 	const router = useRouter();
 
@@ -32,6 +34,9 @@ export default function RangeSelector({
 	// 使用客户端路由而不是Link组件，以便于保持滚动位置
 	const handleRangeChange = useCallback(
 		(rangeValue: string) => {
+			// 如果已经是当前选择的范围或者正在加载中，不执行操作
+			if (currentRange === rangeValue || isLoading) return;
+
 			// 保存当前滚动位置
 			const scrollPosition = window.scrollY;
 
@@ -45,7 +50,7 @@ export default function RangeSelector({
 				window.scrollTo(0, scrollPosition);
 			}, 0);
 		},
-		[router, symbol]
+		[router, symbol, currentRange, isLoading]
 	);
 
 	return (
@@ -54,11 +59,15 @@ export default function RangeSelector({
 				<button
 					key={range.value}
 					onClick={() => handleRangeChange(range.value)}
+					disabled={isLoading} // 当正在加载时禁用所有按钮
 					className={cn(
 						'px-3 py-1 rounded-md text-sm font-medium transition-colors',
 						currentRange === range.value
-							? 'bg-primary text-primary-foreground'
-							: 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
+							? isLoading
+								? 'bg-primary/70 text-primary-foreground animate-pulse' // 当前正在加载的范围
+								: 'bg-primary text-primary-foreground' // 当前选中的范围
+							: 'bg-secondary hover:bg-secondary/80 text-secondary-foreground', // 未选中的范围
+						isLoading && 'cursor-not-allowed opacity-70' // 加载中时降低所有按钮的不透明度
 					)}
 				>
 					{range.label}
