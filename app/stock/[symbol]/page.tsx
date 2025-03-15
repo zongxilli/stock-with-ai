@@ -401,6 +401,8 @@ export default function StockPage() {
 						data={chartData.quotes}
 						range={range}
 						isPartialDay={chartData.isPartialDay}
+						isPreviousTradingDay={chartData.isPreviousTradingDay}
+						tradingDate={chartData.tradingDate}
 						previousClose={realTimeData?.previousClose}
 						currentPrice={realTimeData?.price}
 						marketState={realTimeData?.marketState}

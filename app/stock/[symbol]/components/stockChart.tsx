@@ -24,6 +24,8 @@ interface StockChartProps {
 	}>;
 	range: string;
 	isPartialDay?: boolean; // 表示是否是交易中的部分日数据
+	isPreviousTradingDay?: boolean; // 表示是否显示前一交易日的数据
+	tradingDate?: string; // 交易日期
 	previousClose?: number; // 前一交易日收盘价
 	currentPrice?: number; // 当前价格
 	marketState?: string; // 市场状态：REGULAR（交易中）, PRE（盘前）, POST（盘后）, CLOSED（已关闭）
@@ -34,6 +36,8 @@ export default function StockChart({
 	data,
 	range,
 	isPartialDay,
+	isPreviousTradingDay,
+	tradingDate,
 	previousClose,
 	currentPrice,
 	marketState,
@@ -44,10 +48,16 @@ export default function StockChart({
 	const isDarkTheme = theme === 'dark';
 
 	// 确定是否显示交易状态提示
-	const showMarketStatus = range === '1d' && marketState && exchangeName;
+	const showMarketStatus =
+		range === '1d' && (marketState || isPreviousTradingDay);
 
 	// 根据市场状态生成状态文本
 	const getMarketStatusText = () => {
+		// 如果是显示前一交易日的数据
+		if (isPreviousTradingDay) {
+			return `Market currently closed - Showing data for ${tradingDate || 'previous trading day'}`;
+		}
+
 		if (!marketState) return '';
 
 		// 获取交易所缩写
