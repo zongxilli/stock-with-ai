@@ -6,7 +6,6 @@ import { Home, RefreshCw, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
-import EarningsReport from './components/earningsReport';
 import RangeSelector from './components/rangeSelector';
 import StockChart from './components/stockChart';
 import StockDetailsGrid from './components/stockDetails';
@@ -516,8 +515,6 @@ export default function StockPage() {
 					currency={realTimeData.currency}
 				/>
 			)}
-
-			<EarningsReport symbol={symbol} />
 		</div>
 	);
 }
