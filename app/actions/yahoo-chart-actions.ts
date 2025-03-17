@@ -152,7 +152,7 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				};
 
 				// 缓存设置
-				const cacheTime = isMarketOpen ? 60 : 300; // 如果市场开放，1分钟缓存；否则5分钟
+				const cacheTime = isMarketOpen ? 20 : 300; // 如果市场开放，20秒缓存；否则5分钟
 				await setCache(cacheKey, chartData, cacheTime);
 
 				return chartData;
