@@ -143,12 +143,10 @@ export default function StockPage() {
 		null
 	);
 	const [loading, setLoading] = useState(true);
-	const [chartLoading, setChartLoading] = useState(false); // 图表加载状态
-	const [isChartUpdating, setIsChartUpdating] = useState(false); // 跟踪图表更新状态
+	const [chartLoading, setChartLoading] = useState(false); // 新增：图表加载状态
 	const [error, setError] = useState<string | null>(null);
 	const [lastUpdated, setLastUpdated] = useState<string>('');
-	const [lastChartUpdated, setLastChartUpdated] = useState<string>('');
-	// 标记是否停止自动刷新
+	// 新增：标记是否停止自动刷新
 	const [stopAutoRefresh, setStopAutoRefresh] = useState(false);
 
 	// 如果没有指定时间范围，重定向到默认的1年范围
@@ -159,7 +157,7 @@ export default function StockPage() {
 	}, [searchParams, symbol, router]);
 
 	// 获取图表数据的函数
-	const fetchChartData = async (silentUpdate = false) => {
+	const fetchChartData = async () => {
 		try {
 			if (!symbol) {
 				setError('Stock symbol cannot be empty');
@@ -167,46 +165,20 @@ export default function StockPage() {
 				return;
 			}
 
-			// 如果是静默更新，不显示加载状态，不清空数据
-			if (!silentUpdate) {
-				setChartLoading(true);
-				setChartData(null);
-			} else {
-				// 静默更新只设置一个标志，不影响现有图表显示
-				setIsChartUpdating(true);
-			}
+			// 设置加载状态为true，并立即清空之前的图表数据
+			setChartLoading(true);
+			setChartData(null);
 
 			const data = await getStockChartData(symbol, range);
-
-			// 为静默更新添加平滑过渡
-			if (silentUpdate && chartData) {
-				// 给React一点时间，在下一个渲染周期更新图表
-				setTimeout(() => {
-					setChartData(data);
-					setIsChartUpdating(false);
-					setLastChartUpdated(new Date().toLocaleTimeString());
-				}, 50);
-			} else {
-				setChartData(data);
-				setChartLoading(false);
-				setLastChartUpdated(new Date().toLocaleTimeString());
-			}
-
-			if (error) {
-				setError(null);
-				setStopAutoRefresh(false);
-			}
+			setChartData(data);
+			setChartLoading(false);
 		} catch (err) {
 			const errorMsg = `Failed to load chart data: ${err instanceof Error ? err.message : String(err)}`;
 			setError(errorMsg);
 			console.error('Failed to load chart data:', err);
+			setChartLoading(false);
 
-			if (!silentUpdate) {
-				setChartLoading(false);
-			} else {
-				setIsChartUpdating(false);
-			}
-
+			// 如果错误消息包含"symbol not found"或类似内容，停止自动刷新
 			if (
 				errorMsg.toLowerCase().includes('symbol not found') ||
 				errorMsg.toLowerCase().includes('stock symbol not found') ||
@@ -254,45 +226,35 @@ export default function StockPage() {
 		setLoading(true);
 		setStopAutoRefresh(false); // 手动刷新时，重置自动刷新状态
 		fetchRealTimeData();
-		fetchChartData(false); // 手动刷新时使用非静默模式
+		fetchChartData();
 	};
 
-	// 初始加载图表数据 - 当时间范围或股票代码变化时
+	// 初始加载图表数据
 	useEffect(() => {
-		fetchChartData(false); // 非静默模式加载初始数据
+		fetchChartData();
 	}, [symbol, range]);
 
-	// 实时价格和图表数据的自动刷新
+	// 初始加载和定时更新实时价格数据
 	useEffect(() => {
 		// 立即获取实时数据
 		fetchRealTimeData();
 
-		let priceRefreshInterval: NodeJS.Timeout | null = null;
-		let chartRefreshInterval: NodeJS.Timeout | null = null;
+		// 只有在未停止自动刷新的情况下才设置定时器
+		let refreshInterval: NodeJS.Timeout | null = null;
 
 		if (!stopAutoRefresh) {
-			// 实时价格刷新 - 每5秒
-			priceRefreshInterval = setInterval(() => {
+			refreshInterval = setInterval(() => {
 				fetchRealTimeData();
-			}, 5000);
-
-			// 图表数据刷新 - 仅在1d视图且市场开放时
-			if (range === '1d') {
-				chartRefreshInterval = setInterval(() => {
-					if (realTimeData?.marketState === 'REGULAR') {
-						// 使用静默更新模式，不显示加载状态
-						fetchChartData(true);
-					}
-				}, 30000); // 30秒刷新一次
-			}
+			}, 5000); // 每5秒刷新一次
 		}
 
-		// 组件卸载时清除所有定时器
+		// 组件卸载时清除定时器
 		return () => {
-			if (priceRefreshInterval) clearInterval(priceRefreshInterval);
-			if (chartRefreshInterval) clearInterval(chartRefreshInterval);
+			if (refreshInterval) {
+				clearInterval(refreshInterval);
+			}
 		};
-	}, [symbol, range, stopAutoRefresh, realTimeData?.marketState]);
+	}, [symbol, stopAutoRefresh]); // 依赖项增加stopAutoRefresh
 
 	// 显示公司名称和股票代码
 	const stockName =
@@ -435,7 +397,7 @@ export default function StockPage() {
 			</div>
 
 			{/* 图表区域 */}
-			<div className='w-full h-[500px] rounded-lg border p-4 bg-card relative'>
+			<div className='w-full h-[500px] rounded-lg border p-4 bg-card'>
 				{(chartLoading || (!chartData && loading)) && (
 					<div className='h-full w-full flex items-center justify-center'>
 						<div className='animate-pulse text-muted-foreground'>
@@ -461,7 +423,6 @@ export default function StockPage() {
 						currentPrice={realTimeData?.price}
 						marketState={realTimeData?.marketState}
 						exchangeName={realTimeData?.exchangeName}
-						isUpdating={isChartUpdating}
 					/>
 				)}
 			</div>
@@ -469,21 +430,7 @@ export default function StockPage() {
 			{/* 显示最后更新时间 */}
 			{lastUpdated && !stopAutoRefresh && (
 				<div className='text-xs text-right text-gray-500 mt-4'>
-					{range === '1d' &&
-					realTimeData?.marketState === 'REGULAR' ? (
-						<>
-							Prices updated: {lastUpdated}
-							{lastChartUpdated &&
-								` • Chart updated: ${lastChartUpdated}`}
-							{realTimeData?.marketState === 'REGULAR' && (
-								<span className='ml-1 text-green-500'>
-									• Live
-								</span>
-							)}
-						</>
-					) : (
-						<>Last updated: {lastUpdated}</>
-					)}
+					Last updated: {lastUpdated}
 				</div>
 			)}
 
