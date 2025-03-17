@@ -33,6 +33,7 @@ interface StockChartProps {
 	currentPrice?: number; // 当前价格
 	marketState?: string; // 市场状态：REGULAR（交易中）, PRE（盘前）, POST（盘后）, CLOSED（已关闭）
 	exchangeName?: string; // 交易所名称
+	isUpdating?: boolean; // 表示图表是否正在更新
 }
 
 export default function StockChart({
@@ -45,6 +46,7 @@ export default function StockChart({
 	currentPrice,
 	marketState,
 	exchangeName,
+	isUpdating = false,
 }: StockChartProps) {
 	// 获取当前主题
 	const { theme } = useTheme();
@@ -349,8 +351,20 @@ export default function StockChart({
 		}
 	}, [range, marketState]);
 
+	// 确定图表容器的CSS类，添加过渡效果
+	const chartContainerClass = `h-full w-full relative ${
+		isUpdating ? 'opacity-90 transition-opacity duration-300' : ''
+	}`;
+
 	return (
-		<div className='h-full w-full'>
+		<div className={chartContainerClass}>
+			{/* 当图表正在更新时显示提示 */}
+			{isUpdating && (
+				<div className='absolute top-2 right-2 text-xs bg-background/50 text-primary animate-pulse px-2 py-1 rounded-md z-10'>
+					Updating...
+				</div>
+			)}
+
 			{showMarketStatus && (
 				<div className='text-xs text-muted-foreground mb-2 text-center'>
 					{getMarketStatusText()}
@@ -573,7 +587,10 @@ export default function StockChart({
 						width={60}
 					/>
 
-					<Tooltip content={<CustomTooltip />} />
+					<Tooltip
+						content={<CustomTooltip />}
+						isAnimationActive={false}
+					/>
 
 					{/* 显示前收盘价参考线（仅限1D图表） */}
 					{range === '1d' && previousClose && (
@@ -651,6 +668,7 @@ export default function StockChart({
 						// 为曲线添加动画效果
 						animationDuration={1000}
 						animationEasing='ease-in-out'
+						isAnimationActive={range !== '1d'}
 					/>
 				</AreaChart>
 			</ResponsiveContainer>
