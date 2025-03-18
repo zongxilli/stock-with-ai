@@ -30,6 +30,16 @@ interface StockRealTimeData {
 	previousClose: number;
 	open: number;
 
+	// 盘前盘后价格
+	preMarketPrice?: number;
+	preMarketChange?: number;
+	preMarketChangePercent?: number;
+	preMarketTime?: number;
+	postMarketPrice?: number;
+	postMarketChange?: number;
+	postMarketChangePercent?: number;
+	postMarketTime?: number;
+
 	// 成交量信息
 	marketVolume: number;
 
@@ -310,6 +320,29 @@ export default function StockPage() {
 	const stockSymbol =
 		realTimeData?.symbol || chartData?.meta?.symbol || symbol;
 
+	// 判断是否显示盘前价格
+	const shouldShowPreMarketPrice = () => {
+		if (!realTimeData) return false;
+		return (
+			(realTimeData.marketState === 'PRE' ||
+				realTimeData.marketState === 'CLOSED') &&
+			realTimeData.preMarketPrice !== undefined &&
+			realTimeData.preMarketChange !== undefined
+		);
+	};
+
+	// 判断是否显示盘后价格
+	const shouldShowPostMarketPrice = () => {
+		if (!realTimeData) return false;
+		return (
+			(realTimeData.marketState === 'POST' ||
+				realTimeData.marketState === 'POSTPOST' ||
+				realTimeData.marketState === 'CLOSED') &&
+			realTimeData.postMarketPrice !== undefined &&
+			realTimeData.postMarketChange !== undefined
+		);
+	};
+
 	// 如果有错误，显示错误界面
 	if (error && !loading && stopAutoRefresh) {
 		return (
@@ -384,15 +417,57 @@ export default function StockPage() {
 				{/* 使用实时数据显示当前价格 */}
 				{realTimeData ? (
 					<div className='flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3'>
-						<div className='flex items-baseline'>
-							<span className='text-3xl font-bold mr-3'>
-								${realTimeData.price.toFixed(2)}
-							</span>
-							<PriceChange
-								change={realTimeData.change}
-								changePercent={realTimeData.changePercent}
-							/>
+						<div className='flex flex-col'>
+							{/* 常规市场价格 */}
+							<div className='flex items-baseline'>
+								<span className='text-3xl font-bold mr-3'>
+									${realTimeData.price.toFixed(2)}
+								</span>
+								<PriceChange
+									change={realTimeData.change}
+									changePercent={realTimeData.changePercent}
+								/>
+							</div>
+
+							{/* 盘前市场价格 */}
+							{shouldShowPreMarketPrice() && (
+								<div className='flex items-baseline mt-2'>
+									<span className='text-sm font-medium mr-3'>
+										Pre-Market: $
+										{realTimeData.preMarketPrice!.toFixed(
+											2
+										)}
+									</span>
+									<PriceChange
+										change={realTimeData.preMarketChange!}
+										changePercent={
+											realTimeData.preMarketChangePercent!
+										}
+										small={true}
+									/>
+								</div>
+							)}
+
+							{/* 盘后市场价格 */}
+							{shouldShowPostMarketPrice() && (
+								<div className='flex items-baseline mt-2'>
+									<span className='text-sm font-medium mr-3'>
+										After Hours: $
+										{realTimeData.postMarketPrice!.toFixed(
+											2
+										)}
+									</span>
+									<PriceChange
+										change={realTimeData.postMarketChange!}
+										changePercent={
+											realTimeData.postMarketChangePercent!
+										}
+										small={true}
+									/>
+								</div>
+							)}
 						</div>
+
 						{/* 交易量信息 */}
 						<div className='text-sm text-muted-foreground'>
 							Volume: {realTimeData.marketVolume.toLocaleString()}
@@ -583,15 +658,17 @@ export default function StockPage() {
 function PriceChange({
 	change,
 	changePercent,
+	small = false,
 }: {
 	change: number;
 	changePercent: number;
+	small?: boolean;
 }) {
 	const isPositive = change >= 0;
 
 	return (
 		<span
-			className={`text-lg ${isPositive ? 'text-green-500' : 'text-red-500'}`}
+			className={`${small ? 'text-sm' : 'text-lg'} ${isPositive ? 'text-green-500' : 'text-red-500'}`}
 		>
 			{isPositive ? '+' : ''}
 			{change.toFixed(2)} ({isPositive ? '+' : ''}

@@ -151,6 +151,16 @@ export async function getStockRealTimeData(symbol: string) {
 				previousClose: quote.regularMarketPreviousClose,
 				open: quote.regularMarketOpen,
 
+				// 盘前盘后价格
+				preMarketPrice: quote.preMarketPrice,
+				preMarketChange: quote.preMarketChange,
+				preMarketChangePercent: quote.preMarketChangePercent,
+				preMarketTime: quote.preMarketTime,
+				postMarketPrice: quote.postMarketPrice,
+				postMarketChange: quote.postMarketChange,
+				postMarketChangePercent: quote.postMarketChangePercent,
+				postMarketTime: quote.postMarketTime,
+
 				// 成交量信息
 				marketVolume: quote.regularMarketVolume,
 
