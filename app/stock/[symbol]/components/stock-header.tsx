@@ -58,24 +58,31 @@ export default function StockHeader({
 	// 判断是否显示盘前价格
 	const shouldShowPreMarketPrice = () => {
 		if (!realTimeData) return false;
-		return (
-			(realTimeData.marketState === 'PRE' ||
-				realTimeData.marketState === 'CLOSED') &&
+
+		// 检查是否有有效的盘前数据
+		const hasValidPreMarketData =
 			realTimeData.preMarketPrice !== undefined &&
-			realTimeData.preMarketChange !== undefined
+			realTimeData.preMarketChange !== undefined;
+
+		// 如果市场状态为盘前或者有盘前数据就显示
+		return (
+			hasValidPreMarketData &&
+			(realTimeData.marketState === 'PRE' ||
+				Math.abs(realTimeData.preMarketChange!) > 0.001)
 		);
 	};
 
 	// 判断是否显示盘后价格
 	const shouldShowPostMarketPrice = () => {
 		if (!realTimeData) return false;
-		return (
-			(realTimeData.marketState === 'POST' ||
-				realTimeData.marketState === 'POSTPOST' ||
-				realTimeData.marketState === 'CLOSED') &&
+
+		// 检查是否有有效的盘后数据
+		const hasValidPostMarketData =
 			realTimeData.postMarketPrice !== undefined &&
-			realTimeData.postMarketChange !== undefined
-		);
+			realTimeData.postMarketChange !== undefined;
+
+		// 无论市场状态如何，只要有盘后数据就显示
+		return hasValidPostMarketData;
 	};
 
 	return (

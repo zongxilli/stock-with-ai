@@ -265,6 +265,7 @@ export default function StockPage() {
 	}, [symbol, range]);
 
 	// 实时价格和图表数据的自动刷新
+	// 实时价格和图表数据的自动刷新
 	useEffect(() => {
 		// 立即获取实时数据
 		fetchRealTimeData();
@@ -274,25 +275,34 @@ export default function StockPage() {
 
 		if (!stopAutoRefresh) {
 			// 根据市场状态决定更新频率
-			const refreshTime =
-				realTimeData?.marketState === 'REGULAR'
-					? 5000 // 交易中：5秒
-					: realTimeData?.marketState === 'PRE' ||
-						  realTimeData?.marketState === 'POST'
-						? 15000 // 盘前盘后：15秒
-						: 60000; // 关闭时：60秒（减少API调用）
+			let refreshTime = 60000; // 默认为60秒
+
+			if (realTimeData?.marketState === 'REGULAR') {
+				refreshTime = 5000; // 交易中：5秒
+			} else if (realTimeData?.marketState === 'PRE') {
+				refreshTime = 15000; // 盘前：15秒
+			} else if (realTimeData?.marketState === 'POST') {
+				refreshTime = 15000; // 盘后：15秒
+			} else if (realTimeData?.marketState === 'CLOSED') {
+				// 如果已经有盘后数据，减少刷新频率
+				if (
+					realTimeData.postMarketPrice !== undefined &&
+					realTimeData.postMarketChange !== undefined
+				) {
+					refreshTime = 300000; // 已有盘后数据且市场关闭：5分钟
+				} else {
+					refreshTime = 60000; // 市场关闭无盘后数据：1分钟
+				}
+			}
 
 			// 处理POSTPOST异常情况
 			if (realTimeData?.marketState === 'POSTPOST') {
-				// 视为已关闭，使用较长的更新间隔
-				refreshInterval = setInterval(() => {
-					fetchRealTimeData();
-				}, 60000); // 每分钟刷新一次
-			} else {
-				refreshInterval = setInterval(() => {
-					fetchRealTimeData();
-				}, refreshTime);
+				refreshTime = 300000; // 每5分钟刷新一次
 			}
+
+			refreshInterval = setInterval(() => {
+				fetchRealTimeData();
+			}, refreshTime);
 		}
 
 		// 组件卸载时清除定时器

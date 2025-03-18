@@ -338,8 +338,32 @@ export async function getStockRealTimeData(symbol: string) {
 					safeGet(stats, ['summaryDetail', 'currency'], 'USD'),
 			};
 
-			// 保存结果到Redis缓存，设置4秒过期时间
-			await setCache(cacheKey, stockData, 4);
+			// 根据市场状态设置不同的缓存时间
+			let cacheTime = 4; // 默认4秒
+
+			// 检查是否是交易中状态
+			if (quote.marketState === 'REGULAR') {
+				cacheTime = 4; // 交易中: 4秒
+			} else if (
+				quote.marketState === 'PRE' ||
+				quote.marketState === 'POST'
+			) {
+				cacheTime = 15; // 盘前盘后: 15秒
+			} else {
+				// 如果市场关闭，且有盘后数据，缓存8小时
+				if (
+					quote.marketState === 'CLOSED' &&
+					quote.postMarketPrice !== undefined &&
+					quote.postMarketChange !== undefined
+				) {
+					cacheTime = 28800; // 8小时 = 28800秒
+				} else {
+					cacheTime = 300; // 市场关闭无盘后数据: 5分钟
+				}
+			}
+
+			// 保存结果到Redis缓存
+			await setCache(cacheKey, stockData, cacheTime);
 
 			return stockData;
 		} catch (innerError) {
