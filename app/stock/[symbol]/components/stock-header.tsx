@@ -64,6 +64,9 @@ export default function StockHeader({
 			realTimeData.preMarketPrice !== undefined &&
 			realTimeData.preMarketChange !== undefined;
 
+		// 如果市场处于盘中状态，不显示盘前价格
+		if (realTimeData.marketState === 'REGULAR') return false;
+
 		// 如果市场状态为盘前或者有盘前数据就显示
 		return (
 			hasValidPreMarketData &&
@@ -76,15 +79,17 @@ export default function StockHeader({
 	const shouldShowPostMarketPrice = () => {
 		if (!realTimeData) return false;
 
+		// 如果市场处于盘中状态，不显示盘后价格
+		if (realTimeData.marketState === 'REGULAR') return false;
+
 		// 检查是否有有效的盘后数据
 		const hasValidPostMarketData =
 			realTimeData.postMarketPrice !== undefined &&
 			realTimeData.postMarketChange !== undefined;
 
-		// 无论市场状态如何，只要有盘后数据就显示
+		// 只有在非盘中状态，且有盘后数据时才显示
 		return hasValidPostMarketData;
 	};
-
 	return (
 		<div className='mb-6'>
 			{/* 标题和基本信息 */}
