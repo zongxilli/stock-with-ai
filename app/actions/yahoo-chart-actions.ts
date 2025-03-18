@@ -33,7 +33,7 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 
 		// 特殊处理1D视图
 		if (range === '1d') {
-			interval = '5m';
+			interval = '1m';
 
 			// 根据marketState判断市场当前状态
 			// 可能的值: REGULAR(正常交易), PRE(盘前), POST(盘后), CLOSED(已关闭)
@@ -293,7 +293,7 @@ function generateTradingTimeline(marketOpen: Date, marketClose: Date): Date[] {
 
 	while (current <= marketClose) {
 		timeline.push(new Date(current));
-		current.setMinutes(current.getMinutes() + 5); // 每5分钟一个点
+		current.setMinutes(current.getMinutes() + 1); // 每5分钟一个点
 	}
 
 	return timeline;
