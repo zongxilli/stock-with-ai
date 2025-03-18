@@ -1,6 +1,6 @@
 'use server';
 
-import { marketAnalysisService } from '@/lib/services/marketAnalysisService';
+import { marketAnalysisService } from '@/prisma/services/market-analysis-service';
 
 export async function getAllMarketAnalyses() {
 	return marketAnalysisService.getAll();

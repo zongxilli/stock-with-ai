@@ -1,7 +1,6 @@
-// lib/services/marketAnalysisService.ts
 import { MarketAnalysis } from '@prisma/client';
 
-import { prisma } from '../prisma';
+import { prisma } from '@/lib/prisma';
 
 export const marketAnalysisService = {
 	// 获取所有市场分析数据
