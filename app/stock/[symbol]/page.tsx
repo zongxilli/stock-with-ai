@@ -267,32 +267,39 @@ export default function StockPage() {
 		// 立即获取实时数据
 		fetchRealTimeData();
 
-		let priceRefreshInterval: NodeJS.Timeout | null = null;
-		let chartRefreshInterval: NodeJS.Timeout | null = null;
+		// 只有在未停止自动刷新的情况下才设置定时器
+		let refreshInterval: NodeJS.Timeout | null = null;
 
 		if (!stopAutoRefresh) {
-			// 实时价格刷新 - 每5秒
-			priceRefreshInterval = setInterval(() => {
-				fetchRealTimeData();
-			}, 5000);
+			// 根据市场状态决定更新频率
+			const refreshTime =
+				realTimeData?.marketState === 'REGULAR'
+					? 5000 // 交易中：5秒
+					: realTimeData?.marketState === 'PRE' ||
+						  realTimeData?.marketState === 'POST'
+						? 15000 // 盘前盘后：15秒
+						: 60000; // 关闭时：60秒（减少API调用）
 
-			// 图表数据刷新 - 仅在1d视图且市场开放时
-			if (range === '1d') {
-				chartRefreshInterval = setInterval(() => {
-					if (realTimeData?.marketState === 'REGULAR') {
-						// 使用静默更新模式，不显示加载状态
-						fetchChartData(true);
-					}
-				}, 30000); // 30秒刷新一次
+			// 处理POSTPOST异常情况
+			if (realTimeData?.marketState === 'POSTPOST') {
+				// 视为已关闭，使用较长的更新间隔
+				refreshInterval = setInterval(() => {
+					fetchRealTimeData();
+				}, 60000); // 每分钟刷新一次
+			} else {
+				refreshInterval = setInterval(() => {
+					fetchRealTimeData();
+				}, refreshTime);
 			}
 		}
 
-		// 组件卸载时清除所有定时器
+		// 组件卸载时清除定时器
 		return () => {
-			if (priceRefreshInterval) clearInterval(priceRefreshInterval);
-			if (chartRefreshInterval) clearInterval(chartRefreshInterval);
+			if (refreshInterval) {
+				clearInterval(refreshInterval);
+			}
 		};
-	}, [symbol, range, stopAutoRefresh, realTimeData?.marketState]);
+	}, [symbol, stopAutoRefresh, realTimeData?.marketState]);
 
 	// 显示公司名称和股票代码
 	const stockName =

@@ -86,7 +86,10 @@ export default function StockChart({
 			else if (exchangeName.includes('Hong Kong')) exchangeShort = 'HKEX';
 		}
 
-		switch (marketState) {
+		const normalizedState =
+			marketState === 'POSTPOST' ? 'CLOSED' : marketState;
+
+		switch (normalizedState) {
 			case 'REGULAR':
 				return `Market hours • ${exchangeShort} • Trading in progress`;
 			case 'PRE':
@@ -96,10 +99,9 @@ export default function StockChart({
 			case 'CLOSED':
 				return `Market closed • ${exchangeShort}`;
 			default:
-				return `${marketState} • ${exchangeShort}`;
+				return `${normalizedState} • ${exchangeShort}`;
 		}
 	};
-
 	// 如果没有数据，显示提示信息
 	if (!data || data.length === 0) {
 		return (
