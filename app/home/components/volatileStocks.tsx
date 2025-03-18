@@ -50,7 +50,7 @@ export default function VolatileStocks() {
 		lastUpdated: '',
 		loading: true,
 		error: null,
-		activeTab: 'gainers',
+		activeTab: 'mostActive', // 修改默认选中的标签为 mostActive
 	});
 
 	// 处理标签页切换
@@ -190,12 +190,21 @@ export default function VolatileStocks() {
 			)}
 
 			<Tabs
-				defaultValue='gainers'
+				defaultValue='mostActive' // 修改默认值为 mostActive
 				value={state.activeTab}
 				onValueChange={handleTabChange}
 				className='w-full'
 			>
 				<TabsList className='mb-4 w-full'>
+					{/* 调整标签顺序，将 Most Active 放在第一位 */}
+					<TabsTrigger
+						value='mostActive'
+						className='flex items-center gap-1'
+						disabled={state.loading || !state.mostActives.length}
+					>
+						<Activity className='h-4 w-4 text-blue-500' />
+						Most Active
+					</TabsTrigger>
 					<TabsTrigger
 						value='gainers'
 						className='flex items-center gap-1'
@@ -213,14 +222,6 @@ export default function VolatileStocks() {
 						Top Losers
 					</TabsTrigger>
 					<TabsTrigger
-						value='mostActive'
-						className='flex items-center gap-1'
-						disabled={state.loading || !state.mostActives.length}
-					>
-						<Activity className='h-4 w-4 text-blue-500' />
-						Most Active
-					</TabsTrigger>
-					<TabsTrigger
 						value='mostShorted'
 						className='flex items-center gap-1'
 						disabled={state.loading || !state.mostShorted.length}
@@ -229,6 +230,13 @@ export default function VolatileStocks() {
 						Most Shorted
 					</TabsTrigger>
 				</TabsList>
+
+				{/* 调整 TabsContent 顺序以匹配 TabsTrigger 顺序 */}
+				<TabsContent value='mostActive'>
+					{state.loading
+						? renderSkeletons(6)
+						: renderStockList(state.mostActives, true)}
+				</TabsContent>
 
 				<TabsContent value='gainers'>
 					{state.loading
@@ -240,12 +248,6 @@ export default function VolatileStocks() {
 					{state.loading
 						? renderSkeletons(6)
 						: renderStockList(state.losers)}
-				</TabsContent>
-
-				<TabsContent value='mostActive'>
-					{state.loading
-						? renderSkeletons(6)
-						: renderStockList(state.mostActives, true)}
 				</TabsContent>
 
 				<TabsContent value='mostShorted'>
