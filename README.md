@@ -1,17 +1,18 @@
 # Smart Stock Market Analysis Platform
 
-一个基于Next.js、Prisma、Redis和Supabase构建的股票市场分析应用，利用AI提供市场洞察和交易建议。
+一个基于Next.js 14、Prisma、Redis和Supabase构建的股票市场分析应用，利用AI提供市场洞察和交易建议。
 
 ## ✨ 功能特点
 
 - **实时市场数据仪表板** - 自动刷新的股票、期货和商品市场数据（5秒间隔）
 - **交互式图表** - 多时间范围的专业股票价格图表，包括日内、周、月、年视图
 - **智能搜索** - 实时股票搜索功能，支持股票、ETF、指数和加密货币
-- **AI市场分析** - 智能分析市场趋势、情绪和波动性
+- **AI市场分析** - 智能分析市场趋势、情绪和波动性，提供每日市场总结和交易建议
+- **行业板块分析** - 详细的行业板块表现分析，包括表现得分和前景展望
 - **深色/浅色模式** - 支持主题切换，适合各种使用环境
 - **响应式设计** - 完全兼容移动端和桌面端的现代用户界面
 - **高性能架构** - 利用Redis缓存提升应用性能和响应速度
-- **用户认证系统** - 基于Supabase的安全身份验证
+- **用户认证系统** - 基于Supabase的安全身份验证和用户管理
 
 ## 🚀 快速开始
 
@@ -79,24 +80,34 @@ smart-stock-analysis/
 │   ├── actions/          # 服务器操作（Server Actions）
 │   │   ├── marketAnalysis.ts      # 市场分析数据操作
 │   │   ├── redis-actions.ts       # Redis数据操作
-│   │   ├── yahoo-finance2-actions.ts  # Yahoo财经API集成
-│   │   └── yahoo-chart-actions.ts     # 图表数据获取操作
+│   │   ├── user/                  # 用户相关操作
+│   │   └── yahoo/                 # Yahoo财经API相关操作
+│   │       ├── get-stock-realtime-data.ts  # 实时股票数据获取
+│   │       ├── get-volatile-stocks.ts      # 波动性股票获取
+│   │       ├── get-stock-chart-data.ts     # 股票图表数据获取
+│   │       ├── get-main-indices.ts         # 主要指数数据获取
+│   │       └── utils/                      # Yahoo API工具函数
 │   ├── (auth-pages)/     # 认证相关页面
+│   ├── auth/             # 认证相关API和组件
 │   ├── home/             # 首页和相关组件
+│   ├── account/          # 用户账户管理页面
 │   ├── stock/            # 股票详情页
 │   │   └── [symbol]/     # 动态路由股票页面
 │   │       └── components/  # 股票页面组件
 │   ├── api/              # API路由
-│   │   └── stock-search/ # 股票搜索API
-│   └── protected/        # 需要认证的页面
+│   ├── protected/        # 需要认证的页面
+│   ├── error.tsx         # 错误处理组件
+│   ├── global-error.tsx  # 全局错误处理
+│   └── not-found.tsx     # 404页面
 ├── components/           # 可重用React组件
 │   ├── custom/           # 自定义组件
-│   │   ├── card.tsx          # 卡片组件
-│   │   ├── iconButton.tsx    # 图标按钮组件
-│   │   └── marketCardSkeleton.tsx # 市场卡片骨架屏
 │   ├── ui/               # shadcn/ui组件
+│   ├── error/            # 错误处理相关组件
+│   ├── typography/       # 排版相关组件
 │   ├── stock-search.tsx  # 股票搜索组件
-│   └── theme-switcher.tsx # 主题切换组件
+│   ├── theme-switcher.tsx # 主题切换组件
+│   ├── header-auth.tsx   # 带认证的头部组件
+│   └── submit-button.tsx # 提交按钮组件
 ├── hooks/                # 自定义React钩子
 │   ├── useDebounce.tsx   # 防抖钩子
 │   └── useIsMounted.tsx  # 挂载状态钩子
@@ -112,8 +123,12 @@ smart-stock-analysis/
 │   └── seeds/            # 数据填充脚本
 ├── stores/               # 状态管理
 │   └── marketStore.ts    # 市场数据状态存储
-└── utils/                # 工具函数
-    └── supabase/         # Supabase客户端
+├── utils/                # 工具函数
+│   └── supabase/         # Supabase客户端
+├── middleware.ts         # Next.js中间件（用于路由保护等）
+├── tailwind.config.ts    # Tailwind CSS配置
+├── next.config.ts        # Next.js配置
+└── eslint.config.js      # ESLint配置
 ```
 
 ## 💡 技术栈
@@ -145,6 +160,19 @@ smart-stock-analysis/
 
 数据每5秒自动刷新，使用Zustand进行状态管理，确保用户获得最新的市场信息。
 
+### AI市场分析
+
+系统利用AI分析每日市场数据，提供以下见解：
+
+- 市场总结：对当日市场情况的简明概述
+- 情绪分析：量化市场整体情绪的得分指标
+- 安全评估：市场交易风险水平分析
+- 波动性监测：市场波动程度的量化指标
+- 领涨领跌股：当日表现最佳和最差的股票列表
+- 关键事件：影响市场的重要新闻和事件
+- 交易建议：基于市场分析的投资策略建议
+- 行业板块分析：各主要行业的表现和前景评估
+
 ### 股票详情页
 
 股票详情页提供全面的个股信息：
@@ -163,6 +191,15 @@ smart-stock-analysis/
 - 搜索结果分类显示
 - 键盘导航支持
 
+### 用户账户管理
+
+基于Supabase的用户管理系统：
+
+- 安全的邮箱注册和登录
+- 用户资料管理
+- 个性化设置管理
+- 账户安全控制
+
 ### 自适应设计
 
 - 完全响应式界面，适配从手机到桌面的各种设备尺寸
@@ -177,6 +214,7 @@ smart-stock-analysis/
 - 短期缓存实时市场数据（4秒）
 - 中等期限缓存图表数据（根据时间范围从1分钟到1小时不等）
 - 长期缓存搜索结果（24小时）
+- AI分析结果缓存（按日期）
 
 这种分层缓存策略显著提高了应用性能和用户体验。
 
@@ -188,11 +226,35 @@ smart-stock-analysis/
 - **useIsMounted**: 安全处理组件挂载状态
 - **useMarketStore**: Zustand状态管理钩子，处理市场数据
 
-## 📝 未来计划
+## 🔮 AI分析模型
 
-- [ ] 个人投资组合管理和跟踪
+项目使用多维度分析模型，评估市场状况：
+
+- **情绪评分(Sentiment Score)**: 从-10到10的量表，反映市场情绪
+- **安全评分(Safety Score)**: 从0到100的量表，评估市场风险水平
+- **波动性指标(Volatility Level)**: 从0到100的量表，衡量市场波动程度
+- **市场趋势(Market Trend)**: 分为看涨(bullish)、看跌(bearish)和中性(neutral)
+- **行业板块分析**: 对技术、金融、医疗、能源和消费等主要行业提供详细分析
+
+## 📝 当前进度和未来计划
+
+已完成:
+
+- [x] 基础应用架构设计和开发
+- [x] Supabase认证系统集成
+- [x] 市场数据获取和显示
+- [x] AI市场分析模型实现
+- [x] 响应式UI开发
+
+进行中:
+
+- [ ] 高级图表分析工具开发
+- [ ] 用户个人投资组合管理
+- [ ] 实时新闻流集成
+
+未来计划:
+
 - [ ] 高级技术分析指标和图表模式识别
-- [ ] 实时新闻流和市场事件整合
 - [ ] 社区功能和交易想法分享
 - [ ] 移动应用开发
 - [ ] 推送通知系统
