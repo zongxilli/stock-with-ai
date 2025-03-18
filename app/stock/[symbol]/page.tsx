@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from 'react';
 
-import { Home, RefreshCw, AlertTriangle } from 'lucide-react';
-import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
+import ChartContainer from './components/chart-container';
+import ErrorView from './components/error-view';
 import RangeSelector from './components/rangeSelector';
-import StockChart from './components/stockChart';
-import StockDetailsGrid from './components/stockDetails';
+import StatusIndicator from './components/status-indicator';
+import StockDetails from './components/stock-details';
+import StockHeader from './components/stock-header';
 
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
 import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
-import { Button } from '@/components/ui/button';
-import { usePreserveScroll } from '@/hooks/usePreserveScroll';
+import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
 
 // 定义股票实时数据类型
 interface StockRealTimeData {
@@ -119,16 +119,6 @@ interface StockRealTimeData {
 	currency?: string;
 }
 
-// 热门股票推荐列表
-const POPULAR_STOCKS = [
-	{ symbol: 'AAPL', name: 'Apple Inc.' },
-	{ symbol: 'MSFT', name: 'Microsoft Corporation' },
-	{ symbol: 'GOOGL', name: 'Alphabet Inc.' },
-	{ symbol: 'AMZN', name: 'Amazon.com, Inc.' },
-	{ symbol: 'TSLA', name: 'Tesla, Inc.' },
-	{ symbol: 'META', name: 'Meta Platforms, Inc.' },
-];
-
 export default function StockPage() {
 	const params = useParams();
 	const searchParams = useSearchParams();
@@ -207,7 +197,9 @@ export default function StockPage() {
 				setStopAutoRefresh(false);
 			}
 		} catch (err) {
-			const errorMsg = `Failed to load chart data: ${err instanceof Error ? err.message : String(err)}`;
+			const errorMsg = `Failed to load chart data: ${
+				err instanceof Error ? err.message : String(err)
+			}`;
 			setError(errorMsg);
 			console.error('Failed to load chart data:', err);
 
@@ -320,192 +312,21 @@ export default function StockPage() {
 	const stockSymbol =
 		realTimeData?.symbol || chartData?.meta?.symbol || symbol;
 
-	// 判断是否显示盘前价格
-	const shouldShowPreMarketPrice = () => {
-		if (!realTimeData) return false;
-		return (
-			(realTimeData.marketState === 'PRE' ||
-				realTimeData.marketState === 'CLOSED') &&
-			realTimeData.preMarketPrice !== undefined &&
-			realTimeData.preMarketChange !== undefined
-		);
-	};
-
-	// 判断是否显示盘后价格
-	const shouldShowPostMarketPrice = () => {
-		if (!realTimeData) return false;
-		return (
-			(realTimeData.marketState === 'POST' ||
-				realTimeData.marketState === 'POSTPOST' ||
-				realTimeData.marketState === 'CLOSED') &&
-			realTimeData.postMarketPrice !== undefined &&
-			realTimeData.postMarketChange !== undefined
-		);
-	};
-
 	// 如果有错误，显示错误界面
 	if (error && !loading && stopAutoRefresh) {
-		return (
-			<div className='w-full px-6 py-8'>
-				<div className='flex flex-col items-center justify-center py-12 text-center'>
-					<div className='mb-6 flex items-center justify-center'>
-						<AlertTriangle size={48} className='text-destructive' />
-					</div>
-					<h1 className='text-3xl font-bold mb-4'>
-						Symbol Not Found
-					</h1>
-					<p className='text-lg text-muted-foreground mb-6 max-w-lg'>
-						{error}
-					</p>
-
-					<div className='flex flex-wrap gap-4 mb-8'>
-						<Button asChild variant='outline' size='lg'>
-							<Link href='/home'>
-								<Home className='mr-2 h-5 w-5' />
-								Back to Home
-							</Link>
-						</Button>
-						<Button
-							onClick={handleRefresh}
-							variant='outline'
-							size='lg'
-						>
-							<RefreshCw className='mr-2 h-5 w-5' />
-							Try Again
-						</Button>
-					</div>
-
-					<div className='mt-6'>
-						<h2 className='text-xl font-semibold mb-4'>
-							Popular Stocks
-						</h2>
-						<div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3'>
-							{POPULAR_STOCKS.map((stock) => (
-								<Link
-									key={stock.symbol}
-									href={`/stock/${stock.symbol}`}
-									className='bg-card hover:bg-card/90 transition-colors border rounded-lg px-4 py-3 text-center'
-								>
-									<div className='font-bold'>
-										{stock.symbol}
-									</div>
-									<div className='text-sm text-muted-foreground truncate'>
-										{stock.name}
-									</div>
-								</Link>
-							))}
-						</div>
-					</div>
-				</div>
-			</div>
-		);
+		return <ErrorView error={error} onRetry={handleRefresh} />;
 	}
 
 	return (
 		<div className='w-full px-6 py-8'>
-			<div className='mb-6'>
-				{/* 标题和基本信息 */}
-				<h1 className='text-2xl font-bold mb-1'>
-					{loading && !realTimeData && !chartData
-						? 'Loading...'
-						: stockName}
-					<span className='ml-2 text-muted-foreground'>
-						{stockSymbol}
-					</span>
-				</h1>
-
-				{/* 使用实时数据显示当前价格 */}
-				{realTimeData ? (
-					<div className='flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3'>
-						<div className='flex flex-col'>
-							{/* 常规市场价格 */}
-							<div className='flex items-baseline'>
-								<span className='text-3xl font-bold mr-3'>
-									${realTimeData.price.toFixed(2)}
-								</span>
-								<PriceChange
-									change={realTimeData.change}
-									changePercent={realTimeData.changePercent}
-								/>
-							</div>
-
-							{/* 盘前市场价格 */}
-							{shouldShowPreMarketPrice() && (
-								<div className='flex items-baseline mt-2'>
-									<span className='text-sm font-medium mr-3'>
-										Pre-Market: $
-										{realTimeData.preMarketPrice!.toFixed(
-											2
-										)}
-									</span>
-									<PriceChange
-										change={realTimeData.preMarketChange!}
-										changePercent={
-											realTimeData.preMarketChangePercent!
-										}
-										small={true}
-									/>
-								</div>
-							)}
-
-							{/* 盘后市场价格 */}
-							{shouldShowPostMarketPrice() && (
-								<div className='flex items-baseline mt-2'>
-									<span className='text-sm font-medium mr-3'>
-										After Hours: $
-										{realTimeData.postMarketPrice!.toFixed(
-											2
-										)}
-									</span>
-									<PriceChange
-										change={realTimeData.postMarketChange!}
-										changePercent={
-											realTimeData.postMarketChangePercent!
-										}
-										small={true}
-									/>
-								</div>
-							)}
-						</div>
-
-						{/* 交易量信息 */}
-						<div className='text-sm text-muted-foreground'>
-							Volume: {realTimeData.marketVolume.toLocaleString()}
-						</div>
-					</div>
-				) : chartData?.meta?.regularMarketPrice ? (
-					<div className='flex items-baseline'>
-						<span className='text-3xl font-bold mr-3'>
-							${chartData.meta.regularMarketPrice.toFixed(2)}
-						</span>
-						{chartData.quotes.length > 1 && (
-							<PriceChangeOld
-								current={chartData.meta.regularMarketPrice}
-								previous={chartData.quotes[0].close}
-							/>
-						)}
-					</div>
-				) : null}
-
-				{/* 最高/最低价格 */}
-				{realTimeData && (
-					<div className='flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted-foreground'>
-						<div>Open: ${realTimeData.open.toFixed(2)}</div>
-						<div>
-							Prev Close: ${realTimeData.previousClose.toFixed(2)}
-						</div>
-						<div>
-							Day Range: ${realTimeData.dayLow.toFixed(2)} - $
-							{realTimeData.dayHigh.toFixed(2)}
-						</div>
-						<div>
-							52wk Range: $
-							{realTimeData.fiftyTwoWeekLow.toFixed(2)} - $
-							{realTimeData.fiftyTwoWeekHigh.toFixed(2)}
-						</div>
-					</div>
-				)}
-			</div>
+			{/* 股票头部信息 */}
+			<StockHeader
+				stockName={stockName}
+				stockSymbol={stockSymbol}
+				realTimeData={realTimeData}
+				chartData={chartData}
+				loading={loading}
+			/>
 
 			{/* 时间范围选择器 */}
 			<div className='mb-4'>
@@ -517,187 +338,29 @@ export default function StockPage() {
 			</div>
 
 			{/* 图表区域 */}
-			<div className='w-full h-[500px] rounded-lg border p-4 bg-card relative'>
-				{(chartLoading || (!chartData && loading)) && (
-					<div className='h-full w-full flex items-center justify-center'>
-						<div className='animate-pulse text-muted-foreground'>
-							Loading chart data...
-						</div>
-					</div>
-				)}
+			<ChartContainer
+				chartData={chartData}
+				chartLoading={chartLoading}
+				error={error}
+				range={range}
+				isChartUpdating={isChartUpdating}
+				realTimeData={realTimeData}
+			/>
 
-				{error && !chartData && !chartLoading && (
-					<div className='h-full w-full flex items-center justify-center'>
-						<div className='text-destructive'>{error}</div>
-					</div>
-				)}
-
-				{chartData && !chartLoading && (
-					<StockChart
-						data={chartData.quotes}
-						range={range}
-						isPartialDay={chartData.isPartialDay}
-						isPreviousTradingDay={chartData.isPreviousTradingDay}
-						tradingDate={chartData.tradingDate}
-						previousClose={realTimeData?.previousClose}
-						currentPrice={realTimeData?.price}
-						marketState={realTimeData?.marketState}
-						exchangeName={realTimeData?.exchangeName}
-						isUpdating={isChartUpdating}
-					/>
-				)}
-			</div>
-
-			{/* 显示最后更新时间 */}
-			{lastUpdated && !stopAutoRefresh && (
-				<div className='text-xs text-right text-gray-500 mt-4'>
-					{range === '1d' &&
-					realTimeData?.marketState === 'REGULAR' ? (
-						<>
-							Prices updated: {lastUpdated}
-							{lastChartUpdated &&
-								` • Chart updated: ${lastChartUpdated}`}
-							{realTimeData?.marketState === 'REGULAR' && (
-								<span className='ml-1 text-green-500'>
-									• Live
-								</span>
-							)}
-						</>
-					) : (
-						<>Last updated: {lastUpdated}</>
-					)}
-				</div>
-			)}
-
-			{/* 如果自动刷新被停止但界面未完全切换到错误页面，显示错误状态 */}
-			{stopAutoRefresh && error && !loading && (
-				<div className='flex justify-end items-center mt-4 gap-2'>
-					<span className='text-sm text-destructive'>{error}</span>
-					<Button onClick={handleRefresh} variant='outline' size='sm'>
-						<RefreshCw className='mr-2 h-4 w-4' />
-						Retry
-					</Button>
-				</div>
-			)}
+			{/* 状态指示器 */}
+			<StatusIndicator
+				lastUpdated={lastUpdated}
+				lastChartUpdated={lastChartUpdated}
+				stopAutoRefresh={stopAutoRefresh}
+				error={error}
+				loading={loading}
+				range={range}
+				realTimeData={realTimeData}
+				onRefresh={handleRefresh}
+			/>
 
 			{/* 添加股票详情网格 */}
-			{realTimeData && (
-				<StockDetailsGrid
-					// 基本价格信息
-					previousClose={realTimeData.previousClose}
-					open={realTimeData.open}
-					bid={realTimeData.bid}
-					ask={realTimeData.ask}
-					bidSize={realTimeData.bidSize}
-					askSize={realTimeData.askSize}
-					// 价格范围
-					daysRange={{
-						low: realTimeData.dayLow,
-						high: realTimeData.dayHigh,
-					}}
-					weekRange={{
-						low: realTimeData.fiftyTwoWeekLow,
-						high: realTimeData.fiftyTwoWeekHigh,
-					}}
-					// 交易量数据
-					volume={realTimeData.marketVolume}
-					avgVolume={realTimeData.avgVolume}
-					avgVolume10Day={realTimeData.avgVolume10Day}
-					// 市场数据
-					marketCap={realTimeData.marketCap}
-					beta={realTimeData.beta}
-					// 财务比率
-					peRatio={realTimeData.peRatio}
-					forwardPE={realTimeData.forwardPE}
-					eps={realTimeData.eps}
-					profitMargins={realTimeData.profitMargins}
-					returnOnAssets={realTimeData.returnOnAssets}
-					returnOnEquity={realTimeData.returnOnEquity}
-					// 股息信息
-					earningsDate={realTimeData.earningsDate}
-					dividendRate={realTimeData.dividendRate}
-					dividendYield={realTimeData.dividendYield}
-					exDividendDate={realTimeData.exDividendDate}
-					dividendDate={realTimeData.dividendDate}
-					// 分析师评级和目标价格
-					targetHigh={realTimeData.targetHigh}
-					targetLow={realTimeData.targetLow}
-					targetMean={realTimeData.targetMean}
-					targetMedian={realTimeData.targetMedian}
-					numberOfAnalysts={realTimeData.numberOfAnalysts}
-					recommendationMean={realTimeData.recommendationMean}
-					recommendationKey={realTimeData.recommendationKey}
-					// 成长和业绩
-					revenueGrowth={realTimeData.revenueGrowth}
-					earningsGrowth={realTimeData.earningsGrowth}
-					// 现金和债务
-					totalCash={realTimeData.totalCash}
-					totalCashPerShare={realTimeData.totalCashPerShare}
-					totalDebt={realTimeData.totalDebt}
-					debtToEquity={realTimeData.debtToEquity}
-					currentRatio={realTimeData.currentRatio}
-					quickRatio={realTimeData.quickRatio}
-					freeCashflow={realTimeData.freeCashflow}
-					// 持股信息
-					sharesOutstanding={realTimeData.sharesOutstanding}
-					floatShares={realTimeData.floatShares}
-					heldPercentInsiders={realTimeData.heldPercentInsiders}
-					heldPercentInstitutions={
-						realTimeData.heldPercentInstitutions
-					}
-					shortRatio={realTimeData.shortRatio}
-					// 其他信息
-					currency={realTimeData.currency}
-				/>
-			)}
+			{realTimeData && <StockDetails {...realTimeData} />}
 		</div>
-	);
-}
-
-// 显示实时价格变化的组件
-function PriceChange({
-	change,
-	changePercent,
-	small = false,
-}: {
-	change: number;
-	changePercent: number;
-	small?: boolean;
-}) {
-	const isPositive = change >= 0;
-
-	return (
-		<span
-			className={`${small ? 'text-sm' : 'text-lg'} ${isPositive ? 'text-green-500' : 'text-red-500'}`}
-		>
-			{isPositive ? '+' : ''}
-			{change.toFixed(2)} ({isPositive ? '+' : ''}
-			{changePercent.toFixed(2)}%)
-		</span>
-	);
-}
-
-// 旧的价格变化计算组件（作为备用）
-function PriceChangeOld({
-	current,
-	previous,
-}: {
-	current: number;
-	previous: number | null;
-}) {
-	if (previous === null) return null;
-
-	const change = current - previous;
-	const percentChange = (change / previous) * 100;
-	const isPositive = change >= 0;
-
-	return (
-		<span
-			className={`text-lg ${isPositive ? 'text-green-500' : 'text-red-500'}`}
-		>
-			{isPositive ? '+' : ''}
-			{change.toFixed(2)} ({isPositive ? '+' : ''}
-			{percentChange.toFixed(2)}%)
-		</span>
 	);
 }
