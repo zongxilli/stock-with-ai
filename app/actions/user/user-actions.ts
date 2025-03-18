@@ -50,40 +50,11 @@ export async function updateUserProfile(formData: FormData) {
 		const fullName = formData.get('fullName')?.toString();
 		const bio = formData.get('bio')?.toString();
 
-		// 处理头像上传
-		const avatarFile = formData.get('avatar') as File;
-		let avatarUrl = undefined;
-
-		if (avatarFile && avatarFile.size > 0) {
-			try {
-				// 上传到 Supabase 存储
-				const { data, error } = await supabase.storage
-					.from('avatars')
-					.upload(`${user.id}/${Date.now()}.png`, avatarFile, {
-						contentType: 'image/png',
-						upsert: true,
-					});
-
-				if (error) {
-					console.error('Error uploading avatar:', error);
-				} else if (data) {
-					const { data: urlData } = supabase.storage
-						.from('avatars')
-						.getPublicUrl(data.path);
-
-					avatarUrl = urlData.publicUrl;
-				}
-			} catch (uploadError) {
-				console.error('Avatar upload failed:', uploadError);
-			}
-		}
-
 		// 准备更新数据
 		const updateData: any = {};
 		if (username !== undefined) updateData.username = username;
 		if (fullName !== undefined) updateData.fullName = fullName;
 		if (bio !== undefined) updateData.bio = bio;
-		if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
 
 		// 更新用户资料
 		const updatedUser = await userService.updateUser(user.id, updateData);
@@ -127,7 +98,6 @@ export async function getUserPublicProfile(userId: string) {
 			profile: {
 				id: profile.id,
 				username: profile.username,
-				avatarUrl: profile.avatarUrl,
 				bio: profile.bio,
 			},
 		};

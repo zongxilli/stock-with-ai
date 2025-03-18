@@ -42,7 +42,6 @@ export const userService = {
 		data: {
 			username?: string;
 			fullName?: string;
-			avatarUrl?: string;
 			bio?: string;
 		}
 	): Promise<User | null> {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { isEqual } from 'lodash';
 import { useRouter } from 'next/navigation';
 
 import {
@@ -17,7 +18,25 @@ import { useToast } from '@/hooks/use-toast';
 export default function AccountPage() {
 	const [loading, setLoading] = useState(true);
 	const [profile, setProfile] = useState<any>(null);
-	const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+	const [formData, setFormData] = useState<{
+		username: string;
+		fullName: string;
+		bio: string;
+	}>({
+		username: '',
+		fullName: '',
+		bio: '',
+	});
+	const [initialFormData, setInitialFormData] = useState<{
+		username: string;
+		fullName: string;
+		bio: string;
+	}>({
+		username: '',
+		fullName: '',
+		bio: '',
+	});
+	const [isFormChanged, setIsFormChanged] = useState(false);
 	const router = useRouter();
 	const { toast } = useToast();
 
@@ -31,6 +50,15 @@ export default function AccountPage() {
 					return;
 				}
 				setProfile(data);
+
+				// 初始化表单数据
+				const initialData = {
+					username: data.username || '',
+					fullName: data.fullName || '',
+					bio: data.bio || '',
+				};
+				setFormData(initialData);
+				setInitialFormData(initialData);
 			} catch (error) {
 				console.error('Error loading profile:', error);
 				toast({
@@ -46,27 +74,20 @@ export default function AccountPage() {
 		loadProfile();
 	}, [router, toast]);
 
-	const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (file) {
-			// 检查文件大小 (限制为 5MB)
-			if (file.size > 5 * 1024 * 1024) {
-				toast({
-					title: 'Error',
-					description: 'Image size should not exceed 5MB',
-					variant: 'destructive',
-				});
-				// 重置文件输入
-				e.target.value = '';
-				return;
-			}
+	// 检查表单是否变更
+	useEffect(() => {
+		setIsFormChanged(!isEqual(formData, initialFormData));
+	}, [formData, initialFormData]);
 
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				setAvatarPreview(e.target?.result as string);
-			};
-			reader.readAsDataURL(file);
-		}
+	// 处理表单字段变更
+	const handleChange = (
+		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+	) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({
+			...prev,
+			[name]: value,
+		}));
 	};
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -74,15 +95,9 @@ export default function AccountPage() {
 		setLoading(true);
 
 		try {
-			const formData = new FormData(e.currentTarget);
+			const submitFormData = new FormData(e.currentTarget);
 
-			// 检查文件输入是否为空（未更改）
-			const avatarFile = formData.get('avatar') as File;
-			if (!avatarFile || avatarFile.size === 0) {
-				formData.delete('avatar');
-			}
-
-			const result = await updateUserProfile(formData);
+			const result = await updateUserProfile(submitFormData);
 
 			if (result.success) {
 				toast({
@@ -92,6 +107,16 @@ export default function AccountPage() {
 				// 重新加载个人资料
 				const updatedProfile = await getCurrentUserProfile();
 				setProfile(updatedProfile);
+
+				// 更新初始表单数据，使其与当前表单数据一致
+				const newInitialData = {
+					username: updatedProfile?.username || '',
+					fullName: updatedProfile?.fullName || '',
+					bio: updatedProfile?.bio || '',
+				};
+				setFormData(newInitialData);
+				setInitialFormData(newInitialData);
+				setIsFormChanged(false);
 			} else {
 				toast({
 					title: 'Error',
@@ -141,72 +166,14 @@ export default function AccountPage() {
 			<h1 className='text-2xl font-bold mb-6'>Your Profile</h1>
 
 			<form onSubmit={handleSubmit} className='space-y-6'>
-				{/* Avatar */}
-				<div className='space-y-2'>
-					<Label htmlFor='avatar'>Profile Picture</Label>
-					<div className='flex items-center gap-4'>
-						<div className='h-16 w-16 rounded-full overflow-hidden bg-muted flex items-center justify-center'>
-							{avatarPreview ? (
-								<img
-									src={avatarPreview}
-									alt='Avatar preview'
-									className='h-full w-full object-cover'
-								/>
-							) : profile.avatarUrl ? (
-								<img
-									src={profile.avatarUrl}
-									alt='Avatar'
-									className='h-full w-full object-cover'
-									onError={(e) => {
-										// 图片加载失败时的回退处理
-										e.currentTarget.src = ''; // 清除错误的src
-										e.currentTarget.classList.add('hidden');
-										e.currentTarget.parentElement?.classList.add(
-											'bg-primary/10'
-										);
-										// 显示首字母
-										const initial =
-											document.createElement('span');
-										initial.textContent = (
-											profile.email?.charAt(0) || '?'
-										).toUpperCase();
-										initial.className =
-											'text-2xl font-bold';
-										e.currentTarget.parentElement?.appendChild(
-											initial
-										);
-									}}
-								/>
-							) : (
-								<span className='text-2xl font-bold'>
-									{(
-										profile.email?.charAt(0) || '?'
-									).toUpperCase()}
-								</span>
-							)}
-						</div>
-						<div className='flex-1'>
-							<Input
-								id='avatar'
-								name='avatar'
-								type='file'
-								accept='image/*'
-								onChange={handleAvatarChange}
-							/>
-							<p className='text-xs text-muted-foreground mt-1'>
-								Maximum file size: 5MB
-							</p>
-						</div>
-					</div>
-				</div>
-
 				{/* Username */}
 				<div className='space-y-2'>
 					<Label htmlFor='username'>Username</Label>
 					<Input
 						id='username'
 						name='username'
-						defaultValue={profile.username || ''}
+						value={formData.username}
+						onChange={handleChange}
 						placeholder='Choose a username'
 					/>
 				</div>
@@ -217,7 +184,8 @@ export default function AccountPage() {
 					<Input
 						id='fullName'
 						name='fullName'
-						defaultValue={profile.fullName || ''}
+						value={formData.fullName}
+						onChange={handleChange}
 						placeholder='Your full name'
 					/>
 				</div>
@@ -242,14 +210,15 @@ export default function AccountPage() {
 					<Textarea
 						id='bio'
 						name='bio'
-						defaultValue={profile.bio || ''}
+						value={formData.bio}
+						onChange={handleChange}
 						placeholder='Tell us about yourself'
 						rows={4}
 					/>
 				</div>
 
 				<div className='flex gap-4'>
-					<Button type='submit' disabled={loading}>
+					<Button type='submit' disabled={loading || !isFormChanged}>
 						{loading ? 'Saving...' : 'Save Profile'}
 					</Button>
 					<Button
