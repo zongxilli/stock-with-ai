@@ -30,3 +30,14 @@ model MarketAnalysis {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model User {
+  id        String   @id
+  email     String   @unique
+  username  String?
+  fullName  String?
+  avatarUrl String?
+  bio       String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
