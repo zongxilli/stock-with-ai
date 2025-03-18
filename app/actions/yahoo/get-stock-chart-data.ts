@@ -2,6 +2,12 @@
 
 import yahooFinance from 'yahoo-finance2';
 
+import { formatDate } from './utils/formatters';
+import {
+	generateTradingTimeline,
+	mergeDataWithTimeline,
+} from './utils/helpers';
+
 import { getCache, setCache } from '@/lib/redis';
 
 // 获取单个股票的历史数据
@@ -255,72 +261,4 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 			`获取图表数据失败: ${error instanceof Error ? error.message : String(error)}`
 		);
 	}
-}
-
-// 格式化日期显示
-function formatDate(date: Date, range: string): string {
-	if (range === '1d') {
-		// 对于1天数据，只显示时:分
-		return date.toLocaleTimeString([], {
-			hour: '2-digit',
-			minute: '2-digit',
-		});
-	} else if (range === '5d') {
-		// 对于5天数据，显示MM/DD HH:MM格式
-		const day = date.getDate().toString().padStart(2, '0');
-		const month = (date.getMonth() + 1).toString().padStart(2, '0');
-		const hours = date.getHours().toString().padStart(2, '0');
-		const minutes = date.getMinutes().toString().padStart(2, '0');
-
-		// 对于X轴标签，只返回MM/DD格式
-		return `${month}/${day} ${hours}:${minutes}`;
-	} else if (range === '1mo' || range === '3mo') {
-		// 对于中期数据，显示月/日
-		return date.toLocaleDateString([], {
-			month: 'numeric',
-			day: 'numeric',
-		});
-	} else {
-		// 对于长期数据，显示年/月
-		return date.toLocaleDateString([], { year: 'numeric', month: 'short' });
-	}
-}
-
-// 生成完整的交易时间轴（9:30 AM - 4:00 PM，每5分钟一个点）
-function generateTradingTimeline(marketOpen: Date, marketClose: Date): Date[] {
-	const timeline: Date[] = [];
-	const current = new Date(marketOpen);
-
-	while (current <= marketClose) {
-		timeline.push(new Date(current));
-		current.setMinutes(current.getMinutes() + 1); // 每5分钟一个点
-	}
-
-	return timeline;
-}
-
-// 将实际数据与完整时间轴合并
-function mergeDataWithTimeline(actualData: any[], timeline: Date[]): any[] {
-	// 创建时间到数据的映射
-	const dataMap = new Map();
-	actualData.forEach((item) => {
-		dataMap.set(item.date.getTime(), item);
-	});
-
-	// 创建完整数据集，对于没有实际数据的时间点，使用null值
-	return timeline.map((time) => {
-		const timeKey = time.getTime();
-		if (dataMap.has(timeKey)) {
-			return dataMap.get(timeKey);
-		} else {
-			return {
-				date: new Date(time),
-				open: null,
-				high: null,
-				low: null,
-				close: null,
-				volume: null,
-			};
-		}
-	});
 }

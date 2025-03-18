@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-import { getVolatileStocks } from '@/app/actions/yahoo-volatility-actions';
+import { getVolatileStocks } from '@/app/actions/yahoo/get-volatile-stocks';
 import { MarketCard } from '@/components/custom/card';
 import { MarketCardSkeleton } from '@/components/custom/marketCardSkeleton';
 import { Button } from '@/components/ui/button';

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { getMainIndices } from '@/app/actions/yahoo-finance2-actions';
+import { getMainIndices } from '@/app/actions/yahoo/get-main-indices';
 
 // 定义索引数据类型
 interface IndexData {

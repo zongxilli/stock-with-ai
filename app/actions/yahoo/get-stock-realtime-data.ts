@@ -2,105 +2,10 @@
 
 import yahooFinance from 'yahoo-finance2';
 
+import { formatAPIDate, parsePercentage } from './utils/formatters';
+import { safeGet } from './utils/helpers';
+
 import { getCache, setCache } from '@/lib/redis';
-
-// 获取所有市场指数数据
-export async function getMainIndices() {
-	// 尝试从Redis缓存获取数据
-	const cachedIndices = await getCache('main_indices');
-	if (cachedIndices) {
-		return cachedIndices;
-	}
-
-	// 需要获取的市场指数代码
-	const symbols = [
-		// 期货
-		'ES=F', // 标普500期货
-		'YM=F', // 道琼斯期货
-		'NQ=F', // 纳斯达克期货
-		'RTY=F', // 罗素2000期货
-		// 商品
-		'CL=F', // 原油期货
-		'GC=F', // 黄金期货
-		// 加密货币
-		'BTC-USD', // 比特币
-		// 债券
-		'^TNX', // 10年期美国国债
-	];
-
-	try {
-		// 并行请求多个指数数据
-		const results = await Promise.all(
-			symbols.map(async (symbol) => {
-				const quote = await yahooFinance.quote(symbol);
-				return {
-					symbol,
-					name: getIndexFullName(symbol),
-					price: quote.regularMarketPrice,
-					change: quote.regularMarketChange,
-					changePercent: quote.regularMarketChangePercent,
-					dayHigh: quote.regularMarketDayHigh,
-					dayLow: quote.regularMarketDayLow,
-					marketTime: quote.regularMarketTime,
-				};
-			})
-		);
-
-		// 保存结果到Redis缓存，设置4秒过期时间
-		await setCache('main_indices', results, 4);
-
-		return results;
-	} catch (error) {
-		console.error('Failed to fetch market indices:', error);
-		throw new Error('Failed to fetch market indices');
-	}
-}
-
-// 安全获取对象值的辅助函数
-function safeGet(obj: any, path: string[], defaultValue: any = undefined) {
-	try {
-		let current = obj;
-		for (const key of path) {
-			if (current === undefined || current === null) return defaultValue;
-			current = current[key];
-		}
-		return current === undefined || current === null
-			? defaultValue
-			: current;
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	} catch (e) {
-		return defaultValue;
-	}
-}
-
-// 安全转换日期的辅助函数
-function formatDate(
-	timestamp: number | undefined,
-	format: string = 'en-US'
-): string | undefined {
-	if (!timestamp) return undefined;
-	try {
-		return new Date(timestamp * 1000).toLocaleDateString(format, {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		});
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	} catch (e) {
-		return undefined;
-	}
-}
-
-// 安全解析百分比的辅助函数
-function parsePercentage(value: number | undefined): number | undefined {
-	if (value === undefined || value === null) return undefined;
-	try {
-		return parseFloat((value * 100).toFixed(2));
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	} catch (e) {
-		return undefined;
-	}
-}
 
 // 获取单个股票的全面数据
 export async function getStockRealTimeData(symbol: string) {
@@ -242,7 +147,7 @@ export async function getStockRealTimeData(symbol: string) {
 						undefined
 					)
 				),
-				exDividendDate: formatDate(
+				exDividendDate: formatAPIDate(
 					safeGet(
 						stats,
 						['summaryDetail', 'exDividendDate'],
@@ -315,14 +220,14 @@ export async function getStockRealTimeData(symbol: string) {
 				),
 
 				// 财报和股息日期
-				earningsDate: formatDate(
+				earningsDate: formatAPIDate(
 					safeGet(
 						stats,
 						['calendarEvents', 'earnings', 'earningsDate'],
 						undefined
 					)
 				),
-				dividendDate: formatDate(
+				dividendDate: formatAPIDate(
 					safeGet(
 						stats,
 						['calendarEvents', 'dividendDate'],
@@ -449,33 +354,5 @@ export async function getStockRealTimeData(symbol: string) {
 		throw new Error(
 			`获取股票实时数据失败: ${error instanceof Error ? error.message : String(error)}`
 		);
-	}
-}
-
-// 获取各市场指数的全名
-function getIndexFullName(symbol: string): string {
-	switch (symbol) {
-		// 期货
-		case 'ES=F':
-			return 'S&P Futures';
-		case 'YM=F':
-			return 'Dow Futures';
-		case 'NQ=F':
-			return 'Nasdaq Futures';
-		case 'RTY=F':
-			return 'Russell 2000';
-		// 商品
-		case 'CL=F':
-			return 'Crude Oil';
-		case 'GC=F':
-			return 'Gold';
-		// 加密货币
-		case 'BTC-USD':
-			return 'Bitcoin';
-		// 债券
-		case '^TNX':
-			return '10-Year Treasury';
-		default:
-			return symbol;
 	}
 }

@@ -10,8 +10,8 @@ import RangeSelector from './components/rangeSelector';
 import StockChart from './components/stockChart';
 import StockDetailsGrid from './components/stockDetails';
 
-import { getStockChartData } from '@/app/actions/yahoo-chart-actions';
-import { getStockRealTimeData } from '@/app/actions/yahoo-finance2-actions';
+import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
+import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
 import { Button } from '@/components/ui/button';
 import { usePreserveScroll } from '@/hooks/usePreserveScroll';
 
