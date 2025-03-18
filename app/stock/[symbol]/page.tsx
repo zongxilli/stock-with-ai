@@ -14,6 +14,7 @@ import StockHeader from './components/stock-header';
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
 import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
 import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
+import { usePrevious } from '@/hooks/use-previous';
 
 // 定义股票实时数据类型
 interface StockRealTimeData {
@@ -157,6 +158,18 @@ export default function StockPage() {
 			router.replace(`/stock/${symbol}?range=1y`, { scroll: false });
 		}
 	}, [searchParams, symbol, router]);
+
+	const prevMarketState = usePrevious(realTimeData?.marketState);
+	useEffect(() => {
+		// 当市场状态从盘前(PRE)切换到盘中(REGULAR)时，需要刷新1D图表
+		if (
+			range === '1d' &&
+			prevMarketState &&
+			prevMarketState !== realTimeData?.marketState
+		) {
+			fetchChartData(true);
+		}
+	}, [realTimeData?.marketState, prevMarketState, range]);
 
 	// 获取图表数据的函数
 	const fetchChartData = async (silentUpdate = false) => {
