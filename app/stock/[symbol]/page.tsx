@@ -10,7 +10,6 @@ import RangeSelector from './components/rangeSelector';
 import StatusIndicator from './components/status-indicator';
 import StockDetails from './components/stock-details';
 import StockHeader from './components/stock-header';
-import StockNews from './components/stock-news';
 
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
 import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
@@ -385,9 +384,6 @@ export default function StockPage() {
 
 			{/* 添加股票详情网格 */}
 			{realTimeData && <StockDetails {...realTimeData} />}
-
-			{/* 添加股票相关新闻 */}
-			{stockSymbol && <StockNews symbol={stockSymbol} count={6} />}
 		</div>
 	);
 }
