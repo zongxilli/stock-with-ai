@@ -10,18 +10,26 @@ interface RangeSelectorProps {
 	currentRange: string;
 	symbol: string;
 	isLoading?: boolean; // 新增：加载状态属性
+	exchangeName?: string; // 新增：交易所名称
 }
 
 export default function RangeSelector({
 	currentRange,
 	symbol,
 	isLoading = false, // 默认为false
+	exchangeName = '', // 默认为空字符串
 }: RangeSelectorProps) {
 	const router = useRouter();
 
+	// 判断是否为美股市场
+	const isUSMarket =
+		!exchangeName ||
+		exchangeName.toLowerCase().includes('nasdaq') ||
+		exchangeName.toLowerCase().includes('nyse');
+
 	// 定义可用的时间范围选项，增加了MAX选项
 	const ranges = [
-		{ label: '1D', value: '1d' },
+		...(isUSMarket ? [{ label: '1D', value: '1d' }] : []), // 只在美股市场显示1D选项
 		{ label: '5D', value: '5d' },
 		{ label: '1M', value: '1mo' },
 		{ label: '3M', value: '3mo' },

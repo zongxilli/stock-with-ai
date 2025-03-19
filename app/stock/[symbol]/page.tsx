@@ -382,6 +382,7 @@ export default function StockPage() {
 					currentRange={range}
 					symbol={symbol || ''}
 					isLoading={chartLoading}
+					exchangeName={realTimeData?.exchangeName}
 				/>
 			</div>
 
