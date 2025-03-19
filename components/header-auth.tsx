@@ -62,7 +62,7 @@ export default async function AuthButton() {
 	}
 
 	return user ? (
-		<DropdownMenu>
+		<DropdownMenu modal={false}>
 			<DropdownMenuTrigger asChild>
 				<Button
 					variant='ghost'
@@ -77,7 +77,13 @@ export default async function AuthButton() {
 					</Avatar>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align='end' className='w-56'>
+			<DropdownMenuContent
+				align='end'
+				className='w-56 preserve-scroll'
+				sideOffset={8}
+				alignOffset={0}
+				avoidCollisions={true}
+			>
 				<DropdownMenuLabel>
 					<div className='flex flex-col gap-1'>
 						<span className='font-normal text-xs text-muted-foreground'>

@@ -80,7 +80,7 @@ export default function RootLayout({
 			className={geistSans.className}
 			suppressHydrationWarning
 		>
-			<body className='bg-background text-foreground'>
+			<body className='bg-background text-foreground overflow-y-auto'>
 				<ThemeProvider
 					attribute='class'
 					defaultTheme='system'
