@@ -1,6 +1,14 @@
 'use client';
 
+import { useState } from 'react';
+
+import { Sparkles } from 'lucide-react';
+
+import AIAssistantDialog from './ai-assistant-dialog';
 import { PriceDisplay, PriceDisplayFallback } from './price-display';
+
+import { getAIAnalysis } from '@/app/actions/openai';
+import { Button } from '@/components/ui/button';
 
 // 股票实时数据类型
 interface StockRealTimeData {
@@ -55,6 +63,10 @@ export default function StockHeader({
 	chartData,
 	loading,
 }: StockHeaderProps) {
+	const [isLoadingAI, setIsLoadingAI] = useState(false);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [aiData, setAiData] = useState<any>(null);
+
 	// 判断是否显示盘前价格
 	const shouldShowPreMarketPrice = () => {
 		if (!realTimeData) return false;
@@ -90,17 +102,68 @@ export default function StockHeader({
 		// 只有在非盘中状态，且有盘后数据时才显示
 		return hasValidPostMarketData;
 	};
+
+	const handleAIAssistantClick = async () => {
+		try {
+			setAiData(null);
+			setIsLoadingAI(true);
+			setIsDialogOpen(true);
+
+			// 使用server action代替API调用
+			const responseData = await getAIAnalysis(stockSymbol, 'openai');
+
+			if (responseData.success) {
+				setAiData(responseData.data);
+			} else {
+				console.error('Error from AI Assistant');
+			}
+		} catch (error) {
+			console.error('Error calling AI Assistant:', error);
+		} finally {
+			setIsLoadingAI(false);
+		}
+	};
+
+	const handleCloseDialog = () => {
+		setIsDialogOpen(false);
+	};
+
 	return (
 		<div className='mb-6'>
 			{/* 标题和基本信息 */}
-			<h1 className='text-2xl font-bold mb-1'>
-				{loading && !realTimeData && !chartData
-					? 'Loading...'
-					: stockName}
-				<span className='ml-2 text-muted-foreground'>
-					{stockSymbol}
-				</span>
-			</h1>
+			<div className='flex justify-between items-center'>
+				<h1 className='text-2xl font-bold mb-1'>
+					{loading && !realTimeData && !chartData
+						? 'Loading...'
+						: stockName}
+					<span className='ml-2 text-muted-foreground'>
+						{stockSymbol}
+					</span>
+				</h1>
+				<div className='relative'>
+					<div className='flex items-center'>
+						<Button
+							onClick={handleAIAssistantClick}
+							aria-label='AI Assistant'
+							disabled={isLoadingAI}
+							className='relative mr-1'
+						>
+							<Sparkles className='h-5 w-5 mr-2' />
+							<span className='hidden md:inline'>Ask AI</span>
+						</Button>
+					</div>
+				</div>
+			</div>
+
+			{/* AI Assistant Dialog */}
+			<AIAssistantDialog
+				isOpen={isDialogOpen}
+				onClose={handleCloseDialog}
+				symbol={stockSymbol}
+				model={'openai'}
+				isLoading={isLoadingAI}
+				data={aiData}
+			/>
 
 			{/* 使用实时数据显示当前价格 */}
 			{realTimeData ? (
