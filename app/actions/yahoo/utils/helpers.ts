@@ -28,6 +28,7 @@ export function generateTradingTimeline(
 	const timeline: Date[] = [];
 	const current = new Date(marketOpen);
 
+	// 对于所有市场类型，直接生成从开盘到收盘的时间点，不处理休市
 	while (current <= marketClose) {
 		timeline.push(new Date(current));
 		current.setMinutes(current.getMinutes() + 1);
