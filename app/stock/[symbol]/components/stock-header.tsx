@@ -7,7 +7,7 @@ import { Sparkles } from 'lucide-react';
 import AIAssistantDialog from './ai-assistant-dialog';
 import { PriceDisplay, PriceDisplayFallback } from './price-display';
 
-import { getAIAnalysis } from '@/app/actions/openai';
+import { getAIAnalysis } from '@/app/actions/openai/get-ai-analysis';
 import { Button } from '@/components/ui/button';
 
 // 股票实时数据类型
