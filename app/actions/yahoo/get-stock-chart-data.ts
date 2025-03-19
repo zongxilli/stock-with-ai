@@ -39,7 +39,7 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 
 		// 特殊处理1D视图
 		if (range === '1d') {
-			interval = '1m';
+			interval = '5m';
 
 			// 根据marketState判断市场当前状态
 			// 可能的值: REGULAR(正常交易), PRE(盘前), POST(盘后), CLOSED(已关闭)
@@ -405,8 +405,8 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				};
 
 				// 缓存设置
-				const cacheTime = isMarketOpen ? 20 : 300; // 如果市场开放，20秒缓存；否则5分钟
-				await setCache(cacheKey, chartData, cacheTime);
+				const chart1dCacheTime = isMarketOpen ? 10 : 300; // 如果市场开放，10秒缓存；否则5分钟
+				await setCache(cacheKey, chartData, chart1dCacheTime);
 
 				return chartData;
 			} catch (innerError) {
@@ -484,13 +484,15 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				};
 
 				// 设置缓存时间
-				let cacheTime = 60; // 默认1分钟
-				if (range === '5d') cacheTime = 120; // 2分钟
-				if (range === '1mo') cacheTime = 300; // 5分钟
-				if (range === '3mo' || range === '6mo') cacheTime = 1800; // 30分钟
-				if (range === '1y' || range === '5y') cacheTime = 3600; // 1小时
+				let chartOtherRangeCacheTime = 60; // 默认1分钟
+				if (range === '5d') chartOtherRangeCacheTime = 120; // 2分钟
+				if (range === '1mo') chartOtherRangeCacheTime = 300; // 5分钟
+				if (range === '3mo' || range === '6mo')
+					chartOtherRangeCacheTime = 1800; // 30分钟
+				if (range === '1y' || range === '5y')
+					chartOtherRangeCacheTime = 3600; // 1小时
 
-				await setCache(cacheKey, chartData, cacheTime);
+				await setCache(cacheKey, chartData, chartOtherRangeCacheTime);
 				return chartData;
 			} catch (innerError) {
 				console.error(
