@@ -110,7 +110,7 @@ export default function StockHeader({
 			setIsDialogOpen(true);
 
 			// 使用server action代替API调用
-			const responseData = await getAIAnalysis(stockSymbol, 'openai');
+			const responseData = await getAIAnalysis(stockSymbol);
 
 			if (responseData.success) {
 				setAiData(responseData.data);
