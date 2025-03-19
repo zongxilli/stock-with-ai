@@ -54,6 +54,33 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 			const tradingDay = new Date(lastTradeDate);
 			tradingDay.setHours(0, 0, 0, 0);
 
+			// 获取交易所信息，用于确定市场时区和交易时间
+			const exchangeName =
+				quoteData.fullExchangeName || quoteData.exchange || '';
+			const isChinaMainland =
+				exchangeName.includes('Shanghai') ||
+				exchangeName.includes('Shenzhen');
+			const isHongKong = exchangeName.includes('Hong Kong');
+
+			// 处理不同市场的时区差异
+			let marketTimezoneOffset = 0; // 以小时为单位，相对于用户本地时区
+
+			if (isChinaMainland || isHongKong) {
+				// 根据用户的本地时区计算与中国/香港时区的小时差
+				// 中国和香港在东八区 (UTC+8)
+				const localOffset = new Date().getTimezoneOffset(); // 以分钟为单位，与UTC的差值
+				const chinaOffset = -480; // 中国/香港是UTC+8，所以是-480分钟
+				marketTimezoneOffset = (chinaOffset - localOffset) / 60;
+			}
+
+			// 根据时区差异调整交易日期
+			if (marketTimezoneOffset !== 0) {
+				// 如果市场已经闭市，而本地时间还是前一天，需要调整日期
+				tradingDay.setHours(
+					tradingDay.getHours() + marketTimezoneOffset
+				);
+			}
+
 			// 交易时间根据证券类型设置
 			let tradingStartHour = 9;
 			let tradingStartMinute = 30;
@@ -84,8 +111,29 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				case 'MUTUALFUND':
 				case 'INDEX':
 				default:
-					// 使用标准交易时间 9:30 AM - 4:00 PM
-					shouldFillMissingData = true;
+					// 根据交易所设置不同市场的交易时间
+					if (isChinaMainland) {
+						// 上海和深圳市场：简化为全天交易时间 9:30-15:00，中间允许空缺
+						tradingStartHour = 9;
+						tradingStartMinute = 30;
+						tradingEndHour = 15;
+						tradingEndMinute = 0;
+						shouldFillMissingData = false; // 不填充数据，保留中午休市空缺
+					} else if (isHongKong) {
+						// 香港市场：简化为全天交易时间 9:30-16:00，中间允许空缺
+						tradingStartHour = 9;
+						tradingStartMinute = 30;
+						tradingEndHour = 16;
+						tradingEndMinute = 0;
+						shouldFillMissingData = false; // 不填充数据，保留中午休市空缺
+					} else {
+						// 美股等其他市场保持默认设置: 9:30 AM - 4:00 PM
+						tradingStartHour = 9;
+						tradingStartMinute = 30;
+						tradingEndHour = 16;
+						tradingEndMinute = 0;
+						shouldFillMissingData = true;
+					}
 					break;
 			}
 
@@ -106,6 +154,24 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					includePrePost: false,
 				};
 
+				// 对于中国市场，使用更简单的方法获取当日数据
+				if (isChinaMainland || isHongKong) {
+					// 重新设置查询时间范围，使用中国时区时间
+					// 需要将中国时间转换回UTC时间进行查询
+					const chinaQueryDate = new Date(tradingDay);
+
+					// 中国时间的当天0点对应的UTC时间是前一天16:00
+					const utcQueryStartDate = new Date(chinaQueryDate);
+					utcQueryStartDate.setHours(-8, 0, 0, 0); // 当天0点的UTC时间（减8小时）
+					queryOptions.period1 = utcQueryStartDate;
+
+					// 中国时间的第二天0点对应的UTC时间是当天16:00
+					const utcQueryEndDate = new Date(chinaQueryDate);
+					utcQueryEndDate.setDate(utcQueryEndDate.getDate() + 1);
+					utcQueryEndDate.setHours(-8, 0, 0, 0); // 次日0点的UTC时间（减8小时）
+					queryOptions.period2 = utcQueryEndDate;
+				}
+
 				const result = await yahooFinance.chart(symbol, queryOptions);
 
 				// 检查结果是否有效
@@ -113,9 +179,188 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					throw new Error(`无法获取${symbol}的历史数据`);
 				}
 
+				// 过滤出交易时间段内的数据
+				let filteredQuotes = result.quotes;
+				let processedQuotes = filteredQuotes; // 初始化processedQuotes变量
+
+				if (isChinaMainland || isHongKong) {
+					// 对于中国市场，需要调整时区，Yahoo Finance返回的是UTC时间
+					// 将时间调整为中国时区(UTC+8)
+					const adjustedQuotes = result.quotes
+						.map((quote) => {
+							const utcDate = new Date(quote.date);
+							// 创建一个新日期，加上8小时时区差
+							const chinaDate = new Date(
+								utcDate.getTime() + 8 * 60 * 60 * 1000
+							);
+
+							// 判断是否在交易时间内
+							const isInTradingHours =
+								(isChinaMainland &&
+									((chinaDate.getHours() === 9 &&
+										chinaDate.getMinutes() >= 30) ||
+										(chinaDate.getHours() >= 10 &&
+											chinaDate.getHours() < 15) ||
+										(chinaDate.getHours() === 15 &&
+											chinaDate.getMinutes() === 0))) ||
+								(isHongKong &&
+									((chinaDate.getHours() === 9 &&
+										chinaDate.getMinutes() >= 30) ||
+										(chinaDate.getHours() >= 10 &&
+											chinaDate.getHours() < 16) ||
+										(chinaDate.getHours() === 16 &&
+											chinaDate.getMinutes() === 0)));
+
+							return {
+								...quote,
+								date: chinaDate,
+								isInTradingHours,
+							};
+						})
+						.filter((quote) => quote.isInTradingHours)
+						.map(({ isInTradingHours, ...quote }) => quote);
+
+					filteredQuotes = adjustedQuotes;
+
+					// 对中国市场也进行数据补全
+					if (isMarketOpen) {
+						// 创建完整的时间线
+						const now = new Date();
+						let timelines = [];
+
+						// 对于中国内地市场，需要处理上午和下午两个时间段
+						if (isChinaMainland) {
+							// 上午时间段 9:30-11:30
+							const morningStart = new Date(tradingDay);
+							morningStart.setHours(9, 30, 0, 0);
+
+							const morningEnd = new Date(tradingDay);
+							morningEnd.setHours(11, 30, 0, 0);
+
+							// 下午时间段 13:00-15:00
+							const afternoonStart = new Date(tradingDay);
+							afternoonStart.setHours(13, 0, 0, 0);
+
+							const afternoonEnd = new Date(tradingDay);
+							afternoonEnd.setHours(15, 0, 0, 0);
+
+							// 根据当前时间决定生成哪些时间线
+							if (now.getHours() < 12) {
+								// 如果当前是上午，只生成到当前时间的上午时间线
+								const currentMorningEnd = new Date(
+									Math.min(
+										now.getTime(),
+										morningEnd.getTime()
+									)
+								);
+								timelines.push(
+									generateTradingTimeline(
+										morningStart,
+										currentMorningEnd
+									)
+								);
+							} else {
+								// 如果当前是下午，先完整生成上午时间线
+								timelines.push(
+									generateTradingTimeline(
+										morningStart,
+										morningEnd
+									)
+								);
+
+								// 再生成到当前时间的下午时间线
+								if (now.getHours() >= 13) {
+									const currentAfternoonEnd = new Date(
+										Math.min(
+											now.getTime(),
+											afternoonEnd.getTime()
+										)
+									);
+									timelines.push(
+										generateTradingTimeline(
+											afternoonStart,
+											currentAfternoonEnd
+										)
+									);
+								}
+							}
+						}
+						// 对于香港市场，也处理上午和下午两个时间段
+						else if (isHongKong) {
+							// 上午时间段 9:30-12:00
+							const morningStart = new Date(tradingDay);
+							morningStart.setHours(9, 30, 0, 0);
+
+							const morningEnd = new Date(tradingDay);
+							morningEnd.setHours(12, 0, 0, 0);
+
+							// 下午时间段 13:00-16:00
+							const afternoonStart = new Date(tradingDay);
+							afternoonStart.setHours(13, 0, 0, 0);
+
+							const afternoonEnd = new Date(tradingDay);
+							afternoonEnd.setHours(16, 0, 0, 0);
+
+							// 根据当前时间决定生成哪些时间线
+							if (now.getHours() < 12) {
+								// 如果当前是上午，只生成到当前时间的上午时间线
+								const currentMorningEnd = new Date(
+									Math.min(
+										now.getTime(),
+										morningEnd.getTime()
+									)
+								);
+								timelines.push(
+									generateTradingTimeline(
+										morningStart,
+										currentMorningEnd
+									)
+								);
+							} else {
+								// 如果当前是下午，先完整生成上午时间线
+								timelines.push(
+									generateTradingTimeline(
+										morningStart,
+										morningEnd
+									)
+								);
+
+								// 再生成到当前时间的下午时间线
+								if (now.getHours() >= 13) {
+									const currentAfternoonEnd = new Date(
+										Math.min(
+											now.getTime(),
+											afternoonEnd.getTime()
+										)
+									);
+									timelines.push(
+										generateTradingTimeline(
+											afternoonStart,
+											currentAfternoonEnd
+										)
+									);
+								}
+							}
+						}
+
+						// 将时间线合并为单一数组
+						const completeTimeline = timelines.flat();
+
+						if (completeTimeline.length > 0) {
+							// 将实际数据与完整时间轴合并
+							processedQuotes = mergeDataWithTimeline(
+								filteredQuotes,
+								completeTimeline
+							);
+						} else {
+							processedQuotes = filteredQuotes;
+						}
+					} else {
+						processedQuotes = filteredQuotes;
+					}
+				}
 				// 仅对特定类型的证券填充完整交易时间点
-				let processedQuotes = result.quotes;
-				if (shouldFillMissingData && isMarketOpen) {
+				else if (shouldFillMissingData && isMarketOpen) {
 					// 生成完整的交易时间点
 					const completeTimeline = generateTradingTimeline(
 						period1,
@@ -124,9 +369,11 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 
 					// 将实际数据与完整时间轴合并
 					processedQuotes = mergeDataWithTimeline(
-						result.quotes,
+						filteredQuotes,
 						completeTimeline
 					);
+				} else {
+					processedQuotes = filteredQuotes;
 				}
 
 				// 添加格式化的日期字符串
