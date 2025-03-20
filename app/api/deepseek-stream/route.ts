@@ -4,7 +4,7 @@ import { DeepSeekModel } from '@/app/types/deepseek';
 
 export async function POST(req: NextRequest) {
   try {
-    const { symbol, model = DeepSeekModel.r1 } = await req.json();
+    const { symbol, model = DeepSeekModel.r1, language = 'EN' } = await req.json();
 
     if (!symbol) {
       return NextResponse.json(
@@ -37,26 +37,13 @@ export async function POST(req: NextRequest) {
             )
           );
 
-          // Call DeepSeek API with streaming enabled
-          const response = await fetch(
-            'https://api.siliconflow.cn/v1/chat/completions',
-            {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: model, // Use the specified DeepSeek model
-                messages: [
-                  {
-                    role: 'system',
-                    content:
-                      '你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。',
-                  },
-                  {
-                    role: 'user',
-                    content: `请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
+          // Set system prompt and user prompt based on language
+          const systemPrompt = language === 'CN' 
+            ? '你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。'
+            : 'You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format.';
+
+          const userPrompt = language === 'CN'
+            ? `请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
 
 {
   "analysis": "总体分析概述",
@@ -98,7 +85,70 @@ export async function POST(req: NextRequest) {
   "sentiment": "整体投资情绪，必须是以下三种之一：positive、neutral、negative"
 }
 
-请确保返回的是有效的JSON格式，不要包含任何额外的文本、解释或markdown格式。`,
+请确保返回的是有效的JSON格式，不要包含任何额外的文本、解释或markdown格式。`
+            : `Please provide a comprehensive analysis of the stock with symbol ${symbol} and return the data in the following JSON structure:
+
+{
+  "analysis": "Overall analysis summary",
+  "technicalAnalysis": {
+    "priceTrend": "Price trend analysis, including recent trends, support and resistance levels",
+    "technicalIndicators": "Analysis of key technical indicators such as RSI, MACD, moving averages, etc.",
+    "volume": "Volume analysis and its implications",
+    "patterns": "Identification of important technical patterns such as head and shoulders, double bottoms, etc."
+  },
+  "fundamentalAnalysis": {
+    "financials": "Analysis of key financial metrics including revenue, profit, margins, cash flow, etc.",
+    "valuation": "Analysis of valuation metrics such as PE, PB, PS, etc., and comparison with industry averages",
+    "growth": "Assessment of company growth potential and sustainability",
+    "balance": "Assessment of company assets, liabilities, and financial health"
+  },
+  "industryAnalysis": {
+    "position": "Company's market share and competitive advantages in the industry",
+    "trends": "Overall industry development trends and prospects",
+    "competitors": "Analysis of main competitors and relative strengths and weaknesses",
+    "cycle": "Current stage of the industry cycle"
+  },
+  "riskFactors": {
+    "market": "Risk factors related to the overall market",
+    "industry": "Specific risks related to the industry",
+    "company": "Specific risks related to the company itself",
+    "regulatory": "Regulatory changes or policy risks that may affect the company"
+  },
+  "recommendations": [
+    "Specific investment recommendation 1",
+    "Specific investment recommendation 2",
+    "Specific investment recommendation 3",
+    "Specific investment recommendation 4"
+  ],
+  "priceTargets": {
+    "shortTerm": "3-month price forecast and rationale",
+    "midTerm": "6-12 month price forecast and rationale",
+    "longTerm": "1-3 year price forecast and rationale"
+  },
+  "sentiment": "Overall investment sentiment, must be one of the following: positive, neutral, negative"
+}
+
+Please ensure that the response is in valid JSON format without any additional text, explanations, or markdown formatting.`;
+
+          // Call DeepSeek API with streaming enabled
+          const response = await fetch(
+            'https://api.siliconflow.cn/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: model, // Use the specified DeepSeek model
+                messages: [
+                  {
+                    role: 'system',
+                    content: systemPrompt,
+                  },
+                  {
+                    role: 'user',
+                    content: userPrompt,
                   },
                 ],
                 stream: true,
