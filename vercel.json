@@ -1,10 +1,10 @@
 {
     "functions": {
       "app/api/deepseek-stream/route.ts": {
-        "runtime": "edge"
+        "runtime": "edge@latest"
       },
       "app/api/deepseek-stream-edge/route.ts": {
-        "runtime": "edge"
+        "runtime": "edge@latest"
       }
     }
   }
