@@ -1,7 +1,0 @@
-{
-    "functions": {
-      "app/api/deepseek-stream/route.ts": {
-        "runtime": "edge"
-      }
-    }
-  }
