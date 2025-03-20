@@ -213,8 +213,9 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 			// 对于其他时间范围的处理保持不变
 			switch (range) {
 				case '5d':
+					// 往回拿7天的数据，大概率能包含5个交易日
 					period1 = new Date(now);
-					period1.setDate(now.getDate() - 5);
+					period1.setDate(now.getDate() - 7);
 					interval = '15m';
 					break;
 				case '1mo':
