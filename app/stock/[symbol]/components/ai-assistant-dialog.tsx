@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
@@ -70,6 +70,10 @@ export default function AIAssistantDialog({
 	const [thinking, setThinking] = useState('');
 	const [isStreaming, setIsStreaming] = useState(false);
 	const [streamError, setStreamError] = useState<string | null>(null);
+	
+	// Reference for thinking process containers
+	const thinkingContainerRef = useRef<HTMLDivElement>(null);
+	const thinkingTabContainerRef = useRef<HTMLDivElement>(null);
 	
 	// Use either streamed data or initial data
 	const data = streamData || initialData;
@@ -183,6 +187,16 @@ export default function AIAssistantDialog({
 		return () => {};
 	}, [isOpen, useStream, symbol, initialData]);
 
+	// Auto-scroll thinking containers when content changes
+	useEffect(() => {
+		if (thinking && thinkingContainerRef.current) {
+			thinkingContainerRef.current.scrollTop = thinkingContainerRef.current.scrollHeight;
+		}
+		if (thinking && thinkingTabContainerRef.current) {
+			thinkingTabContainerRef.current.scrollTop = thinkingTabContainerRef.current.scrollHeight;
+		}
+	}, [thinking]);
+
 	if (!isOpen) return null;
 
 	return (
@@ -218,8 +232,11 @@ export default function AIAssistantDialog({
 						{thinking && (
 							<div className='mt-6 w-full max-w-lg'>
 								<div className='p-3 rounded-lg bg-yellow-100 border border-yellow-300'>
-									<p className='text-sm text-gray-500 mb-1'>思考过程...</p>
-									<div className='font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[200px]'>
+									<p className='text-sm text-gray-500 mb-1'>Thinking Process...</p>
+									<div 
+										ref={thinkingContainerRef}
+										className='font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[200px]'
+									>
 										{thinking}
 									</div>
 								</div>
@@ -485,9 +502,12 @@ export default function AIAssistantDialog({
 							{activeTab === 'thinking' && (
 								<div className='space-y-4 text-sm'>
 									<div className='p-3 rounded-lg bg-yellow-100 border border-yellow-300'>
-										<h3 className='font-medium mb-2'>AI思考过程</h3>
-										<div className='font-mono whitespace-pre-wrap'>
-											{thinking || '无思考过程可显示。'}
+										<h3 className='font-medium mb-2'>Thinking Process</h3>
+										<div 
+											ref={thinkingTabContainerRef}
+											className='font-mono whitespace-pre-wrap overflow-y-auto max-h-[400px]'
+										>
+											{thinking || 'No thinking process available.'}
 										</div>
 									</div>
 								</div>
