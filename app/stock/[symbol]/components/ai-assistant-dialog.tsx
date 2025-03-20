@@ -10,11 +10,42 @@ interface SequentialThinkingStep {
 	content: string;
 }
 
+interface PriceTarget {
+	shortTerm?: string;
+	midTerm?: string;
+	longTerm?: string;
+}
+
 interface AIAssistantData {
-	analysis: string;
+	analysis?: string;
 	recommendations: string[];
 	sentiment: string;
 	sequentialThinking?: SequentialThinkingStep[];
+	technicalAnalysis?: {
+		priceTrend?: string;
+		technicalIndicators?: string;
+		volume?: string;
+		patterns?: string;
+	};
+	fundamentalAnalysis?: {
+		financials?: string;
+		valuation?: string;
+		growth?: string;
+		balance?: string;
+	};
+	industryAnalysis?: {
+		position?: string;
+		trends?: string;
+		competitors?: string;
+		cycle?: string;
+	};
+	riskFactors?: {
+		market?: string;
+		industry?: string;
+		company?: string;
+		regulatory?: string;
+	};
+	priceTargets?: PriceTarget;
 }
 
 interface AIAssistantDialogProps {
@@ -34,35 +65,7 @@ export default function AIAssistantDialog({
 	isLoading,
 	data,
 }: AIAssistantDialogProps) {
-	const [activeStep, setActiveStep] = useState(0);
-	const hasSequentialThinking =
-		data?.sequentialThinking && data.sequentialThinking.length > 0;
-
-	// Reset step counter when data changes
-	useEffect(() => {
-		if (data) {
-			setActiveStep(0);
-		}
-	}, [data]);
-
-	// Auto-advance through steps when in sequential thinking mode
-	useEffect(() => {
-		if (
-			isLoading ||
-			!hasSequentialThinking ||
-			activeStep >= data!.sequentialThinking!.length
-		) {
-			return;
-		}
-
-		const timer = setTimeout(() => {
-			if (activeStep < data!.sequentialThinking!.length - 1) {
-				setActiveStep((prev) => prev + 1);
-			}
-		}, 3000); // Show each step for 3 seconds
-
-		return () => clearTimeout(timer);
-	}, [activeStep, isLoading, data, hasSequentialThinking]);
+	const [activeTab, setActiveTab] = useState('analysis');
 
 	// Handle escape key to close dialog
 	useEffect(() => {
@@ -129,120 +132,299 @@ export default function AIAssistantDialog({
 					</div>
 				) : data ? (
 					<div className='space-y-4'>
-						{/* Sequential Thinking Steps (DeepSeek model) */}
-						{hasSequentialThinking && (
-							<div className='border rounded-md p-4 mb-4 bg-muted/30'>
-								<h3 className='font-medium mb-3'>
-									Thinking Process:
-								</h3>
+						{/* Navigation Tabs */}
+						<div className='flex border-b'>
+							<button
+								className={`px-4 py-2 font-medium text-sm ${
+									activeTab === 'analysis'
+										? 'border-b-2 border-primary text-primary'
+										: 'text-muted-foreground hover:text-foreground'
+								}`}
+								onClick={() => setActiveTab('analysis')}
+							>
+								Analysis
+							</button>
+							<button
+								className={`px-4 py-2 font-medium text-sm ${
+									activeTab === 'recommendations'
+										? 'border-b-2 border-primary text-primary'
+										: 'text-muted-foreground hover:text-foreground'
+								}`}
+								onClick={() => setActiveTab('recommendations')}
+							>
+								Recommendations
+							</button>
+							<button
+								className={`px-4 py-2 font-medium text-sm ${
+									activeTab === 'technical'
+										? 'border-b-2 border-primary text-primary'
+										: 'text-muted-foreground hover:text-foreground'
+								}`}
+								onClick={() => setActiveTab('technical')}
+							>
+								Technical
+							</button>
+							<button
+								className={`px-4 py-2 font-medium text-sm ${
+									activeTab === 'fundamental'
+										? 'border-b-2 border-primary text-primary'
+										: 'text-muted-foreground hover:text-foreground'
+								}`}
+								onClick={() => setActiveTab('fundamental')}
+							>
+								Fundamental
+							</button>
+						</div>
 
-								{/* Progress bar */}
-								<div className='w-full h-1 bg-muted mb-4 rounded-full overflow-hidden'>
-									<div
-										className='h-full bg-primary transition-all duration-300 ease-in-out'
-										style={{
-											width: `${((activeStep + 1) / data.sequentialThinking!.length) * 100}%`,
-										}}
-									/>
-								</div>
-
-								{/* Current step */}
-								<div className='mb-2'>
-									<div className='flex justify-between items-center'>
-										<h4 className='font-semibold text-sm'>
-											Step{' '}
-											{
-												data.sequentialThinking![
-													activeStep
-												].step
+						{/* Tab Content */}
+						<div className='pt-2'>
+							{activeTab === 'analysis' && (
+								<div>
+									{data.analysis && (
+										<p className='text-sm'>
+											{data.analysis}
+										</p>
+									)}
+									<div className='mt-4 text-sm'>
+										<span className='font-medium'>
+											Sentiment:{' '}
+										</span>
+										<span
+											className={
+												data.sentiment === 'positive'
+													? 'text-green-500'
+													: data.sentiment ===
+														  'negative'
+														? 'text-red-500'
+														: 'text-yellow-500'
 											}
-											:{' '}
-											{
-												data.sequentialThinking![
-													activeStep
-												].title
-											}
-										</h4>
-										<span className='text-xs text-muted-foreground'>
-											{activeStep + 1} of{' '}
-											{data.sequentialThinking!.length}
+										>
+											{data.sentiment}
 										</span>
 									</div>
-									<p className='text-sm mt-2'>
-										{
-											data.sequentialThinking![activeStep]
-												.content
-										}
-									</p>
 								</div>
+							)}
 
-								{/* Step navigation */}
-								<div className='flex justify-between mt-4'>
-									<button
-										className='text-xs text-primary hover:text-primary/80 disabled:text-muted-foreground'
-										onClick={() =>
-											setActiveStep((prev) =>
-												Math.max(0, prev - 1)
+							{activeTab === 'recommendations' && (
+								<div>
+									<ul className='list-disc list-inside text-sm space-y-2'>
+										{data.recommendations.map(
+											(rec: string, i: number) => (
+												<li key={i}>{rec}</li>
 											)
-										}
-										disabled={activeStep === 0}
-									>
-										Previous Step
-									</button>
-									<button
-										className='text-xs text-primary hover:text-primary/80 disabled:text-muted-foreground'
-										onClick={() =>
-											setActiveStep((prev) =>
-												Math.min(
-													data.sequentialThinking!
-														.length - 1,
-													prev + 1
-												)
-											)
-										}
-										disabled={
-											activeStep ===
-											data.sequentialThinking!.length - 1
-										}
-									>
-										Next Step
-									</button>
+										)}
+									</ul>
 								</div>
-							</div>
-						)}
+							)}
 
-						{/* Analysis */}
-						<div>
-							<h3 className='font-medium mb-2'>Analysis:</h3>
-							<p className='text-sm'>{data.analysis}</p>
-						</div>
+							{activeTab === 'technical' && (
+								<div>
+									{data.technicalAnalysis && (
+										<div className='text-sm'>
+											<h3 className='font-medium mb-2'>
+												Technical Analysis:
+											</h3>
+											{data.technicalAnalysis
+												.priceTrend && (
+												<p>
+													Price Trend:{' '}
+													{
+														data.technicalAnalysis
+															.priceTrend
+													}
+												</p>
+											)}
+											{data.technicalAnalysis
+												.technicalIndicators && (
+												<p>
+													Technical Indicators:{' '}
+													{
+														data.technicalAnalysis
+															.technicalIndicators
+													}
+												</p>
+											)}
+											{data.technicalAnalysis.volume && (
+												<p>
+													Volume:{' '}
+													{
+														data.technicalAnalysis
+															.volume
+													}
+												</p>
+											)}
+											{data.technicalAnalysis
+												.patterns && (
+												<p>
+													Patterns:{' '}
+													{
+														data.technicalAnalysis
+															.patterns
+													}
+												</p>
+											)}
+										</div>
+									)}
+								</div>
+							)}
 
-						<div>
-							<h3 className='font-medium mb-2'>
-								Recommendations:
-							</h3>
-							<ul className='list-disc list-inside text-sm space-y-1'>
-								{data.recommendations.map(
-									(rec: string, i: number) => (
-										<li key={i}>{rec}</li>
-									)
-								)}
-							</ul>
-						</div>
-
-						<div className='text-sm'>
-							<span className='font-medium'>Sentiment: </span>
-							<span
-								className={
-									data.sentiment === 'positive'
-										? 'text-green-500'
-										: data.sentiment === 'negative'
-											? 'text-red-500'
-											: 'text-yellow-500'
-								}
-							>
-								{data.sentiment}
-							</span>
+							{activeTab === 'fundamental' && (
+								<div>
+									{data.fundamentalAnalysis && (
+										<div className='text-sm'>
+											<h3 className='font-medium mb-2'>
+												Fundamental Analysis:
+											</h3>
+											{data.fundamentalAnalysis
+												.financials && (
+												<p>
+													Financials:{' '}
+													{
+														data.fundamentalAnalysis
+															.financials
+													}
+												</p>
+											)}
+											{data.fundamentalAnalysis
+												.valuation && (
+												<p>
+													Valuation:{' '}
+													{
+														data.fundamentalAnalysis
+															.valuation
+													}
+												</p>
+											)}
+											{data.fundamentalAnalysis
+												.growth && (
+												<p>
+													Growth:{' '}
+													{
+														data.fundamentalAnalysis
+															.growth
+													}
+												</p>
+											)}
+											{data.fundamentalAnalysis
+												.balance && (
+												<p>
+													Balance:{' '}
+													{
+														data.fundamentalAnalysis
+															.balance
+													}
+												</p>
+											)}
+										</div>
+									)}
+									{data.industryAnalysis && (
+										<div className='text-sm'>
+											<h3 className='font-medium mb-2 mt-4'>
+												Industry Analysis:
+											</h3>
+											{data.industryAnalysis.position && (
+												<p>
+													Position:{' '}
+													{
+														data.industryAnalysis
+															.position
+													}
+												</p>
+											)}
+											{data.industryAnalysis.trends && (
+												<p>
+													Trends:{' '}
+													{
+														data.industryAnalysis
+															.trends
+													}
+												</p>
+											)}
+											{data.industryAnalysis
+												.competitors && (
+												<p>
+													Competitors:{' '}
+													{
+														data.industryAnalysis
+															.competitors
+													}
+												</p>
+											)}
+											{data.industryAnalysis.cycle && (
+												<p>
+													Cycle:{' '}
+													{
+														data.industryAnalysis
+															.cycle
+													}
+												</p>
+											)}
+										</div>
+									)}
+									{data.riskFactors && (
+										<div className='text-sm'>
+											<h3 className='font-medium mb-2 mt-4'>
+												Risk Factors:
+											</h3>
+											{data.riskFactors.market && (
+												<p>
+													Market:{' '}
+													{data.riskFactors.market}
+												</p>
+											)}
+											{data.riskFactors.industry && (
+												<p>
+													Industry:{' '}
+													{data.riskFactors.industry}
+												</p>
+											)}
+											{data.riskFactors.company && (
+												<p>
+													Company:{' '}
+													{data.riskFactors.company}
+												</p>
+											)}
+											{data.riskFactors.regulatory && (
+												<p>
+													Regulatory:{' '}
+													{
+														data.riskFactors
+															.regulatory
+													}
+												</p>
+											)}
+										</div>
+									)}
+									{data.priceTargets && (
+										<div className='text-sm'>
+											<h3 className='font-medium mb-2 mt-4'>
+												Price Targets:
+											</h3>
+											{data.priceTargets.shortTerm && (
+												<p>
+													Short Term:{' '}
+													{
+														data.priceTargets
+															.shortTerm
+													}
+												</p>
+											)}
+											{data.priceTargets.midTerm && (
+												<p>
+													Mid Term:{' '}
+													{data.priceTargets.midTerm}
+												</p>
+											)}
+											{data.priceTargets.longTerm && (
+												<p>
+													Long Term:{' '}
+													{data.priceTargets.longTerm}
+												</p>
+											)}
+										</div>
+									)}
+								</div>
+							)}
 						</div>
 					</div>
 				) : (
