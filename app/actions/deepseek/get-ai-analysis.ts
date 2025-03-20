@@ -138,7 +138,7 @@ export async function getAIAnalysis(symbol: string, model: DeepSeekModel) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		// Use actual DeepSeek API
-		const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+		const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY_VOL_ENGINE;
 
 
 

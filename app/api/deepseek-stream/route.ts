@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get API key from environment variables
-    const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+    const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY_VOL_ENGINE;
     if (!DEEPSEEK_API_KEY) {
       return NextResponse.json(
         { error: 'DeepSeek API key is not configured' },
