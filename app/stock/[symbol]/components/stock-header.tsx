@@ -8,6 +8,7 @@ import AIAssistantDialog from './ai-assistant-dialog';
 import { PriceDisplay, PriceDisplayFallback } from './price-display';
 
 import { getAIAnalysis } from '@/app/actions/deepseek/get-ai-analysis';
+import { DeepSeekModel } from '@/app/types/deepseek';
 import { Button } from '@/components/ui/button';
 
 // 股票实时数据类型
@@ -110,7 +111,7 @@ export default function StockHeader({
 			setIsDialogOpen(true);
 
 			// 使用server action代替API调用
-			const responseData = await getAIAnalysis(stockSymbol);
+			const responseData = await getAIAnalysis(stockSymbol, DeepSeekModel.r1);
 
 			if (responseData.success) {
 				setAiData(responseData.data);

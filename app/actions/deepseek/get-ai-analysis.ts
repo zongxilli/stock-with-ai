@@ -1,6 +1,6 @@
 'use server';
 
-import { DeepSeekModel } from "@/app/types/deepseek";
+import { DeepSeekModel } from '@/app/types/deepseek';
 
 // Mock data for DeepSeek sequential thinking
 const mockDeepSeekData = {
