@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
+import AIAssistantDialog from './components/ai-assistant-dialog';
 import ChartContainer from './components/chart-container';
 import ErrorView from './components/error-view';
 import RangeSelector from './components/rangeSelector';
@@ -151,6 +152,13 @@ export default function StockPage() {
 	const [lastChartUpdated, setLastChartUpdated] = useState<string>('');
 	// 标记是否停止自动刷新
 	const [stopAutoRefresh, setStopAutoRefresh] = useState(false);
+	
+	// AI Assistant dialog state
+	const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
+	// These state variables are managed by the AIAssistantDialog component internally
+	// when using streaming mode, so we don't need to use them here
+	const [_aiData] = useState(null);
+	const [_aiLoading] = useState(false);
 
 	// 如果没有指定时间范围，重定向到默认的1年范围
 	useEffect(() => {
@@ -394,6 +402,37 @@ export default function StockPage() {
 				range={range}
 				isChartUpdating={isChartUpdating}
 				realTimeData={realTimeData}
+			/>
+
+			{/* AI Assistant Button */}
+			<div className="mt-4 mb-4 flex justify-center">
+				<button
+					onClick={() => setIsAIDialogOpen(true)}
+					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+					disabled={loading || !realTimeData}
+				>
+					{loading ? (
+						<>
+							<span className="mr-2 animate-spin">⟳</span>
+							Loading...
+						</>
+					) : (
+						<>
+							<span className="mr-2">🤖</span>
+							AI Analysis
+						</>
+					)}
+				</button>
+			</div>
+
+			{/* AI Assistant Dialog */}
+			<AIAssistantDialog
+				isOpen={isAIDialogOpen}
+				onClose={() => setIsAIDialogOpen(false)}
+				symbol={symbol}
+				isLoading={_aiLoading}
+				data={_aiData}
+				useStream={true}
 			/>
 
 			{/* 状态指示器 */}

@@ -54,16 +54,26 @@ interface AIAssistantDialogProps {
 	symbol: string;
 	isLoading: boolean;
 	data: AIAssistantData | null;
+	useStream?: boolean;
 }
 
 export default function AIAssistantDialog({
 	isOpen,
 	onClose,
 	symbol,
-	isLoading,
-	data,
+	isLoading: initialIsLoading,
+	data: initialData,
+	useStream = false,
 }: AIAssistantDialogProps) {
 	const [activeTab, setActiveTab] = useState('analysis');
+	const [streamData, setStreamData] = useState<AIAssistantData | null>(null);
+	const [thinking, setThinking] = useState('');
+	const [isStreaming, setIsStreaming] = useState(false);
+	const [streamError, setStreamError] = useState<string | null>(null);
+	
+	// Use either streamed data or initial data
+	const data = streamData || initialData;
+	const isLoading = isStreaming || initialIsLoading;
 
 	// Handle escape key to close dialog
 	useEffect(() => {
@@ -90,6 +100,88 @@ export default function AIAssistantDialog({
 			document.body.style.overflow = '';
 		};
 	}, [isOpen]);
+
+	// Stream data from DeepSeek API if useStream is true
+	useEffect(() => {
+		if (!isOpen || !useStream || initialData) return;
+		
+		// We're using fetch API with ReadableStream instead of EventSource
+		
+		const fetchStreamData = async () => {
+			try {
+				setIsStreaming(true);
+				setThinking('');
+				setStreamData(null);
+				setStreamError(null);
+				
+				// Call the streaming API endpoint
+				const response = await fetch('/api/deepseek-stream', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						symbol,
+						model: 'Pro/deepseek-ai/DeepSeek-R1', // Using R1 model as specified
+					}),
+				});
+				
+				if (!response.ok) {
+					throw new Error(`API error: ${response.status}`);
+				}
+				
+				const reader = response.body?.getReader();
+				if (!reader) {
+					throw new Error('Failed to get response reader');
+				}
+				
+				const decoder = new TextDecoder();
+				let buffer = '';
+				
+				while (true) {
+					const { done, value } = await reader.read();
+					if (done) break;
+					
+					buffer += decoder.decode(value, { stream: true });
+					
+					// Process complete SSE messages
+					const lines = buffer.split('\n\n');
+					buffer = lines.pop() || '';
+					
+					for (const line of lines) {
+						if (!line.startsWith('data:')) continue;
+						
+						try {
+							const data = JSON.parse(line.slice(5).trim());
+							
+							if (data.type === 'thinking') {
+								setThinking(prev => prev + data.content);
+							} else if (data.type === 'content') {
+								// Content is processed but not displayed directly
+								// It will be part of the final complete message
+							} else if (data.type === 'complete') {
+								setStreamData(data.content);
+							} else if (data.type === 'error') {
+								setStreamError(data.content);
+							}
+						} catch (error) {
+							console.error('Error parsing SSE message:', error);
+						}
+					}
+				}
+			} catch (error) {
+				console.error('Streaming error:', error);
+				setStreamError(error instanceof Error ? error.message : 'Unknown error');
+			} finally {
+				setIsStreaming(false);
+			}
+		};
+		
+		fetchStreamData();
+		
+		// No cleanup needed for fetch API with ReadableStream
+		return () => {};
+	}, [isOpen, useStream, symbol, initialData]);
 
 	if (!isOpen) return null;
 
@@ -121,6 +213,22 @@ export default function AIAssistantDialog({
 								This may take a few moments
 							</span>
 						</p>
+						
+						{/* Display thinking process during streaming */}
+						{thinking && (
+							<div className='mt-6 w-full max-w-lg'>
+								<div className='p-3 rounded-lg bg-yellow-100 border border-yellow-300'>
+									<p className='text-sm text-gray-500 mb-1'>思考过程...</p>
+									<div className='font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[200px]'>
+										{thinking}
+									</div>
+								</div>
+							</div>
+						)}
+					</div>
+				) : streamError ? (
+					<div className='text-center text-red-500 py-4'>
+						Error: {streamError}
 					</div>
 				) : data ? (
 					<div className='space-y-4'>
@@ -166,6 +274,18 @@ export default function AIAssistantDialog({
 							>
 								Fundamental
 							</button>
+							{thinking && (
+								<button
+									className={`px-4 py-2 font-medium text-sm ${
+										activeTab === 'thinking'
+											? 'border-b-2 border-primary text-primary'
+											: 'text-muted-foreground hover:text-foreground'
+									}`}
+									onClick={() => setActiveTab('thinking')}
+								>
+									Thinking Process
+								</button>
+							)}
 						</div>
 
 						{/* Tab Content */}
@@ -199,230 +319,185 @@ export default function AIAssistantDialog({
 
 							{activeTab === 'recommendations' && (
 								<div>
-									<ul className='list-disc list-inside text-sm space-y-2'>
-										{data.recommendations.map(
-											(rec: string, i: number) => (
-												<li key={i}>{rec}</li>
-											)
-										)}
-									</ul>
+									{data.recommendations &&
+									data.recommendations.length > 0 ? (
+										<ul className='list-disc pl-5 space-y-2 text-sm'>
+											{data.recommendations.map(
+												(recommendation, index) => (
+													<li key={index}>
+														{recommendation}
+													</li>
+												)
+											)}
+										</ul>
+									) : (
+										<p className='text-muted-foreground text-sm'>
+											No recommendations available.
+										</p>
+									)}
 								</div>
 							)}
 
 							{activeTab === 'technical' && (
-								<div>
-									{data.technicalAnalysis && (
-										<div className='text-sm'>
-											<h3 className='font-medium mb-2'>
-												Technical Analysis:
-											</h3>
+								<div className='space-y-4 text-sm'>
+									{data.technicalAnalysis ? (
+										<>
 											{data.technicalAnalysis
 												.priceTrend && (
-												<p>
-													Price Trend:{' '}
-													{
-														data.technicalAnalysis
-															.priceTrend
-													}
-												</p>
+												<div>
+													<h3 className='font-medium mb-1'>
+														Price Trend
+													</h3>
+													<p>
+														{
+															data
+																.technicalAnalysis
+																.priceTrend
+														}
+													</p>
+												</div>
 											)}
 											{data.technicalAnalysis
 												.technicalIndicators && (
-												<p>
-													Technical Indicators:{' '}
-													{
-														data.technicalAnalysis
-															.technicalIndicators
-													}
-												</p>
+												<div>
+													<h3 className='font-medium mb-1'>
+														Technical Indicators
+													</h3>
+													<p>
+														{
+															data
+																.technicalAnalysis
+																.technicalIndicators
+														}
+													</p>
+												</div>
 											)}
 											{data.technicalAnalysis.volume && (
-												<p>
-													Volume:{' '}
-													{
-														data.technicalAnalysis
-															.volume
-													}
-												</p>
+												<div>
+													<h3 className='font-medium mb-1'>
+														Volume Analysis
+													</h3>
+													<p>
+														{
+															data
+																.technicalAnalysis
+																.volume
+														}
+													</p>
+												</div>
 											)}
 											{data.technicalAnalysis
 												.patterns && (
-												<p>
-													Patterns:{' '}
-													{
-														data.technicalAnalysis
-															.patterns
-													}
-												</p>
+												<div>
+													<h3 className='font-medium mb-1'>
+														Chart Patterns
+													</h3>
+													<p>
+														{
+															data
+																.technicalAnalysis
+																.patterns
+														}
+													</p>
+												</div>
 											)}
-										</div>
+										</>
+									) : (
+										<p className='text-muted-foreground'>
+											No technical analysis available.
+										</p>
 									)}
 								</div>
 							)}
 
 							{activeTab === 'fundamental' && (
-								<div>
-									{data.fundamentalAnalysis && (
-										<div className='text-sm'>
-											<h3 className='font-medium mb-2'>
-												Fundamental Analysis:
-											</h3>
+								<div className='space-y-4 text-sm'>
+									{data.fundamentalAnalysis ? (
+										<>
 											{data.fundamentalAnalysis
 												.financials && (
-												<p>
-													Financials:{' '}
-													{
-														data.fundamentalAnalysis
-															.financials
-													}
-												</p>
+												<div>
+													<h3 className='font-medium mb-1'>
+														Financial Performance
+													</h3>
+													<p>
+														{
+															data
+																.fundamentalAnalysis
+																.financials
+														}
+													</p>
+												</div>
 											)}
 											{data.fundamentalAnalysis
 												.valuation && (
-												<p>
-													Valuation:{' '}
-													{
-														data.fundamentalAnalysis
-															.valuation
-													}
-												</p>
+												<div>
+													<h3 className='font-medium mb-1'>
+														Valuation Metrics
+													</h3>
+													<p>
+														{
+															data
+																.fundamentalAnalysis
+																.valuation
+														}
+													</p>
+												</div>
 											)}
-											{data.fundamentalAnalysis
-												.growth && (
-												<p>
-													Growth:{' '}
-													{
-														data.fundamentalAnalysis
-															.growth
-													}
-												</p>
+											{data.fundamentalAnalysis.growth && (
+												<div>
+													<h3 className='font-medium mb-1'>
+														Growth Prospects
+													</h3>
+													<p>
+														{
+															data
+																.fundamentalAnalysis
+																.growth
+														}
+													</p>
+												</div>
 											)}
 											{data.fundamentalAnalysis
 												.balance && (
-												<p>
-													Balance:{' '}
-													{
-														data.fundamentalAnalysis
-															.balance
-													}
-												</p>
+												<div>
+													<h3 className='font-medium mb-1'>
+														Balance Sheet Health
+													</h3>
+													<p>
+														{
+															data
+																.fundamentalAnalysis
+																.balance
+														}
+													</p>
+												</div>
 											)}
-										</div>
+										</>
+									) : (
+										<p className='text-muted-foreground'>
+											No fundamental analysis available.
+										</p>
 									)}
-									{data.industryAnalysis && (
-										<div className='text-sm'>
-											<h3 className='font-medium mb-2 mt-4'>
-												Industry Analysis:
-											</h3>
-											{data.industryAnalysis.position && (
-												<p>
-													Position:{' '}
-													{
-														data.industryAnalysis
-															.position
-													}
-												</p>
-											)}
-											{data.industryAnalysis.trends && (
-												<p>
-													Trends:{' '}
-													{
-														data.industryAnalysis
-															.trends
-													}
-												</p>
-											)}
-											{data.industryAnalysis
-												.competitors && (
-												<p>
-													Competitors:{' '}
-													{
-														data.industryAnalysis
-															.competitors
-													}
-												</p>
-											)}
-											{data.industryAnalysis.cycle && (
-												<p>
-													Cycle:{' '}
-													{
-														data.industryAnalysis
-															.cycle
-													}
-												</p>
-											)}
+								</div>
+							)}
+							
+							{activeTab === 'thinking' && (
+								<div className='space-y-4 text-sm'>
+									<div className='p-3 rounded-lg bg-yellow-100 border border-yellow-300'>
+										<h3 className='font-medium mb-2'>AI思考过程</h3>
+										<div className='font-mono whitespace-pre-wrap'>
+											{thinking || '无思考过程可显示。'}
 										</div>
-									)}
-									{data.riskFactors && (
-										<div className='text-sm'>
-											<h3 className='font-medium mb-2 mt-4'>
-												Risk Factors:
-											</h3>
-											{data.riskFactors.market && (
-												<p>
-													Market:{' '}
-													{data.riskFactors.market}
-												</p>
-											)}
-											{data.riskFactors.industry && (
-												<p>
-													Industry:{' '}
-													{data.riskFactors.industry}
-												</p>
-											)}
-											{data.riskFactors.company && (
-												<p>
-													Company:{' '}
-													{data.riskFactors.company}
-												</p>
-											)}
-											{data.riskFactors.regulatory && (
-												<p>
-													Regulatory:{' '}
-													{
-														data.riskFactors
-															.regulatory
-													}
-												</p>
-											)}
-										</div>
-									)}
-									{data.priceTargets && (
-										<div className='text-sm'>
-											<h3 className='font-medium mb-2 mt-4'>
-												Price Targets:
-											</h3>
-											{data.priceTargets.shortTerm && (
-												<p>
-													Short Term:{' '}
-													{
-														data.priceTargets
-															.shortTerm
-													}
-												</p>
-											)}
-											{data.priceTargets.midTerm && (
-												<p>
-													Mid Term:{' '}
-													{data.priceTargets.midTerm}
-												</p>
-											)}
-											{data.priceTargets.longTerm && (
-												<p>
-													Long Term:{' '}
-													{data.priceTargets.longTerm}
-												</p>
-											)}
-										</div>
-									)}
+									</div>
 								</div>
 							)}
 						</div>
 					</div>
 				) : (
-					<p className='text-center text-muted-foreground py-8'>
-						Failed to load analysis. Please try again.
-					</p>
+					<div className='text-center text-muted-foreground py-4'>
+						No data available.
+					</div>
 				)}
 			</div>
 		</div>
