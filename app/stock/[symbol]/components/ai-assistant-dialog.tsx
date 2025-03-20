@@ -4,8 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
-import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
-import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
+import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
 
 interface SequentialThinkingStep {
 	step: number;
@@ -112,8 +111,6 @@ export default function AIAssistantDialog({
 	useEffect(() => {
 		if (!isOpen || !useStream || initialData) return;
 
-		// We're using fetch API with ReadableStream instead of EventSource
-
 		const fetchStreamData = async () => {
 			try {
 				setIsStreaming(true);
@@ -121,20 +118,12 @@ export default function AIAssistantDialog({
 				setStreamData(null);
 				setStreamError(null);
 
-				// Fetch Yahoo Finance data for the stock
-				const [
-					stockData,
-					chartData1d,
-					chartData1mo,
-					chartData3mo,
-					chartData1y,
-				] = await Promise.all([
-					getStockRealTimeData(symbol),
-					getStockChartData(symbol, '1d'),
-					getStockChartData(symbol, '1mo'),
-					getStockChartData(symbol, '3mo'),
-					getStockChartData(symbol, '1y'),
-				]);
+				// Get comprehensive stock data first
+				const comprehensiveData =
+					await getComprehensiveStockData(symbol);
+
+				// Add loading state feedback
+				console.log(`Fetching analysis for ${symbol}...`);
 
 				// Call the streaming API endpoint
 				const response = await fetch('/api/deepseek-stream', {
@@ -144,14 +133,8 @@ export default function AIAssistantDialog({
 					},
 					body: JSON.stringify({
 						symbol,
-						language: 'EN', // TODO： 需要根据用户选择语言来决定
-						stockData,
-						chartData: {
-							'1d': chartData1d,
-							'1mo': chartData1mo,
-							'3mo': chartData3mo,
-							'1y': chartData1y,
-						},
+						language: 'EN',
+						comprehensiveData,
 					}),
 				});
 
@@ -159,6 +142,7 @@ export default function AIAssistantDialog({
 					throw new Error(`API error: ${response.status}`);
 				}
 
+				// Process the stream
 				const reader = response.body?.getReader();
 				if (!reader) {
 					throw new Error('Failed to get response reader');
@@ -171,30 +155,71 @@ export default function AIAssistantDialog({
 					const { done, value } = await reader.read();
 					if (done) break;
 
+					// Add to buffer and process complete messages
 					buffer += decoder.decode(value, { stream: true });
 
-					// Process complete SSE messages
+					// Process complete SSE messages (split by double newline)
 					const lines = buffer.split('\n\n');
 					buffer = lines.pop() || '';
 
 					for (const line of lines) {
+						// Skip non-data lines
 						if (!line.startsWith('data:')) continue;
 
 						try {
-							const data = JSON.parse(line.slice(5).trim());
+							// Parse the JSON data
+							const dataStr = line.slice(5).trim();
+							console.log(
+								'Received SSE data:',
+								dataStr.slice(0, 50) + '...'
+							);
 
+							const data = JSON.parse(dataStr);
+
+							// Handle different message types
 							if (data.type === 'thinking') {
 								setThinking((prev) => prev + data.content);
 							} else if (data.type === 'content') {
-								// Content is processed but not displayed directly
-								// It will be part of the final complete message
+								// Just log this for debugging, content accumulates on server
+								console.log('Content chunk received');
+							} else if (data.type === 'status') {
+								// Status updates for better UX
+								console.log('Status update:', data.content);
 							} else if (data.type === 'complete') {
-								setStreamData(data.content);
+								console.log('Received complete data');
+								// Validate that we have minimum required fields
+								if (typeof data.content === 'object') {
+									// Ensure minimum properties exist
+									const processedData = {
+										analysis:
+											data.content.analysis ||
+											'No analysis available',
+										recommendations: Array.isArray(
+											data.content.recommendations
+										)
+											? data.content.recommendations
+											: [],
+										sentiment:
+											data.content.sentiment || 'neutral',
+										...data.content,
+									};
+									setStreamData(processedData);
+								} else {
+									console.error(
+										'Unexpected complete data format:',
+										data
+									);
+									setStreamError(
+										'Received unexpected data format'
+									);
+								}
 							} else if (data.type === 'error') {
+								console.error('Stream error:', data.content);
 								setStreamError(data.content);
 							}
 						} catch (error) {
 							console.error('Error parsing SSE message:', error);
+							// Don't fail the whole stream for one parsing error
 						}
 					}
 				}

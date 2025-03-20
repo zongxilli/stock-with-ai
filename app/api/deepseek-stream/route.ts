@@ -7,8 +7,7 @@ export async function POST(req: NextRequest) {
 		const {
 			symbol,
 			language = 'EN',
-			stockData, // Receive stockData from request
-			chartData, // Receive chartData from request
+			comprehensiveData, // 接收全面的股票数据
 		} = await req.json();
 
 		if (!symbol) {
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		// Get API key from environment variables
+		// 获取API密钥
 		const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY_VOL_ENGINE;
 		const DEEPSEEK_API_URL = process.env.DEEPSEEK_API_URL_VOL_ENGINE;
 		if (!DEEPSEEK_API_KEY || !DEEPSEEK_API_URL) {
@@ -28,19 +27,12 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		// No need to fetch data as it's now provided in the request
-		// Use the provided data directly
-		const chartData1d = chartData['1d'];
-		const chartData1mo = chartData['1mo'];
-		const chartData3mo = chartData['3mo'];
-		const chartData1y = chartData['1y'];
-
-		// Create a streaming response
+		// 创建流式响应
 		const encoder = new TextEncoder();
 		const stream = new ReadableStream({
 			async start(controller) {
 				try {
-					// Send initial message
+					// 发送初始消息
 					controller.enqueue(
 						encoder.encode(
 							`data: ${JSON.stringify({
@@ -50,91 +42,15 @@ export async function POST(req: NextRequest) {
 						)
 					);
 
-					// Set system prompt and user prompt based on language
+					// 设置系统提示和用户提示
 					const systemPrompt =
 						language === 'CN'
 							? '你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议，当你回答问题时，首先用中文一步一步地思考，确保你的每一个思考步骤都是用中文表达的。然后给出你的最终答案，也必须完全用中文。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。非常重要：你的思考过程(reasoning_content)必须使用中文，这样用户才能理解你的分析思路。'
 							: 'You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice.Please think and answer all questions completely in English. When you answer questions, first think step by step in English, ensuring that each of your thought steps is expressed in English. Then give your final answer, which must also be completely in English. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format. Very important: Your thinking process (reasoning_content) must be in English so users can understand your analytical approach.';
 
-					// Prepare Yahoo Finance data string for inclusion in the prompt
-					const yahooDataString = stockData
-						? JSON.stringify(stockData, null, 2)
-						: 'No data available';
-
-					// Prepare chart data summaries
-					const chartDataSummary = {
-						'1d': chartData1d
-							? {
-									meta: chartData1d.meta,
-									quotes:
-										chartData1d.quotes.length > 20
-											? [
-													...chartData1d.quotes.slice(
-														0,
-														10
-													),
-													...chartData1d.quotes.slice(
-														-10
-													),
-												]
-											: chartData1d.quotes,
-								}
-							: 'No 1-day chart data available',
-						'1mo': chartData1mo
-							? {
-									meta: chartData1mo.meta,
-									quotes:
-										chartData1mo.quotes.length > 20
-											? [
-													...chartData1mo.quotes.slice(
-														0,
-														10
-													),
-													...chartData1mo.quotes.slice(
-														-10
-													),
-												]
-											: chartData1mo.quotes,
-								}
-							: 'No 1-month chart data available',
-						'3mo': chartData3mo
-							? {
-									meta: chartData3mo.meta,
-									quotes:
-										chartData3mo.quotes.length > 20
-											? [
-													...chartData3mo.quotes.slice(
-														0,
-														10
-													),
-													...chartData3mo.quotes.slice(
-														-10
-													),
-												]
-											: chartData3mo.quotes,
-								}
-							: 'No 3-month chart data available',
-						'1y': chartData1y
-							? {
-									meta: chartData1y.meta,
-									quotes:
-										chartData1y.quotes.length > 20
-											? [
-													...chartData1y.quotes.slice(
-														0,
-														10
-													),
-													...chartData1y.quotes.slice(
-														-10
-													),
-												]
-											: chartData1y.quotes,
-								}
-							: 'No 1-year chart data available',
-					};
-
-					const chartDataString = JSON.stringify(
-						chartDataSummary,
+					// 准备股票数据字符串
+					const stockDataString = JSON.stringify(
+						comprehensiveData,
 						null,
 						2
 					);
@@ -143,11 +59,8 @@ export async function POST(req: NextRequest) {
 						language === 'CN'
 							? `请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
 
-以下是从Yahoo Finance获取的该股票的实时数据，请在你的分析中充分利用这些数据：
-${yahooDataString}
-
-以下是该股票的历史价格数据，包括1天、1个月、3个月和1年的时间范围，请在你的技术分析中充分利用这些数据：
-${chartDataString}
+以下是该股票的全面数据，请在你的分析中充分利用这些数据：
+${stockDataString}
 
 请基于上述数据，进行深入分析并返回以下JSON格式的结果：
 
@@ -231,11 +144,8 @@ ${chartDataString}
 请确保返回的是有效的JSON格式，不要包含任何额外的文本、解释或markdown格式。`
 							: `Please provide a comprehensive analysis of the stock with symbol ${symbol} and return the data in the following JSON structure.
 
-Here is the real-time data from Yahoo Finance for this stock. Please use this data extensively in your analysis:
-${yahooDataString}
-
-Here is the historical price data for the stock, including 1-day, 1-month, 3-month, and 1-year timeframes. Please use this data extensively in your technical analysis:
-${chartDataString}
+Here is the comprehensive data for this stock. Please use this data extensively in your analysis:
+${stockDataString}
 
 Based on the above data, please conduct a thorough analysis and return your findings in the following JSON format:
 
@@ -317,8 +227,7 @@ Analysis requirements:
 7. Balance risk and reward, providing a balanced perspective
 
 Please ensure that the response is in valid JSON format without any additional text, explanations, or markdown formatting.`;
-
-					// Call DeepSeek API with streaming enabled
+					// 调用DeepSeek API启用流式传输
 					const response = await fetch(DEEPSEEK_API_URL, {
 						method: 'POST',
 						headers: {
@@ -326,7 +235,7 @@ Please ensure that the response is in valid JSON format without any additional t
 							Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
 						},
 						body: JSON.stringify({
-							model: 'bot-20250320120605-8gd66', // 我部署的联网版DeepSeek-R1 Model
+							model: 'bot-20250320120605-8gd66', // 部署的联网版DeepSeek-R1 Model
 							stream: true,
 							messages: [
 								{
@@ -353,9 +262,9 @@ Please ensure that the response is in valid JSON format without any additional t
 								},
 							],
 							reasoning_language:
-								language === 'CN' ? '中文' : 'English', // Set reasoning language based on selected language
-							// Add additional parameters to reinforce language selection
-							language: language === 'CN' ? '中文' : 'English', // Explicitly set the language parameter
+								language === 'CN' ? '中文' : 'English',
+							language: language === 'CN' ? '中文' : 'English',
+							
 						}),
 					});
 
@@ -365,7 +274,7 @@ Please ensure that the response is in valid JSON format without any additional t
 						);
 					}
 
-					// Process the streaming response
+					// 处理流式响应
 					const reader = response.body?.getReader();
 					if (!reader) {
 						throw new Error('Failed to get response reader');
@@ -379,12 +288,12 @@ Please ensure that the response is in valid JSON format without any additional t
 						const { done, value } = await reader.read();
 						if (done) break;
 
-						// Convert the chunk to text
+						// Convert chunk to text
 						buffer += new TextDecoder().decode(value, {
 							stream: true,
 						});
 
-						// Process complete messages in the buffer
+						// Process complete messages in buffer
 						const lines = buffer.split('\n');
 						buffer = lines.pop() || '';
 
@@ -397,10 +306,17 @@ Please ensure that the response is in valid JSON format without any additional t
 
 							try {
 								const json = JSON.parse(data);
-								const delta = json.choices[0]?.delta;
 
-								if (delta) {
-									// Check for reasoning content (thinking process)
+								// Add defensive coding to handle potential structure differences
+								// Check for delta in different potential response formats
+								if (
+									json.choices &&
+									json.choices[0] &&
+									json.choices[0].delta
+								) {
+									const delta = json.choices[0].delta;
+
+									// Check if reasoning_content exists
 									if (delta.reasoning_content) {
 										accumulatedThinking +=
 											delta.reasoning_content;
@@ -415,7 +331,7 @@ Please ensure that the response is in valid JSON format without any additional t
 										);
 									}
 
-									// Check for regular content
+									// Check if content exists
 									if (delta.content) {
 										accumulatedContent += delta.content;
 										controller.enqueue(
@@ -428,23 +344,171 @@ Please ensure that the response is in valid JSON format without any additional t
 										);
 									}
 								}
+								// Alternative response format handling (for debugging)
+								else {
+									console.log(
+										'Unexpected response format:',
+										JSON.stringify(json).slice(0, 200)
+									);
+
+									// You could try to extract content from other potential formats
+									// For example, if the response has a direct content field:
+									if (json.content) {
+										accumulatedContent += json.content;
+										controller.enqueue(
+											encoder.encode(
+												`data: ${JSON.stringify({
+													type: 'content',
+													content: json.content,
+												})}\n\n`
+											)
+										);
+									}
+								}
 							} catch (error) {
 								console.error(
 									'Error parsing SSE message:',
-									error
+									error,
+									'Raw data:',
+									data.slice(0, 100)
 								);
 							}
 						}
 					}
 
-					// Send a final message with the complete data
+					// Also modify the final data parsing part to be more robust:
 					try {
 						let finalData = {};
 						try {
-							// Clean up the accumulated content by removing markdown code block markers
+							// Through debugging, first log the accumulated content to see its structure
+							console.log(
+								'Accumulated content length:',
+								accumulatedContent.length
+							);
+							if (accumulatedContent.length > 0) {
+								console.log(
+									'Content preview:',
+									accumulatedContent.slice(0, 100)
+								);
+							}
+
+							// Clean up accumulated content
 							let contentToProcess = accumulatedContent.trim();
 
-							// Remove opening markdown code blocks if present
+							// If there's no content, provide a fallback
+							if (!contentToProcess) {
+								throw new Error(
+									'No content accumulated from the stream'
+								);
+							}
+
+							// Remove markdown code block markers if present
+							if (
+								contentToProcess.startsWith('```json') ||
+								contentToProcess.startsWith('```')
+							) {
+								contentToProcess = contentToProcess.replace(
+									/^```(json)?/,
+									''
+								);
+							}
+							if (contentToProcess.endsWith('```')) {
+								contentToProcess = contentToProcess.replace(
+									/```$/,
+									''
+								);
+							}
+
+							// Trim excess whitespace
+							contentToProcess = contentToProcess.trim();
+
+							// Try to parse as JSON, with additional error handling
+							if (contentToProcess) {
+								try {
+									finalData = JSON.parse(contentToProcess);
+								} catch (jsonError) {
+									console.error(
+										'JSON parse error:',
+										jsonError
+									);
+									console.log(
+										'Failed JSON content:',
+										contentToProcess
+									);
+
+									// Try to recover by finding valid JSON within the content
+									const possibleJsonMatch =
+										contentToProcess.match(/\{[\s\S]*\}/);
+									if (possibleJsonMatch) {
+										try {
+											finalData = JSON.parse(
+												possibleJsonMatch[0]
+											);
+											console.log(
+												'Recovered JSON from partial content'
+											);
+										} catch (recoveryError) {
+											console.error(
+												'Recovery attempt failed:',
+												recoveryError
+											);
+											throw jsonError; // Re-throw the original error
+										}
+									} else {
+										throw jsonError;
+									}
+								}
+							} else {
+								throw new Error(
+									'Empty content after processing'
+								);
+							}
+						} catch (error) {
+							console.error(
+								'Error parsing final content as JSON:',
+								error
+							);
+							// Fallback to basic structure
+							finalData = {
+								analysis:
+									accumulatedContent ||
+									'Analysis unavailable due to processing error.',
+								recommendations: [],
+								sentiment: 'neutral',
+							};
+						}
+
+						controller.enqueue(
+							encoder.encode(
+								`data: ${JSON.stringify({
+									type: 'complete',
+									content: finalData,
+									thinking: accumulatedThinking,
+								})}\n\n`
+							)
+						);
+					} catch (error) {
+						console.error('Error sending final message:', error);
+						controller.enqueue(
+							encoder.encode(
+								`data: ${JSON.stringify({
+									type: 'error',
+									content:
+										error instanceof Error
+											? error.message
+											: 'Unknown error',
+								})}\n\n`
+							)
+						);
+					}
+					// 发送带有完整数据的最终消息
+					try {
+						let finalData = {};
+						try {
+							// 通过删除markdown代码块标记来清理累积的内容
+							let contentToProcess = accumulatedContent.trim();
+
+							// 如果存在，则删除开头的markdown代码块
 							if (
 								contentToProcess.startsWith('```json') ||
 								contentToProcess.startsWith('```')
@@ -455,7 +519,7 @@ Please ensure that the response is in valid JSON format without any additional t
 								);
 							}
 
-							// Remove closing markdown code blocks if present
+							// 如果存在，则删除结尾的markdown代码块
 							if (contentToProcess.endsWith('```')) {
 								contentToProcess = contentToProcess.replace(
 									/```$/,
@@ -463,17 +527,17 @@ Please ensure that the response is in valid JSON format without any additional t
 								);
 							}
 
-							// Trim any extra whitespace after removing markers
+							// 删除标记后修剪多余的空白
 							contentToProcess = contentToProcess.trim();
 
-							// Try to parse the cleaned content as JSON
+							// 尝试将清理后的内容解析为JSON
 							finalData = JSON.parse(contentToProcess);
 						} catch (error) {
 							console.error(
 								'Error parsing final content as JSON:',
 								error
 							);
-							// If parsing fails, use a basic structure
+							// 如果解析失败，使用基本结构
 							finalData = {
 								analysis: accumulatedContent,
 								recommendations: [],
