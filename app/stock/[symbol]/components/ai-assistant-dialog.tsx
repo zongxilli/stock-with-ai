@@ -4,6 +4,9 @@ import { useEffect, useState, useRef } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
+import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
+import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
+
 interface SequentialThinkingStep {
 	step: number;
 	title: string;
@@ -118,6 +121,21 @@ export default function AIAssistantDialog({
 				setStreamData(null);
 				setStreamError(null);
 				
+				// Fetch Yahoo Finance data for the stock
+				const [
+					stockData,
+					chartData1d,
+					chartData1mo,
+					chartData3mo,
+					chartData1y,
+				] = await Promise.all([
+					getStockRealTimeData(symbol),
+					getStockChartData(symbol, '1d'),
+					getStockChartData(symbol, '1mo'),
+					getStockChartData(symbol, '3mo'),
+					getStockChartData(symbol, '1y'),
+				]);
+				
 				// Call the streaming API endpoint
 				const response = await fetch('/api/deepseek-stream', {
 					method: 'POST',
@@ -127,6 +145,13 @@ export default function AIAssistantDialog({
 					body: JSON.stringify({
 						symbol,
 						// language: 'CN',
+						stockData,
+						chartData: {
+							'1d': chartData1d,
+							'1mo': chartData1mo,
+							'3mo': chartData3mo,
+							'1y': chartData1y,
+						}
 					}),
 				});
 				

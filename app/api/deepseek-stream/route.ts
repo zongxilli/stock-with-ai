@@ -2,15 +2,17 @@ export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
-import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
-
 // export const maxDuration = 60; // 1分钟超时
 // export const dynamic = 'force-dynamic'; // 禁用静态优化
 
 export async function POST(req: NextRequest) {
 	try {
-		const { symbol, language = 'EN' } = await req.json();
+		const { 
+			symbol, 
+			language = 'EN',
+			stockData, // Receive stockData from request
+			chartData  // Receive chartData from request
+		} = await req.json();
 
 		if (!symbol) {
 			return NextResponse.json(
@@ -29,20 +31,12 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		// Fetch Yahoo Finance data for the stock
-		const [
-			stockData,
-			chartData1d,
-			chartData1mo,
-			chartData3mo,
-			chartData1y,
-		] = await Promise.all([
-			getStockRealTimeData(symbol),
-			getStockChartData(symbol, '1d'),
-			getStockChartData(symbol, '1mo'),
-			getStockChartData(symbol, '3mo'),
-			getStockChartData(symbol, '1y'),
-		]);
+		// No need to fetch data as it's now provided in the request
+		// Use the provided data directly
+		const chartData1d = chartData['1d'];
+		const chartData1mo = chartData['1mo'];
+		const chartData3mo = chartData['3mo'];
+		const chartData1y = chartData['1y'];
 
 		// Create a streaming response
 		const encoder = new TextEncoder();
