@@ -126,7 +126,7 @@ export default function AIAssistantDialog({
 					},
 					body: JSON.stringify({
 						symbol,
-						model: 'Pro/deepseek-ai/DeepSeek-R1', // Using R1 model as specified
+						// language: 'CN',
 					}),
 				});
 				
