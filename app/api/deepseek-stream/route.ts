@@ -1,3 +1,5 @@
+export const runtime = process.env.NODE_ENV === 'development' ? 'nodejs' : 'edge';
+
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
