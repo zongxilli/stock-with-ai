@@ -256,11 +256,11 @@ export default function AIAssistantDialog({
 						{/* Display thinking process during streaming */}
 						{thinking && (
 							<div className='mt-6 w-full max-w-lg'>
-								<div className='p-3 rounded-lg bg-yellow-100 border border-yellow-300'>
-									<p className='text-sm text-gray-500 mb-1'>Thinking Process...</p>
+								<div className='p-3 rounded-lg bg-muted border border-border'>
+									<p className='text-sm text-muted-foreground mb-1'>Thinking Process...</p>
 									<div 
 										ref={thinkingContainerRef}
-										className='font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[200px]'
+										className='font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[200px] text-foreground'
 									>
 										{thinking}
 									</div>
@@ -526,11 +526,11 @@ export default function AIAssistantDialog({
 							
 							{activeTab === 'thinking' && (
 								<div className='space-y-4 text-sm'>
-									<div className='p-3 rounded-lg bg-yellow-100 border border-yellow-300'>
+									<div className='p-3 rounded-lg bg-muted border border-border'>
 										<h3 className='font-medium mb-2'>Thinking Process</h3>
 										<div 
 											ref={thinkingTabContainerRef}
-											className='font-mono whitespace-pre-wrap overflow-y-auto max-h-[400px]'
+											className='font-mono whitespace-pre-wrap overflow-y-auto max-h-[400px] text-foreground'
 										>
 											{thinking || 'No thinking process available.'}
 										</div>
