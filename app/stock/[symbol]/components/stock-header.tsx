@@ -1,14 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-
 import { Sparkles } from 'lucide-react';
 
-import AIAssistantDialog from './ai-assistant-dialog';
 import { PriceDisplay, PriceDisplayFallback } from './price-display';
 
-import { getAIAnalysis } from '@/app/actions/deepseek/get-ai-analysis';
-import { DeepSeekModel } from '@/app/types/deepseek';
+import { IconButton } from '@/components/custom/iconButton';
 import { Button } from '@/components/ui/button';
 
 // 股票实时数据类型
@@ -55,6 +51,8 @@ interface StockHeaderProps {
 	realTimeData: StockRealTimeData | null;
 	chartData: any | null;
 	loading: boolean;
+	setIsDialogOpen: (isOpen: boolean) => void;
+	isLoadingAI: boolean;
 }
 
 export default function StockHeader({
@@ -63,11 +61,9 @@ export default function StockHeader({
 	realTimeData,
 	chartData,
 	loading,
+	setIsDialogOpen,
+	isLoadingAI,
 }: StockHeaderProps) {
-	const [isLoadingAI, setIsLoadingAI] = useState(false);
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const [aiData, setAiData] = useState<any>(null);
-
 	// 判断是否显示盘前价格
 	const shouldShowPreMarketPrice = () => {
 		if (!realTimeData) return false;
@@ -104,31 +100,6 @@ export default function StockHeader({
 		return hasValidPostMarketData;
 	};
 
-	const handleAIAssistantClick = async () => {
-		try {
-			setAiData(null);
-			setIsLoadingAI(true);
-			setIsDialogOpen(true);
-
-			// 使用server action代替API调用
-			const responseData = await getAIAnalysis(stockSymbol, DeepSeekModel.r1);
-
-			if (responseData.success) {
-				setAiData(responseData.data);
-			} else {
-				console.error('Error from AI Assistant');
-			}
-		} catch (error) {
-			console.error('Error calling AI Assistant:', error);
-		} finally {
-			setIsLoadingAI(false);
-		}
-	};
-
-	const handleCloseDialog = () => {
-		setIsDialogOpen(false);
-	};
-
 	return (
 		<div className='mb-6'>
 			{/* 标题和基本信息 */}
@@ -144,26 +115,26 @@ export default function StockHeader({
 				<div className='relative'>
 					<div className='flex items-center'>
 						<Button
-							onClick={handleAIAssistantClick}
+							onClick={() => setIsDialogOpen(true)}
 							aria-label='AI Assistant'
 							disabled={isLoadingAI}
-							className='relative mr-1'
+							className='hidden md:flex bg-blue-600 text-white rounded-full md:rounded-md hover:bg-blue-600/80'
 						>
-							<Sparkles className='h-5 w-5 mr-2' />
-							<span className='hidden md:inline'>Ask AI</span>
+							<Sparkles className='h-5 w-5 mr-0 md:mr-2' />
+							<span className='hidden md:inline'>
+								AI Analysis
+							</span>
 						</Button>
+						<IconButton
+							onClick={() => setIsDialogOpen(true)}
+							aria-label='AI Assistant'
+							className='md:hidden bg-blue-600 hover:bg-blue-600/80'
+						>
+							<Sparkles className='h-5 w-5 text-indigo-200' />
+						</IconButton>
 					</div>
 				</div>
 			</div>
-
-			{/* AI Assistant Dialog */}
-			<AIAssistantDialog
-				isOpen={isDialogOpen}
-				onClose={handleCloseDialog}
-				symbol={stockSymbol}
-				isLoading={isLoadingAI}
-				data={aiData}
-			/>
 
 			{/* 使用实时数据显示当前价格 */}
 			{realTimeData ? (

@@ -152,7 +152,7 @@ export default function StockPage() {
 	const [lastChartUpdated, setLastChartUpdated] = useState<string>('');
 	// 标记是否停止自动刷新
 	const [stopAutoRefresh, setStopAutoRefresh] = useState(false);
-	
+
 	// AI Assistant dialog state
 	const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
 	// These state variables are managed by the AIAssistantDialog component internally
@@ -382,6 +382,8 @@ export default function StockPage() {
 				realTimeData={realTimeData}
 				chartData={chartData}
 				loading={loading}
+				setIsDialogOpen={setIsAIDialogOpen}
+				isLoadingAI={_aiLoading}
 			/>
 
 			{/* 时间范围选择器 */}
@@ -403,27 +405,6 @@ export default function StockPage() {
 				isChartUpdating={isChartUpdating}
 				realTimeData={realTimeData}
 			/>
-
-			{/* AI Assistant Button */}
-			<div className="mt-4 mb-4 flex justify-center">
-				<button
-					onClick={() => setIsAIDialogOpen(true)}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
-					disabled={loading || !realTimeData}
-				>
-					{loading ? (
-						<>
-							<span className="mr-2 animate-spin">⟳</span>
-							Loading...
-						</>
-					) : (
-						<>
-							<span className="mr-2">🤖</span>
-							AI Analysis
-						</>
-					)}
-				</button>
-			</div>
 
 			{/* AI Assistant Dialog */}
 			<AIAssistantDialog

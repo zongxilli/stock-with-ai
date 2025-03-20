@@ -73,11 +73,11 @@ export default function AIAssistantDialog({
 	const [thinking, setThinking] = useState('');
 	const [isStreaming, setIsStreaming] = useState(false);
 	const [streamError, setStreamError] = useState<string | null>(null);
-	
+
 	// Reference for thinking process containers
 	const thinkingContainerRef = useRef<HTMLDivElement>(null);
 	const thinkingTabContainerRef = useRef<HTMLDivElement>(null);
-	
+
 	// Use either streamed data or initial data
 	const data = streamData || initialData;
 	const isLoading = isStreaming || initialIsLoading;
@@ -111,16 +111,16 @@ export default function AIAssistantDialog({
 	// Stream data from DeepSeek API if useStream is true
 	useEffect(() => {
 		if (!isOpen || !useStream || initialData) return;
-		
+
 		// We're using fetch API with ReadableStream instead of EventSource
-		
+
 		const fetchStreamData = async () => {
 			try {
 				setIsStreaming(true);
 				setThinking('');
 				setStreamData(null);
 				setStreamError(null);
-				
+
 				// Fetch Yahoo Finance data for the stock
 				const [
 					stockData,
@@ -135,7 +135,7 @@ export default function AIAssistantDialog({
 					getStockChartData(symbol, '3mo'),
 					getStockChartData(symbol, '1y'),
 				]);
-				
+
 				// Call the streaming API endpoint
 				const response = await fetch('/api/deepseek-stream', {
 					method: 'POST',
@@ -144,47 +144,47 @@ export default function AIAssistantDialog({
 					},
 					body: JSON.stringify({
 						symbol,
-						// language: 'CN',
+						language: 'EN', // TODO： 需要根据用户选择语言来决定
 						stockData,
 						chartData: {
 							'1d': chartData1d,
 							'1mo': chartData1mo,
 							'3mo': chartData3mo,
 							'1y': chartData1y,
-						}
+						},
 					}),
 				});
-				
+
 				if (!response.ok) {
 					throw new Error(`API error: ${response.status}`);
 				}
-				
+
 				const reader = response.body?.getReader();
 				if (!reader) {
 					throw new Error('Failed to get response reader');
 				}
-				
+
 				const decoder = new TextDecoder();
 				let buffer = '';
-				
+
 				while (true) {
 					const { done, value } = await reader.read();
 					if (done) break;
-					
+
 					buffer += decoder.decode(value, { stream: true });
-					
+
 					// Process complete SSE messages
 					const lines = buffer.split('\n\n');
 					buffer = lines.pop() || '';
-					
+
 					for (const line of lines) {
 						if (!line.startsWith('data:')) continue;
-						
+
 						try {
 							const data = JSON.parse(line.slice(5).trim());
-							
+
 							if (data.type === 'thinking') {
-								setThinking(prev => prev + data.content);
+								setThinking((prev) => prev + data.content);
 							} else if (data.type === 'content') {
 								// Content is processed but not displayed directly
 								// It will be part of the final complete message
@@ -200,14 +200,16 @@ export default function AIAssistantDialog({
 				}
 			} catch (error) {
 				console.error('Streaming error:', error);
-				setStreamError(error instanceof Error ? error.message : 'Unknown error');
+				setStreamError(
+					error instanceof Error ? error.message : 'Unknown error'
+				);
 			} finally {
 				setIsStreaming(false);
 			}
 		};
-		
+
 		fetchStreamData();
-		
+
 		// No cleanup needed for fetch API with ReadableStream
 		return () => {};
 	}, [isOpen, useStream, symbol, initialData]);
@@ -215,10 +217,12 @@ export default function AIAssistantDialog({
 	// Auto-scroll thinking containers when content changes
 	useEffect(() => {
 		if (thinking && thinkingContainerRef.current) {
-			thinkingContainerRef.current.scrollTop = thinkingContainerRef.current.scrollHeight;
+			thinkingContainerRef.current.scrollTop =
+				thinkingContainerRef.current.scrollHeight;
 		}
 		if (thinking && thinkingTabContainerRef.current) {
-			thinkingTabContainerRef.current.scrollTop = thinkingTabContainerRef.current.scrollHeight;
+			thinkingTabContainerRef.current.scrollTop =
+				thinkingTabContainerRef.current.scrollHeight;
 		}
 	}, [thinking]);
 
@@ -252,13 +256,15 @@ export default function AIAssistantDialog({
 								This may take a few moments
 							</span>
 						</p>
-						
+
 						{/* Display thinking process during streaming */}
 						{thinking && (
 							<div className='mt-6 w-full max-w-lg'>
 								<div className='p-3 rounded-lg bg-muted border border-border'>
-									<p className='text-sm text-muted-foreground mb-1'>Thinking Process...</p>
-									<div 
+									<p className='text-sm text-muted-foreground mb-1'>
+										Thinking Process...
+									</p>
+									<div
 										ref={thinkingContainerRef}
 										className='font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[200px] text-foreground'
 									>
@@ -486,7 +492,8 @@ export default function AIAssistantDialog({
 													</p>
 												</div>
 											)}
-											{data.fundamentalAnalysis.growth && (
+											{data.fundamentalAnalysis
+												.growth && (
 												<div>
 													<h3 className='font-medium mb-1'>
 														Growth Prospects
@@ -523,16 +530,19 @@ export default function AIAssistantDialog({
 									)}
 								</div>
 							)}
-							
+
 							{activeTab === 'thinking' && (
 								<div className='space-y-4 text-sm'>
 									<div className='p-3 rounded-lg bg-muted border border-border'>
-										<h3 className='font-medium mb-2'>Thinking Process</h3>
-										<div 
+										<h3 className='font-medium mb-2'>
+											Thinking Process
+										</h3>
+										<div
 											ref={thinkingTabContainerRef}
 											className='font-mono whitespace-pre-wrap overflow-y-auto max-h-[400px] text-foreground'
 										>
-											{thinking || 'No thinking process available.'}
+											{thinking ||
+												'No thinking process available.'}
 										</div>
 									</div>
 								</div>
