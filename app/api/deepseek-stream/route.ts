@@ -1,49 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { DeepSeekModel } from '@/app/types/deepseek';
-
 export async function POST(req: NextRequest) {
-  try {
-    const { symbol, model = DeepSeekModel.r1, language = 'EN' } = await req.json();
+	try {
+		const { symbol, language = 'EN' } = await req.json();
 
-    if (!symbol) {
-      return NextResponse.json(
-        { error: 'Symbol is required' },
-        { status: 400 }
-      );
-    }
+		if (!symbol) {
+			return NextResponse.json(
+				{ error: 'Symbol is required' },
+				{ status: 400 }
+			);
+		}
 
-    // Get API key from environment variables
-    const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY_VOL_ENGINE;
-    if (!DEEPSEEK_API_KEY) {
-      return NextResponse.json(
-        { error: 'DeepSeek API key is not configured' },
-        { status: 500 }
-      );
-    }
+		// Get API key from environment variables
+		const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY_VOL_ENGINE;
+		const DEEPSEEK_API_URL = process.env.DEEPSEEK_API_URL_VOL_ENGINE;
+		if (!DEEPSEEK_API_KEY || !DEEPSEEK_API_URL) {
+			return NextResponse.json(
+				{ error: 'DeepSeek API key or URL is not configured' },
+				{ status: 500 }
+			);
+		}
 
-    // Create a streaming response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          // Send initial message
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({
-                type: 'status',
-                content: `Analyzing ${symbol}...`,
-              })}\n\n`
-            )
-          );
+		// Create a streaming response
+		const encoder = new TextEncoder();
+		const stream = new ReadableStream({
+			async start(controller) {
+				try {
+					// Send initial message
+					controller.enqueue(
+						encoder.encode(
+							`data: ${JSON.stringify({
+								type: 'status',
+								content: `Analyzing ${symbol}...`,
+							})}\n\n`
+						)
+					);
 
-          // Set system prompt and user prompt based on language
-          const systemPrompt = language === 'CN' 
-            ? '你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。'
-            : 'You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format.';
+					// Set system prompt and user prompt based on language
+					const systemPrompt =
+						language === 'CN'
+							? '你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。'
+							: 'You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format.';
 
-          const userPrompt = language === 'CN'
-            ? `请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
+					const userPrompt =
+						language === 'CN'
+							? `请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
 
 {
   "analysis": "总体分析概述",
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
 }
 
 请确保返回的是有效的JSON格式，不要包含任何额外的文本、解释或markdown格式。`
-            : `Please provide a comprehensive analysis of the stock with symbol ${symbol} and return the data in the following JSON structure:
+							: `Please provide a comprehensive analysis of the stock with symbol ${symbol} and return the data in the following JSON structure:
 
 {
   "analysis": "Overall analysis summary",
@@ -130,161 +131,194 @@ export async function POST(req: NextRequest) {
 
 Please ensure that the response is in valid JSON format without any additional text, explanations, or markdown formatting.`;
 
-          // Call DeepSeek API with streaming enabled
-          const response = await fetch(
-            'https://api.siliconflow.cn/v1/chat/completions',
-            {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: model, // Use the specified DeepSeek model
-                messages: [
-                  {
-                    role: 'system',
-                    content: systemPrompt,
-                  },
-                  {
-                    role: 'user',
-                    content: userPrompt,
-                  },
-                ],
-                stream: true,
-                max_tokens: 10000,
-                temperature: 0.7,
-                top_p: 0.7,
-                top_k: 50,
-              }),
-            }
-          );
+					// Call DeepSeek API with streaming enabled
+					const response = await fetch(DEEPSEEK_API_URL, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+						},
+						body: JSON.stringify({
+							model: 'bot-20250320120605-8gd66', // 我部署的联网版DeepSeek-R1 Model
+							stream: true,
+							messages: [
+								{
+									role: 'system',
+									content: systemPrompt,
+								},
+								{
+									role: 'user',
+									content: userPrompt,
+								},
+							],
+						}),
+					});
 
-          if (!response.ok) {
-            throw new Error(`DeepSeek API error: ${response.status}`);
-          }
+					if (!response.ok) {
+						throw new Error(
+							`DeepSeek API error: ${response.status}`
+						);
+					}
 
-          // Process the streaming response
-          const reader = response.body?.getReader();
-          if (!reader) {
-            throw new Error('Failed to get response reader');
-          }
+					// Process the streaming response
+					const reader = response.body?.getReader();
+					if (!reader) {
+						throw new Error('Failed to get response reader');
+					}
 
-          let accumulatedContent = '';
-          let accumulatedThinking = '';
-          let buffer = '';
+					let accumulatedContent = '';
+					let accumulatedThinking = '';
+					let buffer = '';
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+					while (true) {
+						const { done, value } = await reader.read();
+						if (done) break;
 
-            // Convert the chunk to text
-            buffer += new TextDecoder().decode(value, { stream: true });
+						// Convert the chunk to text
+						buffer += new TextDecoder().decode(value, {
+							stream: true,
+						});
 
-            // Process complete messages in the buffer
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
+						// Process complete messages in the buffer
+						const lines = buffer.split('\n');
+						buffer = lines.pop() || '';
 
-            for (const line of lines) {
-              if (line.trim() === '') continue;
-              if (!line.startsWith('data:')) continue;
+						for (const line of lines) {
+							if (line.trim() === '') continue;
+							if (!line.startsWith('data:')) continue;
 
-              const data = line.slice(5).trim();
-              if (data === '[DONE]') continue;
+							const data = line.slice(5).trim();
+							if (data === '[DONE]') continue;
 
-              try {
-                const json = JSON.parse(data);
-                const delta = json.choices[0]?.delta;
+							try {
+								const json = JSON.parse(data);
+								const delta = json.choices[0]?.delta;
 
-                if (delta) {
-                  // Check for reasoning content (thinking process)
-                  if (delta.reasoning_content) {
-                    accumulatedThinking += delta.reasoning_content;
-                    controller.enqueue(
-                      encoder.encode(
-                        `data: ${JSON.stringify({
-                          type: 'thinking',
-                          content: delta.reasoning_content,
-                        })}\n\n`
-                      )
-                    );
-                  }
+								if (delta) {
+									// Check for reasoning content (thinking process)
+									if (delta.reasoning_content) {
+										accumulatedThinking +=
+											delta.reasoning_content;
+										controller.enqueue(
+											encoder.encode(
+												`data: ${JSON.stringify({
+													type: 'thinking',
+													content:
+														delta.reasoning_content,
+												})}\n\n`
+											)
+										);
+									}
 
-                  // Check for regular content
-                  if (delta.content) {
-                    accumulatedContent += delta.content;
-                    controller.enqueue(
-                      encoder.encode(
-                        `data: ${JSON.stringify({
-                          type: 'content',
-                          content: delta.content,
-                        })}\n\n`
-                      )
-                    );
-                  }
-                }
-              } catch (error) {
-                console.error('Error parsing SSE message:', error);
-              }
-            }
-          }
+									// Check for regular content
+									if (delta.content) {
+										accumulatedContent += delta.content;
+										controller.enqueue(
+											encoder.encode(
+												`data: ${JSON.stringify({
+													type: 'content',
+													content: delta.content,
+												})}\n\n`
+											)
+										);
+									}
+								}
+							} catch (error) {
+								console.error(
+									'Error parsing SSE message:',
+									error
+								);
+							}
+						}
+					}
 
-          // Send a final message with the complete data
-          try {
-            let finalData = {};
-            try {
-              // Try to parse the accumulated content as JSON
-              finalData = JSON.parse(accumulatedContent);
-            } catch (error) {
-              console.error('Error parsing final content as JSON:', error);
-              // If parsing fails, use a basic structure
-              finalData = {
-                analysis: accumulatedContent,
-                recommendations: [],
-                sentiment: 'neutral',
-              };
-            }
+					// Send a final message with the complete data
+					try {
+						let finalData = {};
+						try {
+							// Clean up the accumulated content by removing markdown code block markers
+							let contentToProcess = accumulatedContent.trim();
 
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({
-                  type: 'complete',
-                  content: finalData,
-                  thinking: accumulatedThinking,
-                })}\n\n`
-              )
-            );
-          } catch (error) {
-            console.error('Error sending final message:', error);
-          }
-        } catch (error) {
-          console.error('Stream processing error:', error);
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({
-                type: 'error',
-                content: error instanceof Error ? error.message : 'Unknown error',
-              })}\n\n`
-            )
-          );
-        } finally {
-          controller.close();
-        }
-      },
-    });
+							// Remove opening markdown code blocks if present
+							if (
+								contentToProcess.startsWith('```json') ||
+								contentToProcess.startsWith('```')
+							) {
+								contentToProcess = contentToProcess.replace(
+									/^```(json)?/,
+									''
+								);
+							}
 
-    return new NextResponse(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    });
-  } catch (error) {
-    console.error('API route error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+							// Remove closing markdown code blocks if present
+							if (contentToProcess.endsWith('```')) {
+								contentToProcess = contentToProcess.replace(
+									/```$/,
+									''
+								);
+							}
+
+							// Trim any extra whitespace after removing markers
+							contentToProcess = contentToProcess.trim();
+
+							// Try to parse the cleaned content as JSON
+							finalData = JSON.parse(contentToProcess);
+						} catch (error) {
+							console.error(
+								'Error parsing final content as JSON:',
+								error
+							);
+							// If parsing fails, use a basic structure
+							finalData = {
+								analysis: accumulatedContent,
+								recommendations: [],
+								sentiment: 'neutral',
+							};
+						}
+
+						controller.enqueue(
+							encoder.encode(
+								`data: ${JSON.stringify({
+									type: 'complete',
+									content: finalData,
+									thinking: accumulatedThinking,
+								})}\n\n`
+							)
+						);
+					} catch (error) {
+						console.error('Error sending final message:', error);
+					}
+				} catch (error) {
+					console.error('Stream processing error:', error);
+					controller.enqueue(
+						encoder.encode(
+							`data: ${JSON.stringify({
+								type: 'error',
+								content:
+									error instanceof Error
+										? error.message
+										: 'Unknown error',
+							})}\n\n`
+						)
+					);
+				} finally {
+					controller.close();
+				}
+			},
+		});
+
+		return new NextResponse(stream, {
+			headers: {
+				'Content-Type': 'text/event-stream',
+				'Cache-Control': 'no-cache',
+				Connection: 'keep-alive',
+			},
+		});
+	} catch (error) {
+		console.error('API route error:', error);
+		return NextResponse.json(
+			{ error: 'Internal server error' },
+			{ status: 500 }
+		);
+	}
 }
