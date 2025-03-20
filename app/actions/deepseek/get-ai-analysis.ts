@@ -1,8 +1,8 @@
 'use server';
 
+import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
+import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
 import { DeepSeekModel } from '@/app/types/deepseek';
-
-
 
 // Helper function for parsing DeepSeek API response
 function parseDeepSeekResponse(content: string) {
@@ -134,15 +134,55 @@ export async function getAIAnalysis(symbol: string, model: DeepSeekModel) {
 	try {
 		console.log(`AI Assistant called for ${symbol}`);
 
+		// Fetch Yahoo Finance data for the stock
+		const [stockData, chartData1d, chartData1mo, chartData3mo, chartData1y] = await Promise.all([
+			getStockRealTimeData(symbol),
+			getStockChartData(symbol, '1d'),
+			getStockChartData(symbol, '1mo'),
+			getStockChartData(symbol, '3mo'),
+			getStockChartData(symbol, '1y')
+		]);
+
 		// Simulate network delay
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		// Use actual DeepSeek API
 		const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY_VOL_ENGINE;
 
-
-
 		try {
+			// Prepare Yahoo Finance data string for inclusion in the prompt
+			const yahooDataString = stockData ? JSON.stringify(stockData, null, 2) : 'No data available';
+			
+			// Prepare chart data summaries
+			const chartDataSummary = {
+				'1d': chartData1d ? {
+					meta: chartData1d.meta,
+					quotes: chartData1d.quotes.length > 20 ? 
+						[...chartData1d.quotes.slice(0, 10), ...chartData1d.quotes.slice(-10)] : 
+						chartData1d.quotes
+				} : 'No 1-day chart data available',
+				'1mo': chartData1mo ? {
+					meta: chartData1mo.meta,
+					quotes: chartData1mo.quotes.length > 20 ? 
+						[...chartData1mo.quotes.slice(0, 10), ...chartData1mo.quotes.slice(-10)] : 
+						chartData1mo.quotes
+				} : 'No 1-month chart data available',
+				'3mo': chartData3mo ? {
+					meta: chartData3mo.meta,
+					quotes: chartData3mo.quotes.length > 20 ? 
+						[...chartData3mo.quotes.slice(0, 10), ...chartData3mo.quotes.slice(-10)] : 
+						chartData3mo.quotes
+				} : 'No 3-month chart data available',
+				'1y': chartData1y ? {
+					meta: chartData1y.meta,
+					quotes: chartData1y.quotes.length > 20 ? 
+						[...chartData1y.quotes.slice(0, 10), ...chartData1y.quotes.slice(-10)] : 
+						chartData1y.quotes
+				} : 'No 1-year chart data available'
+			};
+			
+			const chartDataString = JSON.stringify(chartDataSummary, null, 2);
+
 			// Build API request - use the correct API endpoint and parameter format
 			const response = await fetch(
 				'https://api.siliconflow.cn/v1/chat/completions',
@@ -163,6 +203,14 @@ export async function getAIAnalysis(symbol: string, model: DeepSeekModel) {
 							{
 								role: 'user',
 								content: `请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
+
+以下是从Yahoo Finance获取的该股票的实时数据，请在你的分析中充分利用这些数据：
+${yahooDataString}
+
+以下是该股票的历史价格数据，包括1天、1个月、3个月和1年的时间范围，请在你的技术分析中充分利用这些数据：
+${chartDataString}
+
+请基于上述数据，返回以下JSON格式的分析结果：
 
 {
   "analysis": "总体分析概述",

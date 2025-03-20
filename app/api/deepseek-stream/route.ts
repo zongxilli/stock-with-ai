@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
+import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
+
 export async function POST(req: NextRequest) {
 	try {
 		const { symbol, language = 'EN' } = await req.json();
@@ -20,6 +23,21 @@ export async function POST(req: NextRequest) {
 				{ status: 500 }
 			);
 		}
+
+		// Fetch Yahoo Finance data for the stock
+		const [
+			stockData,
+			chartData1d,
+			chartData1mo,
+			chartData3mo,
+			chartData1y,
+		] = await Promise.all([
+			getStockRealTimeData(symbol),
+			getStockChartData(symbol, '1d'),
+			getStockChartData(symbol, '1mo'),
+			getStockChartData(symbol, '3mo'),
+			getStockChartData(symbol, '1y'),
+		]);
 
 		// Create a streaming response
 		const encoder = new TextEncoder();
@@ -42,9 +60,100 @@ export async function POST(req: NextRequest) {
 							? '你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。'
 							: 'You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format.';
 
+					// Prepare Yahoo Finance data string for inclusion in the prompt
+					const yahooDataString = stockData
+						? JSON.stringify(stockData, null, 2)
+						: 'No data available';
+
+					// Prepare chart data summaries
+					const chartDataSummary = {
+						'1d': chartData1d
+							? {
+									meta: chartData1d.meta,
+									quotes:
+										chartData1d.quotes.length > 20
+											? [
+													...chartData1d.quotes.slice(
+														0,
+														10
+													),
+													...chartData1d.quotes.slice(
+														-10
+													),
+												]
+											: chartData1d.quotes,
+								}
+							: 'No 1-day chart data available',
+						'1mo': chartData1mo
+							? {
+									meta: chartData1mo.meta,
+									quotes:
+										chartData1mo.quotes.length > 20
+											? [
+													...chartData1mo.quotes.slice(
+														0,
+														10
+													),
+													...chartData1mo.quotes.slice(
+														-10
+													),
+												]
+											: chartData1mo.quotes,
+								}
+							: 'No 1-month chart data available',
+						'3mo': chartData3mo
+							? {
+									meta: chartData3mo.meta,
+									quotes:
+										chartData3mo.quotes.length > 20
+											? [
+													...chartData3mo.quotes.slice(
+														0,
+														10
+													),
+													...chartData3mo.quotes.slice(
+														-10
+													),
+												]
+											: chartData3mo.quotes,
+								}
+							: 'No 3-month chart data available',
+						'1y': chartData1y
+							? {
+									meta: chartData1y.meta,
+									quotes:
+										chartData1y.quotes.length > 20
+											? [
+													...chartData1y.quotes.slice(
+														0,
+														10
+													),
+													...chartData1y.quotes.slice(
+														-10
+													),
+												]
+											: chartData1y.quotes,
+								}
+							: 'No 1-year chart data available',
+					};
+
+					const chartDataString = JSON.stringify(
+						chartDataSummary,
+						null,
+						2
+					);
+
 					const userPrompt =
 						language === 'CN'
 							? `请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
+
+以下是从Yahoo Finance获取的该股票的实时数据，请在你的分析中充分利用这些数据：
+${yahooDataString}
+
+以下是该股票的历史价格数据，包括1天、1个月、3个月和1年的时间范围，请在你的技术分析中充分利用这些数据：
+${chartDataString}
+
+请基于上述数据，返回以下JSON格式的分析结果：
 
 {
   "analysis": "总体分析概述",
@@ -87,7 +196,15 @@ export async function POST(req: NextRequest) {
 }
 
 请确保返回的是有效的JSON格式，不要包含任何额外的文本、解释或markdown格式。`
-							: `Please provide a comprehensive analysis of the stock with symbol ${symbol} and return the data in the following JSON structure:
+							: `Please provide a comprehensive analysis of the stock with symbol ${symbol} and return the data in the following JSON structure.
+
+Here is the real-time data from Yahoo Finance for this stock. Please use this data extensively in your analysis:
+${yahooDataString}
+
+Here is the historical price data for the stock, including 1-day, 1-month, 3-month, and 1-year timeframes. Please use this data extensively in your technical analysis:
+${chartDataString}
+
+Based on the above data, please return your analysis in the following JSON format:
 
 {
   "analysis": "Overall analysis summary",
