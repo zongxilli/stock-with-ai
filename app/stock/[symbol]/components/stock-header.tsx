@@ -161,7 +161,6 @@ export default function StockHeader({
 				isOpen={isDialogOpen}
 				onClose={handleCloseDialog}
 				symbol={stockSymbol}
-				model={'openai'}
 				isLoading={isLoadingAI}
 				data={aiData}
 			/>

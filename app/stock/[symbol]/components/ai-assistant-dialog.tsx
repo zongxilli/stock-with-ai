@@ -52,7 +52,6 @@ interface AIAssistantDialogProps {
 	isOpen: boolean;
 	onClose: () => void;
 	symbol: string;
-	model: string;
 	isLoading: boolean;
 	data: AIAssistantData | null;
 }
@@ -61,7 +60,6 @@ export default function AIAssistantDialog({
 	isOpen,
 	onClose,
 	symbol,
-	model,
 	isLoading,
 	data,
 }: AIAssistantDialogProps) {
@@ -113,17 +111,11 @@ export default function AIAssistantDialog({
 					</button>
 				</div>
 
-				<div className='mb-2 text-sm text-muted-foreground'>
-					Using model: {model}
-				</div>
-
 				{isLoading ? (
 					<div className='flex flex-col items-center justify-center py-10'>
 						<Loader2 className='h-10 w-10 animate-spin text-primary mb-4' />
 						<p className='text-center text-muted-foreground'>
-							{model === 'deepseek'
-								? 'Deep thinking about stock analysis...'
-								: `Analyzing ${symbol} data and generating insights...`}
+							Analyzing {symbol} data and generating insights...
 							<br />
 							<span className='text-sm'>
 								This may take a few moments
