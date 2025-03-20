@@ -385,7 +385,6 @@ export default function StockChart({
 					margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
 				>
 					<defs>
-						{/* 基础渐变色 */}
 						<linearGradient
 							id={gradientId}
 							x1='0'
@@ -646,7 +645,7 @@ export default function StockChart({
 								: `url(#${gradientId})`
 						}
 						strokeWidth={2}
-						connectNulls={false} // 不连接null值点
+						connectNulls={true} // 连接null值点，很重要，可以修复图标在数据有问题的时候不显示图表 bug
 						activeDot={{
 							r: 6,
 							stroke: isDarkTheme ? '#121212' : '#ffffff',
