@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+export const runtime = process.env.NODE_ENV === 'development' ? 'nodejs' : 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -267,6 +267,7 @@ Please ensure that the response is in valid JSON format without any additional t
 									content: userPrompt,
 								},
 							],
+							reasoning_language: language === 'CN' ? 'zh' : 'en', // Set reasoning language based on selected language
 						}),
 					});
 
