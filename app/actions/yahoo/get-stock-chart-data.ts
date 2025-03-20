@@ -71,6 +71,12 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				const localOffset = new Date().getTimezoneOffset(); // 以分钟为单位，与UTC的差值
 				const chinaOffset = -480; // 中国/香港是UTC+8，所以是-480分钟
 				marketTimezoneOffset = (chinaOffset - localOffset) / 60;
+			} else {
+				// 美股市场时区调整 - 使用更保险的方法
+				// 不依赖于复杂的夏令时计算，而是直接使用市场交易时间
+				// 美股标准交易时间是9:30 AM - 4:00 PM ET
+				// 我们直接使用这个固定时间范围，避免时区计算错误
+				marketTimezoneOffset = 0; // 不使用时区偏移
 			}
 
 			// 根据时区差异调整交易日期
@@ -373,6 +379,41 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 						completeTimeline
 					);
 				} else {
+					// 对于美股市场，使用更保险的方法处理时区
+					if (!isChinaMainland && !isHongKong) {
+						// 不直接修改时间，而是使用includePrePost参数获取完整交易时间数据
+						// 然后过滤出标准交易时间内的数据
+						
+						// 检查是否有regularMarketTime和regularMarketHours信息
+						if (quoteData.regularMarketTime) {
+							const marketOpenTime = new Date(quoteData.regularMarketTime);
+							// 设置为当天的9:30 AM (美股标准开盘时间)
+							marketOpenTime.setHours(9, 30, 0, 0);
+							
+							const marketCloseTime = new Date(quoteData.regularMarketTime);
+							// 设置为当天的4:00 PM (美股标准收盘时间)
+							marketCloseTime.setHours(16, 0, 0, 0);
+							
+							// 过滤出标准交易时间内的数据
+							filteredQuotes = filteredQuotes.filter(quote => {
+								const quoteTime = new Date(quote.date);
+								const quoteHour = quoteTime.getHours();
+								const quoteMinute = quoteTime.getMinutes();
+								
+								// 检查是否在9:30 AM - 4:00 PM之间
+								return (
+									(quoteHour > 9 || (quoteHour === 9 && quoteMinute >= 30)) && 
+									(quoteHour < 16 || (quoteHour === 16 && quoteMinute === 0))
+								);
+							});
+							
+							// 如果过滤后没有数据，则使用原始数据
+							if (filteredQuotes.length === 0) {
+								filteredQuotes = result.quotes;
+								console.warn(`过滤后没有数据，使用原始数据 (${symbol})`);
+							}
+						}
+					}
 					processedQuotes = filteredQuotes;
 				}
 
