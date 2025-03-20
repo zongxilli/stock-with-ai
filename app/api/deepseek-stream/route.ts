@@ -5,8 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
 import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
 
-export const maxDuration = 60; // 1分钟超时
-export const dynamic = 'force-dynamic'; // 禁用静态优化
+// export const maxDuration = 60; // 1分钟超时
+// export const dynamic = 'force-dynamic'; // 禁用静态优化
 
 export async function POST(req: NextRequest) {
 	try {
