@@ -2,8 +2,6 @@ export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// export const maxDuration = 60; // 1分钟超时
-// export const dynamic = 'force-dynamic'; // 禁用静态优化
 
 export async function POST(req: NextRequest) {
 	try {
@@ -56,8 +54,8 @@ export async function POST(req: NextRequest) {
 					// Set system prompt and user prompt based on language
 					const systemPrompt =
 						language === 'CN'
-							? '你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。'
-							: 'You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format.';
+							? '你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。非常重要：你的思考过程(reasoning_content)必须使用中文，这样用户才能理解你的分析思路。'
+							: 'You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format. Very important: Your thinking process (reasoning_content) must be in English so users can understand your analytical approach.';
 
 					// Prepare Yahoo Finance data string for inclusion in the prompt
 					const yahooDataString = stockData
@@ -268,6 +266,11 @@ Please ensure that the response is in valid JSON format without any additional t
 								},
 							],
 							reasoning_language: language === 'CN' ? 'zh' : 'en', // Set reasoning language based on selected language
+							// Add additional parameters to reinforce language selection
+							language: language === 'CN' ? 'zh' : 'en', // Explicitly set the language parameter
+							response_format: {
+								type: 'json_object' // Ensure response is in JSON format
+							}
 						}),
 					});
 
