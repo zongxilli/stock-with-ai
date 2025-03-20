@@ -1,4 +1,4 @@
-export const runtime = process.env.NODE_ENV === 'development' ? 'nodejs' : 'edge';
+export const runtime = (process.env.NODE_ENV ===  undefined || process.env.NODE_ENV === 'development') ? 'nodejs' : 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 
