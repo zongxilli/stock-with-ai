@@ -36,7 +36,7 @@ export async function getComprehensiveStockData(symbol: string) {
 			// 基本报价数据 - 包含当前价格、市值、成交量等
 			fetchSafely(() => yahooFinance.quote(normalizedSymbol), 'quote'),
 
-			// 详细公司信息和财务数据 - 保留所有重要的财务报表和股东信息
+			// 详细公司信息和财务数据 - 精简模块列表，只保留最重要的
 			fetchSafely(
 				() =>
 					yahooFinance.quoteSummary(normalizedSymbol, {
@@ -67,12 +67,6 @@ export async function getComprehensiveStockData(symbol: string) {
 				() => yahooFinance.insights(normalizedSymbol),
 				'insights'
 			),
-
-			// 相关股票推荐
-			fetchSafely(
-				() => yahooFinance.recommendationsBySymbol(normalizedSymbol),
-				'recommendationsBySymbol'
-			),
 		];
 
 		// 图表数据 - 只获取过去5年的数据，足够长期趋势分析
@@ -94,63 +88,278 @@ export async function getComprehensiveStockData(symbol: string) {
 		]);
 
 		// 将结果数组转换为便于访问的对象
-		const [
-			quoteResult,
-			quoteSummaryResult,
-			insightsResult,
-			recommendationsResult,
-		] = mainResults;
+		const [quoteResult, quoteSummaryResult, insightsResult] = mainResults;
 
 		// 验证关键数据是否成功获取
 		if (!quoteResult.success && !quoteSummaryResult.success) {
 			throw new Error(`无法获取${normalizedSymbol}的基本股票数据`);
 		}
 
-		// 处理结果为干净的对象
-		const processedData = {
+		// 提取关键指标
+		const keyMetrics = extractKeyMetrics({
 			symbol: normalizedSymbol,
 			quote: quoteResult.success ? quoteResult.data : null,
 			quoteSummary: quoteSummaryResult.success
 				? quoteSummaryResult.data
 				: null,
 			insights: insightsResult.success ? insightsResult.data : null,
-			recommendationsBySymbol: recommendationsResult.success
-				? recommendationsResult.data
+		});
+
+		// 裁剪quoteSummary数据以减小大小
+		let trimmedQuoteSummary = null;
+		if (quoteSummaryResult.success && quoteSummaryResult.data) {
+			trimmedQuoteSummary = trimQuoteSummaryData(quoteSummaryResult.data);
+		}
+
+		// 构建精简的股票数据对象 - 不再包含完整的原始数据
+		const optimizedData = {
+			symbol: normalizedSymbol,
+			// 只保留quote中的必要字段
+			quote: quoteResult.success ? trimQuoteData(quoteResult.data) : null,
+			// 使用裁剪后的quoteSummary
+			quoteSummary: trimmedQuoteSummary,
+			// 只保留insights中的关键预测
+			insights: insightsResult.success
+				? trimInsightsData(insightsResult.data)
 				: null,
-			chartData: {
-				'5y': chartResult.success ? chartResult.data : null,
-			},
-			fetchTime: new Date().toISOString(),
-		};
-
-		// 提取关键指标以便于访问
-		const keyMetrics = extractKeyMetrics(processedData);
-
-		// 构建全面的股票数据对象
-		const comprehensiveData = {
-			...processedData,
+			// 移除recommendationsBySymbol
+			chartData: chartResult.success
+				? trimChartData(chartResult.data)
+				: null,
+			// 保留提取的关键指标 - 这是最重要的分析数据
 			keyMetrics,
+			fetchTime: new Date().toISOString(),
 		};
 
 		try {
 			// 基于市场状态设置缓存时间
-			const cacheTime = isMarketOpen(processedData.quote) ? 300 : 1800; // 交易时间5分钟，非交易时间30分钟
-			await setCache(cacheKey, comprehensiveData, cacheTime);
-			console.log(`已缓存综合数据: ${normalizedSymbol} (${cacheTime}秒)`);
+			const cacheTime = isMarketOpen(quoteResult.data) ? 300 : 1800; // 交易时间5分钟，非交易时间30分钟
+			await setCache(cacheKey, optimizedData, cacheTime);
+			console.log(`已缓存优化数据: ${normalizedSymbol} (${cacheTime}秒)`);
 		} catch (cacheError) {
-			// 缓存错误不应该阻止返回获取的数据
 			console.warn(
 				`无法缓存数据: ${cacheError instanceof Error ? cacheError.message : String(cacheError)}`
 			);
 		}
 
-		return comprehensiveData;
+		return optimizedData;
 	} catch (error) {
 		console.error(`获取${symbol}全面数据失败:`, error);
 		throw new Error(
 			`获取全面股票数据失败: ${error instanceof Error ? error.message : String(error)}`
 		);
 	}
+}
+
+// 裁剪quote数据，只保留重要字段
+function trimQuoteData(quoteData: any) {
+	if (!quoteData) return null;
+
+	// 保留关键价格和交易数据
+	return {
+		regularMarketPrice: quoteData.regularMarketPrice,
+		regularMarketChange: quoteData.regularMarketChange,
+		regularMarketChangePercent: quoteData.regularMarketChangePercent,
+		regularMarketVolume: quoteData.regularMarketVolume,
+		marketCap: quoteData.marketCap,
+		fiftyTwoWeekLow: quoteData.fiftyTwoWeekLow,
+		fiftyTwoWeekHigh: quoteData.fiftyTwoWeekHigh,
+		shortName: quoteData.shortName,
+		longName: quoteData.longName,
+		symbol: quoteData.symbol,
+		marketState: quoteData.marketState,
+		exchange: quoteData.exchange,
+		currency: quoteData.currency,
+	};
+}
+
+// 裁剪quoteSummary数据，减少数据量
+function trimQuoteSummaryData(summaryData: any) {
+	if (!summaryData) return null;
+
+	const trimmed: Record<string, any> = {};
+
+	// 裁剪assetProfile，只保留关键公司信息
+	if (summaryData.assetProfile) {
+		trimmed.assetProfile = {
+			industry: summaryData.assetProfile.industry,
+			sector: summaryData.assetProfile.sector,
+			website: summaryData.assetProfile.website,
+			longBusinessSummary: summaryData.assetProfile.longBusinessSummary,
+			fullTimeEmployees: summaryData.assetProfile.fullTimeEmployees,
+			country: summaryData.assetProfile.country,
+		};
+	}
+
+	// 保留summaryDetail的关键估值指标
+	if (summaryData.summaryDetail) {
+		trimmed.summaryDetail = {
+			trailingPE: summaryData.summaryDetail.trailingPE,
+			forwardPE: summaryData.summaryDetail.forwardPE,
+			priceToBook: summaryData.summaryDetail.priceToBook,
+			dividendYield: summaryData.summaryDetail.dividendYield,
+			dividendRate: summaryData.summaryDetail.dividendRate,
+			beta: summaryData.summaryDetail.beta,
+			yield: summaryData.summaryDetail.yield,
+		};
+	}
+
+	// 保留financialData的关键财务指标
+	if (summaryData.financialData) {
+		trimmed.financialData = {
+			grossMargins: summaryData.financialData.grossMargins,
+			profitMargins: summaryData.financialData.profitMargins,
+			revenueGrowth: summaryData.financialData.revenueGrowth,
+			earningsGrowth: summaryData.financialData.earningsGrowth,
+			returnOnAssets: summaryData.financialData.returnOnAssets,
+			returnOnEquity: summaryData.financialData.returnOnEquity,
+			totalCash: summaryData.financialData.totalCash,
+			totalDebt: summaryData.financialData.totalDebt,
+			debtToEquity: summaryData.financialData.debtToEquity,
+			currentRatio: summaryData.financialData.currentRatio,
+		};
+	}
+
+	// 保留defaultKeyStatistics中的重要统计
+	if (summaryData.defaultKeyStatistics) {
+		trimmed.defaultKeyStatistics = {
+			enterpriseValue: summaryData.defaultKeyStatistics.enterpriseValue,
+			forwardEps: summaryData.defaultKeyStatistics.forwardEps,
+			trailingEps: summaryData.defaultKeyStatistics.trailingEps,
+			pegRatio: summaryData.defaultKeyStatistics.pegRatio,
+			priceToBook: summaryData.defaultKeyStatistics.priceToBook,
+			sharesOutstanding:
+				summaryData.defaultKeyStatistics.sharesOutstanding,
+			bookValue: summaryData.defaultKeyStatistics.bookValue,
+		};
+	}
+
+	// 资产负债表 - 只保留最新一个年度的数据
+	if (
+		summaryData.balanceSheetHistory &&
+		summaryData.balanceSheetHistory.balanceSheetStatements &&
+		summaryData.balanceSheetHistory.balanceSheetStatements.length > 0
+	) {
+		trimmed.balanceSheetHistory = {
+			balanceSheetStatements: [
+				summaryData.balanceSheetHistory.balanceSheetStatements[0],
+			],
+		};
+	}
+
+	// 现金流 - 只保留最新一个年度的数据
+	if (
+		summaryData.cashflowStatementHistory &&
+		summaryData.cashflowStatementHistory.cashflowStatements &&
+		summaryData.cashflowStatementHistory.cashflowStatements.length > 0
+	) {
+		trimmed.cashflowStatementHistory = {
+			cashflowStatements: [
+				summaryData.cashflowStatementHistory.cashflowStatements[0],
+			],
+		};
+	}
+
+	// 利润表 - 只保留最新一个年度的数据
+	if (
+		summaryData.incomeStatementHistory &&
+		summaryData.incomeStatementHistory.incomeStatementHistory &&
+		summaryData.incomeStatementHistory.incomeStatementHistory.length > 0
+	) {
+		trimmed.incomeStatementHistory = {
+			incomeStatementHistory: [
+				summaryData.incomeStatementHistory.incomeStatementHistory[0],
+			],
+		};
+	}
+
+	// 收益和收益趋势 - 保留但可能会裁剪内部数据
+	if (summaryData.earnings) {
+		// 只保留最近的财务季度收益
+		const financialChartTrimmed = summaryData.earnings.financialsChart
+			? {
+					quarterly:
+						summaryData.earnings.financialsChart.quarterly?.slice(
+							0,
+							8
+						) || [],
+					yearly:
+						summaryData.earnings.financialsChart.yearly?.slice(
+							0,
+							2
+						) || [],
+				}
+			: null;
+
+		trimmed.earnings = {
+			financialsChart: financialChartTrimmed,
+			earningsChart: summaryData.earnings.earningsChart,
+		};
+	}
+
+	// 分析师推荐趋势 - 只保留最近的趋势
+	if (
+		summaryData.recommendationTrend &&
+		summaryData.recommendationTrend.trend
+	) {
+		trimmed.recommendationTrend = {
+			trend: summaryData.recommendationTrend.trend.slice(0, 2),
+		};
+	}
+
+	// 收益趋势 - 只保留最近的几个预期
+	if (summaryData.earningsTrend && summaryData.earningsTrend.trend) {
+		trimmed.earningsTrend = {
+			trend: summaryData.earningsTrend.trend.slice(0, 3),
+		};
+	}
+
+	// 主要持股明细 - 保留完整信息，这通常不是很大
+	if (summaryData.majorHoldersBreakdown) {
+		trimmed.majorHoldersBreakdown = summaryData.majorHoldersBreakdown;
+	}
+
+	return trimmed;
+}
+
+// 裁剪insights数据
+function trimInsightsData(insightsData: any) {
+	if (!insightsData) return null;
+
+	// 只保留关键的技术面和基本面分析
+	const trimmed: Record<string, any> = {};
+
+	if (insightsData.instrumentInfo) {
+		trimmed.instrumentInfo = {
+			technicalEvents: insightsData.instrumentInfo.technicalEvents,
+			valuation: insightsData.instrumentInfo.valuation,
+			recommendation: insightsData.instrumentInfo.recommendation,
+		};
+	}
+
+	if (insightsData.recommendation) {
+		trimmed.recommendation = insightsData.recommendation;
+	}
+
+	return trimmed;
+}
+
+// 裁剪图表数据
+function trimChartData(chartData: any) {
+	if (!chartData || !chartData.quotes) return null;
+
+	// 保留关键的价格数据点，但移除不必要的元数据
+	return {
+		quotes: chartData.quotes.map((quote: any) => ({
+			date: quote.date,
+			open: quote.open,
+			high: quote.high,
+			low: quote.low,
+			close: quote.close,
+			volume: quote.volume,
+			adjclose: quote.adjclose,
+		})),
+	};
 }
 
 // 安全地获取数据，包装为统一格式的结果对象
@@ -433,7 +642,7 @@ function extractKeyMetrics(data: any) {
 					}
 				}
 
-				// 内部人持股和机构持股 - 添加更多详细信息
+				// 内部人持股和机构持股 - 重要但裁剪为只保留最重要的信息
 				if (
 					data.quoteSummary.insiderHolders &&
 					Array.isArray(data.quoteSummary.insiderHolders.holders) &&
