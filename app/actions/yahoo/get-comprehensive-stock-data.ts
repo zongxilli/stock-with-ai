@@ -80,9 +80,9 @@ export async function getComprehensiveStockData(symbol: string) {
 			() =>
 				yahooFinance.chart(normalizedSymbol, {
 					period1: new Date(
-						new Date().setFullYear(new Date().getFullYear() - 1)
+						new Date().setFullYear(new Date().getFullYear() - 2)
 					),
-					interval: '1d', // 每日数据点，足够详细且有意义
+					interval: '1wk', // 每日数据点，足够详细且有意义
 				}),
 			'chartData5y'
 		);
