@@ -5,6 +5,8 @@ import { useEffect, useState, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 
 import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
+import JsonFormatter from '@/components/custom/json-formatter';
+import EnhancedTextFormatter from '@/components/custom/text-formatter-enhanced';
 
 interface SequentialThinkingStep {
 	step: number;
@@ -70,6 +72,8 @@ export default function AIAssistantDialog({
 	const [activeTab, setActiveTab] = useState('analysis');
 	const [streamData, setStreamData] = useState<AIAssistantData | null>(null);
 	const [thinking, setThinking] = useState('');
+	const [thinkingContent, setThinkingContent] = useState('');
+	const [thinkingStatus, setThinkingStatus] = useState('');
 	const [isStreaming, setIsStreaming] = useState(false);
 	const [streamError, setStreamError] = useState<string | null>(null);
 
@@ -180,13 +184,26 @@ export default function AIAssistantDialog({
 							if (data.type === 'thinking') {
 								setThinking((prev) => prev + data.content);
 							} else if (data.type === 'content') {
+								// Add content messages to thinking process without label
+								// to maintain the natural flow of thought
+								setThinkingContent(
+									(prev) => prev + data.content
+								);
 								// Just log this for debugging, content accumulates on server
 								console.log('Content chunk received');
 							} else if (data.type === 'status') {
 								// Status updates for better UX
 								console.log('Status update:', data.content);
+								// Add status updates to thinking process display with a label
+								setThinkingStatus(
+									(prev) =>
+										prev +
+										`\n\n[DeepSeek R1] ${data.content}\n\n`
+								);
 							} else if (data.type === 'complete') {
 								console.log('Received complete data');
+								console.log(thinkingContent);
+								// setThinkingContent('');
 								// Validate that we have minimum required fields
 								if (typeof data.content === 'object') {
 									// Ensure minimum properties exist
@@ -216,6 +233,11 @@ export default function AIAssistantDialog({
 							} else if (data.type === 'error') {
 								console.error('Stream error:', data.content);
 								setStreamError(data.content);
+								// Add error messages to thinking process display
+								setThinkingContent(
+									(prev) =>
+										prev + `\n\n[Error] ${data.content}\n\n`
+								);
 							}
 						} catch (error) {
 							console.error('Error parsing SSE message:', error);
@@ -227,6 +249,12 @@ export default function AIAssistantDialog({
 				console.error('Streaming error:', error);
 				setStreamError(
 					error instanceof Error ? error.message : 'Unknown error'
+				);
+				// Add streaming errors to thinking process display
+				setThinkingContent(
+					(prev) =>
+						prev +
+						`\n\n[Stream Error] ${error instanceof Error ? error.message : 'Unknown error'}\n\n`
 				);
 			} finally {
 				setIsStreaming(false);
@@ -241,22 +269,22 @@ export default function AIAssistantDialog({
 
 	// Auto-scroll thinking containers when content changes
 	useEffect(() => {
-		if (thinking && thinkingContainerRef.current) {
+		if ((thinking || thinkingContent) && thinkingContainerRef.current) {
 			thinkingContainerRef.current.scrollTop =
 				thinkingContainerRef.current.scrollHeight;
 		}
-		if (thinking && thinkingTabContainerRef.current) {
+		if ((thinking || thinkingContent) && thinkingTabContainerRef.current) {
 			thinkingTabContainerRef.current.scrollTop =
 				thinkingTabContainerRef.current.scrollHeight;
 		}
-	}, [thinking]);
+	}, [thinking, thinkingContent]);
 
 	if (!isOpen) return null;
 
 	return (
 		<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
 			<div
-				className='bg-background rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto'
+				className='bg-background rounded-lg shadow-lg p-6 w-full max-w-[60rem] max-h-[80vh] overflow-y-auto'
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className='flex justify-between items-center mb-4'>
@@ -272,28 +300,44 @@ export default function AIAssistantDialog({
 				</div>
 
 				{isLoading ? (
-					<div className='flex flex-col items-center justify-center py-10'>
-						<Loader2 className='h-10 w-10 animate-spin text-primary mb-4' />
-						<p className='text-center text-muted-foreground'>
-							Analyzing {symbol} data and generating insights...
-							<br />
-							<span className='text-sm'>
-								This may take a few moments
-							</span>
-						</p>
+					<div className='flex flex-col items-center justify-center'>
+						{!thinking && (
+							<>
+								<Loader2 className='h-10 w-10 animate-spin text-primary mb-4' />
+								<p className='text-center text-muted-foreground'>
+									Analyzing {symbol} data and generating
+									insights...
+									<br />
+									<span className='text-sm'>
+										This may take a few moments
+									</span>
+								</p>
+							</>
+						)}
 
 						{/* Display thinking process during streaming */}
 						{thinking && (
-							<div className='mt-6 w-full max-w-lg'>
+							<div className='mt-6 w-full'>
 								<div className='p-3 rounded-lg bg-muted border border-border'>
 									<p className='text-sm text-muted-foreground mb-1'>
-										Thinking Process...
+										{thinkingStatus}
 									</p>
 									<div
 										ref={thinkingContainerRef}
-										className='font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[200px] text-foreground'
+										className='font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[50vh] text-foreground'
 									>
-										{thinking}
+										{thinking && (
+											<EnhancedTextFormatter
+												text={thinking}
+												mode='preserve-all'
+											/>
+										)}
+										{thinkingContent && (
+											<JsonFormatter
+												data={thinkingContent}
+												initiallyExpanded
+											/>
+										)}
 									</div>
 								</div>
 							</div>
@@ -566,8 +610,21 @@ export default function AIAssistantDialog({
 											ref={thinkingTabContainerRef}
 											className='font-mono whitespace-pre-wrap overflow-y-auto max-h-[400px] text-foreground'
 										>
-											{thinking ||
-												'No thinking process available.'}
+											{thinking ? (
+												<EnhancedTextFormatter
+													text={thinking}
+													mode='paragraphs-only'
+													className='m-4'
+												/>
+											) : (
+												'No thinking process available.'
+											)}
+											{thinkingContent && (
+												<JsonFormatter
+													data={thinkingContent}
+													initiallyExpanded
+												/>
+											)}
 										</div>
 									</div>
 								</div>
