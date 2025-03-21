@@ -69,14 +69,14 @@ export async function getComprehensiveStockData(symbol: string) {
 			),
 		];
 
-		// 图表数据 - 只获取过去5年的数据，足够长期趋势分析
+		// 图表数据 - 只获取过去2年的数据，足够长期趋势分析
 		const chartPromise = fetchSafely(
 			() =>
 				yahooFinance.chart(normalizedSymbol, {
 					period1: new Date(
 						new Date().setFullYear(new Date().getFullYear() - 2)
 					),
-					interval: '1wk', // 每日数据点，足够详细且有意义
+					interval: '1d', // 每日数据点，足够详细且有意义
 				}),
 			'chartData5y'
 		);
