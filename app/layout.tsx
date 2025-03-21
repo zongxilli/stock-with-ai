@@ -16,7 +16,7 @@ export function Navbar() {
 		<nav className='z-50 fixed top-0 left-0 w-full flex justify-between border-b border-b-foreground/10 h-16 bg-card'>
 			<div className='container flex gap-5 items-center font-semibold'>
 				<Link href={'/home'} className='shrink-0'>
-					Stock AI
+					AI kie
 				</Link>
 				<div className='flex-grow'>
 					<StockSearch />
@@ -60,8 +60,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
 	metadataBase: new URL(defaultUrl),
-	title: 'Stock AI',
-	description: 'Stock AI is a stock market analysis tool.',
+	title: 'AI kie',
+	description: 'AIkie is a stock market analysis tool.',
 };
 
 const geistSans = Geist({
