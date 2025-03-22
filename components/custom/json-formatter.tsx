@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
+import { cleanJsonCodeBlockMarkers } from '@/utils/json-utils';
+
 interface RealtimeJsonViewerProps {
 	data: string | Record<string, any> | any[];
 	initiallyExpanded?: boolean;
@@ -49,9 +51,13 @@ const RealtimeJsonViewer: React.FC<RealtimeJsonViewerProps> = ({
 			return;
 		}
 
+		// 使用工具函数清除可能的代码块标记
+		const cleanedData =
+			typeof data === 'string' ? cleanJsonCodeBlockMarkers(data) : data;
+
 		try {
 			// 尝试正常解析
-			const parsed = JSON.parse(data as string);
+			const parsed = JSON.parse(cleanedData as string);
 			setProcessedData(parsed);
 			setParseStatus('success');
 			setErrorMsg('');
@@ -59,7 +65,7 @@ const RealtimeJsonViewer: React.FC<RealtimeJsonViewerProps> = ({
 			// 解析失败，尝试修复和部分显示
 			try {
 				// 尝试使用最佳努力修复进行解析
-				const partialData = extractPartialJson(data as string);
+				const partialData = extractPartialJson(cleanedData as string);
 				if (partialData !== null) {
 					setProcessedData(partialData);
 					setParseStatus('partial');
@@ -337,6 +343,46 @@ function extractPartialJson(json: string): any {
 	}
 
 	// 4. 最后的尝试: 返回一个包含原始字符串的对象
+	// 在返回原始数据前，再次尝试清除可能的代码块标记
+	try {
+		// 使用工具函数清除代码块标记，启用激进清理模式
+		const cleanedJson = cleanJsonCodeBlockMarkers(trimmedJson, true);
+
+		// 确保清除后的内容仍有意义
+		if (cleanedJson.trim()) {
+			// 最后一次尝试解析清除后的内容
+			try {
+				const parsed = JSON.parse(cleanedJson.trim());
+				return parsed;
+			} catch (e) {
+				// 如果仍然失败，尝试创建一个更友好的对象结构而不是直接使用rawPartialData
+				// 检查是否看起来像一个对象
+				if (cleanedJson.startsWith('{') && cleanedJson.includes(':')) {
+					try {
+						// 创建一个空的根对象
+						const result: Record<string, string> = {};
+						// 提取可能的字段名，用作键
+						const fieldMatch = cleanedJson.match(/"([^"]+)"\s*:/);
+						if (fieldMatch && fieldMatch[1]) {
+							// 使用第一个找到的字段名作为键
+							const fieldName = fieldMatch[1];
+							result[fieldName] = cleanedJson.trim();
+							return result;
+						}
+					} catch (err) {
+						// 忽略任何错误
+					}
+				}
+
+				// 最后的回退：尝试创建一个看起来像正常JSON对象的结构
+				// 使用"content"作为键名，这样UI上看起来更友好
+				return { content: cleanedJson.trim() };
+			}
+		}
+	} catch (e) {
+		// 忽略任何错误，继续使用未清除的原始数据
+	}
+
 	return { rawPartialData: trimmedJson };
 }
 

@@ -2,6 +2,8 @@ export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 
+import { cleanJsonCodeBlockMarkers } from '@/utils/json-utils';
+
 export async function POST(req: NextRequest) {
 	try {
 		const {
@@ -318,12 +320,19 @@ Please ensure that the response is in valid JSON format without any additional t
 
 									// Check if content exists
 									if (delta.content) {
-										accumulatedContent += delta.content;
+										// 使用工具函数清除JSON标记
+										const contentToSend =
+											cleanJsonCodeBlockMarkers(
+												delta.content,
+												true // 启用激进清理模式
+											);
+
+										accumulatedContent += contentToSend;
 										controller.enqueue(
 											encoder.encode(
 												`data: ${JSON.stringify({
 													type: 'content',
-													content: delta.content,
+													content: contentToSend,
 												})}\n\n`
 											)
 										);
@@ -339,12 +348,19 @@ Please ensure that the response is in valid JSON format without any additional t
 									// You could try to extract content from other potential formats
 									// For example, if the response has a direct content field:
 									if (json.content) {
-										accumulatedContent += json.content;
+										// 使用工具函数清除JSON标记
+										const contentToSend =
+											cleanJsonCodeBlockMarkers(
+												json.content,
+												true // 启用激进清理模式
+											);
+
+										accumulatedContent += contentToSend;
 										controller.enqueue(
 											encoder.encode(
 												`data: ${JSON.stringify({
 													type: 'content',
-													content: json.content,
+													content: contentToSend,
 												})}\n\n`
 											)
 										);
@@ -387,22 +403,11 @@ Please ensure that the response is in valid JSON format without any additional t
 								);
 							}
 
-							// Remove markdown code block markers if present
-							if (
-								contentToProcess.startsWith('```json') ||
-								contentToProcess.startsWith('```')
-							) {
-								contentToProcess = contentToProcess.replace(
-									/^```(json)?/,
-									''
-								);
-							}
-							if (contentToProcess.endsWith('```')) {
-								contentToProcess = contentToProcess.replace(
-									/```$/,
-									''
-								);
-							}
+							// 使用工具函数清除可能的代码块标记
+							contentToProcess = cleanJsonCodeBlockMarkers(
+								contentToProcess,
+								true
+							);
 
 							// Trim excess whitespace
 							contentToProcess = contentToProcess.trim();
@@ -468,7 +473,10 @@ Please ensure that the response is in valid JSON format without any additional t
 								`data: ${JSON.stringify({
 									type: 'complete',
 									content: finalData,
-									thinking: accumulatedThinking,
+									thinking: cleanJsonCodeBlockMarkers(
+										accumulatedThinking,
+										true // 启用激进清理模式
+									),
 								})}\n\n`
 							)
 						);
