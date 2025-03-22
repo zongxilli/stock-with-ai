@@ -14,6 +14,7 @@ import StockHeader from './components/stock-header';
 
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
 import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
+import { searchStock } from '@/app/actions/yahoo/search-stock';
 import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
 import { usePrevious } from '@/hooks/use-previous';
 
@@ -160,6 +161,10 @@ export default function StockPage() {
 	const [_aiData] = useState(null);
 	const [_aiLoading] = useState(false);
 
+	// 添加重定向状态
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const [searchedOnce, setSearchedOnce] = useState(false);
+
 	// 如果没有指定时间范围，重定向到默认的1年范围
 	useEffect(() => {
 		if (!searchParams.get('range') && symbol) {
@@ -202,6 +207,38 @@ export default function StockPage() {
 			// 检查返回的数据是否包含错误
 			if (data && 'error' in data) {
 				const errorMsg = data.error;
+
+				// 添加股票代码搜索重定向逻辑
+				if (
+					!searchedOnce &&
+					(data.errorType === 'SYMBOL_NOT_FOUND' ||
+						data.errorType === 'QUOTE_NOT_FOUND' ||
+						errorMsg.toLowerCase().includes('找不到股票') ||
+						errorMsg.toLowerCase().includes('未找到证券代码'))
+				) {
+					// 标记已经尝试搜索，避免无限循环
+					setSearchedOnce(true);
+
+					// 尝试搜索正确的股票代码
+					const searchResult = await searchStock(symbol);
+
+					if (
+						searchResult &&
+						!('error' in searchResult) &&
+						searchResult.firstResult
+					) {
+						// 找到匹配的股票，重定向到正确的页面
+						const correctSymbol = searchResult.firstResult.symbol;
+						console.log(`重定向到正确的股票代码: ${correctSymbol}`);
+						setIsRedirecting(true);
+						router.replace(
+							`/stock/${correctSymbol}?range=${range}`
+						);
+						return;
+					}
+				}
+
+				// 如果搜索失败或已经搜索过一次，显示错误
 				setError(errorMsg);
 
 				if (!silentUpdate) {
@@ -275,6 +312,37 @@ export default function StockPage() {
 			// 检查返回的数据是否包含错误
 			if (data && 'error' in data) {
 				const errorMsg = data.error;
+
+				// 添加股票代码搜索重定向逻辑
+				if (
+					!searchedOnce &&
+					(data.errorType === 'SYMBOL_NOT_FOUND' ||
+						errorMsg.toLowerCase().includes('找不到股票代码') ||
+						errorMsg.toLowerCase().includes('找不到股票数据'))
+				) {
+					// 标记已经尝试搜索，避免无限循环
+					setSearchedOnce(true);
+
+					// 尝试搜索正确的股票代码
+					const searchResult = await searchStock(symbol);
+
+					if (
+						searchResult &&
+						!('error' in searchResult) &&
+						searchResult.firstResult
+					) {
+						// 找到匹配的股票，重定向到正确的页面
+						const correctSymbol = searchResult.firstResult.symbol;
+						console.log(`重定向到正确的股票代码: ${correctSymbol}`);
+						setIsRedirecting(true);
+						router.replace(
+							`/stock/${correctSymbol}?range=${range}`
+						);
+						return;
+					}
+				}
+
+				// 如果搜索失败或已经搜索过一次，显示错误
 				setError(errorMsg);
 				setLoading(false);
 
@@ -413,7 +481,7 @@ export default function StockPage() {
 		realTimeData?.symbol || chartData?.meta?.symbol || symbol;
 
 	// 如果有错误，显示错误界面
-	if (error && !loading && stopAutoRefresh) {
+	if (error && !loading && stopAutoRefresh && !isRedirecting) {
 		return <ErrorView error={error} onRetry={handleRefresh} />;
 	}
 
