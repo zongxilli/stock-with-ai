@@ -52,6 +52,9 @@ export default function StockChart({
 	const { theme } = useTheme();
 	const isDarkTheme = theme === 'dark';
 
+	// 添加这个状态用于强制重新渲染图表
+	const [themeChanged, setThemeChanged] = useState(0);
+
 	// 动画状态控制
 	const [animateWave, setAnimateWave] = useState(false);
 	// 添加脉冲动画状态
@@ -344,6 +347,12 @@ export default function StockChart({
 		}
 	}, [currentPrice, range, marketState]);
 
+	// 监听主题变化，强制重新渲染图表
+	useEffect(() => {
+		// 当主题变化时，增加计数器，触发重新渲染
+		setThemeChanged((prev) => prev + 1);
+	}, [theme]);
+
 	// 市场开放时启用呼吸动画
 	useEffect(() => {
 		if (range === '1d' && marketState === 'REGULAR') {
@@ -577,6 +586,7 @@ export default function StockChart({
 						ticks={generateXAxisTicks()}
 						tickMargin={10}
 						axisLine={{ stroke: axisColor }}
+						key={`x-axis-${theme}-${themeChanged}`}
 					/>
 
 					<YAxis
@@ -586,6 +596,7 @@ export default function StockChart({
 						axisLine={{ stroke: axisColor }}
 						tickMargin={10}
 						width={60}
+						key={`y-axis-${theme}-${themeChanged}`}
 					/>
 
 					<Tooltip
