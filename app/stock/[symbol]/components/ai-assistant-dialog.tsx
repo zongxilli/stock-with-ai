@@ -118,6 +118,8 @@ export default function AIAssistantDialog({
 		// 创建AbortController用于中止fetch请求
 		const abortController = new AbortController();
 		const signal = abortController.signal;
+		// 跟踪请求是否已被中止
+		let isAborted = false;
 
 		const fetchStreamData = async () => {
 			try {
@@ -265,6 +267,7 @@ export default function AIAssistantDialog({
 				// 处理AbortError，用户主动中止的情况
 				if (error instanceof Error && error.name === 'AbortError') {
 					console.log('Stream request aborted by user');
+					isAborted = true;
 					// 即使是用户中止，也需要重置状态，防止重新打开时出现问题
 					setIsStreaming(false);
 					setThinking('');
@@ -287,13 +290,16 @@ export default function AIAssistantDialog({
 
 		// 清理函数，当组件卸载或依赖项变化时调用
 		return () => {
-			// 中止fetch请求，释放资源并节省DeepSeek API token使用
-			abortController.abort();
-			console.log(
-				'Aborting DeepSeek API stream connection to save token usage'
-			);
-
-			// 立即重置状态，确保下次打开时状态干净
+			// 始终尝试中止请求，让AbortController自己决定是否需要处理
+			// 这样可以避免闭包陷阱
+			if (!isAborted) {
+				abortController.abort();
+				console.log(
+					'Aborting DeepSeek API stream connection to save token usage'
+				);
+			}
+			
+			// 无论如何，重置状态以便下次打开时状态干净
 			setIsStreaming(false);
 			setThinking('');
 			setThinkingContent('');
