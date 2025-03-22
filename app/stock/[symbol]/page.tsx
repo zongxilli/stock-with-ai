@@ -17,13 +17,11 @@ import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-dat
 import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
 import { usePrevious } from '@/hooks/use-previous';
 
-// 定义股票实时数据类型
+// Define stock real-time data type
 interface StockRealTimeData {
-	// 基本识别信息
+	// (keeping the original interface definition)
 	symbol: string;
 	name: string;
-
-	// 价格和涨跌信息
 	price: number;
 	change: number;
 	changePercent: number;
@@ -31,8 +29,6 @@ interface StockRealTimeData {
 	dayLow: number;
 	previousClose: number;
 	open: number;
-
-	// 盘前盘后价格
 	preMarketPrice?: number;
 	preMarketChange?: number;
 	preMarketChangePercent?: number;
@@ -41,52 +37,32 @@ interface StockRealTimeData {
 	postMarketChange?: number;
 	postMarketChangePercent?: number;
 	postMarketTime?: number;
-
-	// 成交量信息
 	marketVolume: number;
-
-	// 52周高低点
 	fiftyTwoWeekHigh: number;
 	fiftyTwoWeekLow: number;
-
-	// 市场信息
 	marketTime: number;
-	marketState?: string; // 'REGULAR', 'PRE', 'POST', 'CLOSED' 等
+	marketState?: string;
 	exchangeName?: string;
-
-	// 交易数据
 	bid?: number;
 	ask?: number;
 	bidSize?: number;
 	askSize?: number;
-
-	// 成交量统计
 	avgVolume?: number;
 	avgVolume10Day?: number;
-
-	// 市值和贝塔系数
 	marketCap?: number;
 	beta?: number;
-
-	// 财务比率
 	peRatio?: number;
 	forwardPE?: number;
 	eps?: number;
-
-	// 股息信息
 	dividendRate?: number;
 	dividendYield?: number;
 	exDividendDate?: string;
 	dividendDate?: string;
-
-	// 财务表现指标
 	profitMargins?: number;
 	revenueGrowth?: number;
 	earningsGrowth?: number;
 	returnOnAssets?: number;
 	returnOnEquity?: number;
-
-	// 分析师建议
 	targetHigh?: number;
 	targetLow?: number;
 	targetMean?: number;
@@ -94,31 +70,38 @@ interface StockRealTimeData {
 	recommendationMean?: number;
 	recommendationKey?: string;
 	numberOfAnalysts?: number;
-
-	// 财报日期
 	earningsDate?: string;
-
-	// 现金流和债务信息
 	totalCash?: number;
 	totalCashPerShare?: number;
 	totalDebt?: number;
 	debtToEquity?: number;
-
-	// 财务指标
 	currentRatio?: number;
 	quickRatio?: number;
 	freeCashflow?: number;
-
-	// 其他统计数据
 	sharesOutstanding?: number;
 	heldPercentInsiders?: number;
 	heldPercentInstitutions?: number;
 	shortRatio?: number;
 	floatShares?: number;
-
-	// 元数据
 	lastUpdated: string;
 	currency?: string;
+}
+
+// Function to search for alternative stocks
+async function searchAlternativeStocks(query: string) {
+	try {
+		const response = await fetch(
+			`/api/stock-search?q=${encodeURIComponent(query)}`
+		);
+		if (!response.ok) {
+			throw new Error(`Search API error: ${response.status}`);
+		}
+		const data = await response.json();
+		return data.quotes || [];
+	} catch (error) {
+		console.error('Error searching for alternative stocks:', error);
+		return [];
+	}
 }
 
 export default function StockPage() {
@@ -126,41 +109,42 @@ export default function StockPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 
-	// 解码 symbol 参数
+	// Decode symbol parameter
 	const symbol = !params.symbol
 		? ''
 		: decodeURIComponent(
 				Array.isArray(params.symbol) ? params.symbol[0] : params.symbol
 			);
 
-	// 使用自定义钩子保持滚动位置
+	// Use custom hook to maintain scroll position
 	usePreserveScroll();
 
-	// 获取时间范围，如果没有指定，默认为1年(1y)
+	// Get time range, if not specified, default to 1 year (1y)
 	const range = searchParams.get('range') || '1y';
 
-	// 分别管理图表数据和实时价格数据
+	// Manage chart data and real-time price data separately
 	const [chartData, setChartData] = useState<any>(null);
 	const [realTimeData, setRealTimeData] = useState<StockRealTimeData | null>(
 		null
 	);
 	const [loading, setLoading] = useState(true);
-	const [chartLoading, setChartLoading] = useState(false); // 图表加载状态
-	const [isChartUpdating, setIsChartUpdating] = useState(false); // 跟踪图表更新状态
+	const [chartLoading, setChartLoading] = useState(false);
+	const [isChartUpdating, setIsChartUpdating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [lastUpdated, setLastUpdated] = useState<string>('');
 	const [lastChartUpdated, setLastChartUpdated] = useState<string>('');
-	// 标记是否停止自动刷新
+	// Flag to stop auto-refresh
 	const [stopAutoRefresh, setStopAutoRefresh] = useState(false);
+	// Flag to track if we're currently searching for alternative stocks
+	const [isSearchingAlternatives, setIsSearchingAlternatives] =
+		useState(false);
 
 	// AI Assistant dialog state
 	const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
-	// These state variables are managed by the AIAssistantDialog component internally
-	// when using streaming mode, so we don't need to use them here
 	const [_aiData] = useState(null);
 	const [_aiLoading] = useState(false);
 
-	// 如果没有指定时间范围，重定向到默认的1年范围
+	// If no time range is specified, redirect to default 1-year range
 	useEffect(() => {
 		if (!searchParams.get('range') && symbol) {
 			router.replace(`/stock/${symbol}?range=1y`, { scroll: false });
@@ -169,7 +153,7 @@ export default function StockPage() {
 
 	const prevMarketState = usePrevious(realTimeData?.marketState);
 	useEffect(() => {
-		// 当市场状态从盘前(PRE)切换到盘中(REGULAR)时，需要刷新1D图表
+		// When market state changes from pre-market (PRE) to regular trading (REGULAR), refresh 1D chart
 		if (
 			range === '1d' &&
 			prevMarketState &&
@@ -179,29 +163,29 @@ export default function StockPage() {
 		}
 	}, [realTimeData?.marketState, prevMarketState, range]);
 
-	// 获取图表数据的函数
+	// Function to fetch chart data
 	const fetchChartData = async (silentUpdate = false) => {
 		try {
 			if (!symbol) {
 				setError('Stock symbol cannot be empty');
-				setStopAutoRefresh(true); // 停止自动刷新
+				setStopAutoRefresh(true);
 				return;
 			}
 
-			// 如果是静默更新，不显示加载状态，不清空数据
+			// If it's a silent update, don't show loading state or clear data
 			if (!silentUpdate) {
 				setChartLoading(true);
 				setChartData(null);
 			} else {
-				// 静默更新只设置一个标志，不影响现有图表显示
+				// Just set a flag for silent updates, don't affect existing chart display
 				setIsChartUpdating(true);
 			}
 
 			const data = await getStockChartData(symbol, range);
 
-			// 为静默更新添加平滑过渡
+			// Add smooth transition for silent updates
 			if (silentUpdate && chartData) {
-				// 给React一点时间，在下一个渲染周期更新图表
+				// Give React a moment to update the chart in the next render cycle
 				setTimeout(() => {
 					setChartData(data);
 					setIsChartUpdating(false);
@@ -230,17 +214,62 @@ export default function StockPage() {
 				setIsChartUpdating(false);
 			}
 
-			if (
+			// Check if the error indicates the symbol doesn't exist
+			const symbolNotFoundError =
 				errorMsg.toLowerCase().includes('symbol not found') ||
 				errorMsg.toLowerCase().includes('stock symbol not found') ||
-				errorMsg.toLowerCase().includes('找不到股票')
-			) {
+				errorMsg.toLowerCase().includes('找不到股票');
+
+			if (symbolNotFoundError) {
 				setStopAutoRefresh(true);
+
+				// Only try to find alternatives if we haven't already started searching
+				if (!isSearchingAlternatives) {
+					findAlternativeSymbol();
+				}
 			}
 		}
 	};
 
-	// 获取实时价格数据的函数
+	// Function to find alternative stock symbol when the provided one doesn't exist
+	const findAlternativeSymbol = async () => {
+		// Set flag to prevent multiple searches
+		setIsSearchingAlternatives(true);
+
+		console.log(`Searching for alternative symbols for: ${symbol}`);
+
+		try {
+			// Search for alternatives using the user's input
+			const alternatives = await searchAlternativeStocks(symbol);
+
+			// If we found at least one alternative, redirect to the first result
+			if (alternatives && alternatives.length > 0) {
+				const firstAlternative = alternatives[0];
+				console.log(
+					`Found alternative symbol: ${firstAlternative.symbol}`,
+					firstAlternative
+				);
+
+				// Add a small delay so the user can see what's happening
+				setTimeout(() => {
+					// Navigate to the alternative stock page
+					router.push(
+						`/stock/${firstAlternative.symbol}?range=${range}`
+					);
+				}, 500);
+			} else {
+				console.log('No alternative symbols found');
+				// No alternatives found, keep showing the error page
+			}
+		} catch (error) {
+			console.error('Error finding alternative symbol:', error);
+		} finally {
+			// Reset the searching flag
+			setIsSearchingAlternatives(false);
+		}
+	};
+
+	// Function to get real-time price data
 	const fetchRealTimeData = async () => {
 		try {
 			if (!symbol) return;
@@ -250,10 +279,11 @@ export default function StockPage() {
 			setRealTimeData(data);
 			setLastUpdated(new Date().toLocaleTimeString());
 			setLoading(false);
-			// 如果之前有错误但现在成功获取了数据，清除错误
+
+			// If we had an error but now succeeded, clear error
 			if (error) {
 				setError(null);
-				setStopAutoRefresh(false); // 恢复自动刷新
+				setStopAutoRefresh(false);
 			}
 		} catch (err) {
 			console.error('Failed to load real-time data:', err);
@@ -261,94 +291,99 @@ export default function StockPage() {
 			setError(errorMsg);
 			setLoading(false);
 
-			// 如果错误消息包含"symbol not found"或类似内容，停止自动刷新
+			// Check if error indicates symbol not found
 			if (
 				errorMsg.toLowerCase().includes('symbol not found') ||
 				errorMsg.toLowerCase().includes('stock symbol not found') ||
 				errorMsg.toLowerCase().includes('找不到股票')
 			) {
 				setStopAutoRefresh(true);
+
+				// Only try to find alternatives if we haven't already started searching
+				if (!isSearchingAlternatives) {
+					findAlternativeSymbol();
+				}
 			}
 		}
 	};
 
-	// 处理数据刷新
+	// Handle data refresh
 	const handleRefresh = () => {
 		setLoading(true);
-		setStopAutoRefresh(false); // 手动刷新时，重置自动刷新状态
+		setStopAutoRefresh(false); // Reset auto-refresh on manual refresh
 		fetchRealTimeData();
-		fetchChartData(false); // 手动刷新时使用非静默模式
+		fetchChartData(false); // Use non-silent mode for manual refresh
 	};
 
-	// 初始加载图表数据 - 当时间范围或股票代码变化时
+	// Initial load of chart data - when time range or stock code changes
 	useEffect(() => {
-		fetchChartData(false); // 非静默模式加载初始数据
+		fetchChartData(false); // Non-silent mode for initial loading
 	}, [symbol, range]);
 
-	// 实时价格和图表数据的自动刷新
+	// Real-time price and chart data auto-refresh
 	useEffect(() => {
-		// 立即获取实时数据
+		// Immediately get real-time data
 		fetchRealTimeData();
 
-		// 只有在未停止自动刷新的情况下才设置定时器
+		// Only set timers if auto-refresh isn't stopped
 		let refreshInterval: NodeJS.Timeout | null = null;
 		let chartRefreshInterval: NodeJS.Timeout | null = null;
 
 		if (!stopAutoRefresh) {
-			// 根据市场状态决定更新频率
-			let refreshTime = 60000; // 默认为60秒
-			let chartRefreshTime = 60000; // 默认图表刷新间隔为60秒
+			// Determine refresh rate based on market state
+			let refreshTime = 60000; // Default: 60 seconds
+			let chartRefreshTime = 60000; // Default chart refresh: 60 seconds
 
 			if (realTimeData?.marketState === 'REGULAR') {
-				refreshTime = 5000; // 交易中：5秒
-				chartRefreshTime = 20000; // 交易中图表更新：20秒
+				refreshTime = 5000; // During trading: 5 seconds
+				chartRefreshTime = 20000; // During trading chart update: 20 seconds
 			} else if (realTimeData?.marketState === 'PRE') {
-				refreshTime = 15000; // 盘前：15秒
-				chartRefreshTime = 30000; // 盘前图表更新：30秒
+				refreshTime = 15000; // Pre-market: 15 seconds
+				chartRefreshTime = 30000; // Pre-market chart update: 30 seconds
 			} else if (realTimeData?.marketState === 'POST') {
-				refreshTime = 15000; // 盘后：15秒
-				chartRefreshTime = 30000; // 盘后图表更新：30秒
+				refreshTime = 15000; // After-hours: 15 seconds
+				chartRefreshTime = 30000; // After-hours chart update: 30 seconds
 			} else if (realTimeData?.marketState === 'CLOSED') {
-				// 如果已经有盘后数据，减少刷新频率
+				// If we have after-hours data, reduce refresh frequency
 				if (
 					realTimeData.postMarketPrice !== undefined &&
 					realTimeData.postMarketChange !== undefined
 				) {
-					refreshTime = 300000; // 已有盘后数据且市场关闭：5分钟
-					chartRefreshTime = 300000; // 市场关闭：5分钟
+					refreshTime = 300000; // Market closed with after-hours data: 5 minutes
+					chartRefreshTime = 300000; // Market closed: 5 minutes
 				} else {
-					refreshTime = 60000; // 市场关闭无盘后数据：1分钟
-					chartRefreshTime = 300000; // 市场关闭：5分钟
+					refreshTime = 60000; // Market closed without after-hours data: 1 minute
+					chartRefreshTime = 300000; // Market closed: 5 minutes
 				}
 			}
 
-			// 处理POSTPOST异常情况
+			// Handle POSTPOST edge case
 			if (realTimeData?.marketState === 'POSTPOST') {
-				refreshTime = 300000; // 每5分钟刷新一次
-				chartRefreshTime = 300000; // 每5分钟刷新图表
+				refreshTime = 300000; // Refresh every 5 minutes
+				chartRefreshTime = 300000; // Refresh chart every 5 minutes
 			}
 
 			refreshInterval = setInterval(() => {
 				fetchRealTimeData();
 			}, refreshTime);
 
-			// 只有在1D视图下才需要定期刷新图表数据
+			// Only update chart data regularly in 1D view
 			if (range === '1d') {
 				chartRefreshInterval = setInterval(() => {
-					// 只在市场交易期间或盘前盘后频繁更新图表
+					// Only update chart frequently during market hours or pre/post market
 					const shouldRefreshChart =
 						realTimeData?.marketState === 'REGULAR' ||
 						realTimeData?.marketState === 'PRE' ||
 						realTimeData?.marketState === 'POST';
 
 					if (shouldRefreshChart) {
-						fetchChartData(true); // 静默更新图表数据
+						fetchChartData(true); // Silent update for chart data
 					}
 				}, chartRefreshTime);
 			}
 		}
 
-		// 组件卸载时清除定时器
+		// Clean up intervals on unmount
 		return () => {
 			if (refreshInterval) {
 				clearInterval(refreshInterval);
@@ -359,7 +394,7 @@ export default function StockPage() {
 		};
 	}, [symbol, stopAutoRefresh, realTimeData?.marketState, range]);
 
-	// 显示公司名称和股票代码
+	// Display company name and stock symbol
 	const stockName =
 		realTimeData?.name ||
 		chartData?.meta?.shortName ||
@@ -368,14 +403,34 @@ export default function StockPage() {
 	const stockSymbol =
 		realTimeData?.symbol || chartData?.meta?.symbol || symbol;
 
-	// 如果有错误，显示错误界面
-	if (error && !loading && stopAutoRefresh) {
+	// If there's an error, display error screen
+	if (error && !loading && stopAutoRefresh && !isSearchingAlternatives) {
 		return <ErrorView error={error} onRetry={handleRefresh} />;
+	}
+
+	// Show a searching message when looking for alternatives
+	if (isSearchingAlternatives) {
+		return (
+			<div className='w-full px-6 py-8'>
+				<div className='flex flex-col items-center justify-center py-12 text-center'>
+					<div className='mb-6'>
+						<div className='animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full'></div>
+					</div>
+					<h1 className='text-3xl font-bold mb-4'>
+						Finding Alternative Symbol
+					</h1>
+					<p className='text-lg text-muted-foreground mb-6 max-w-lg'>
+						Couldn't find "{symbol}". Searching for similar
+						symbols...
+					</p>
+				</div>
+			</div>
+		);
 	}
 
 	return (
 		<div className='w-full px-6 py-8'>
-			{/* 股票头部信息 */}
+			{/* Stock header information */}
 			<StockHeader
 				stockName={stockName}
 				stockSymbol={stockSymbol}
@@ -386,7 +441,7 @@ export default function StockPage() {
 				isLoadingAI={_aiLoading}
 			/>
 
-			{/* 时间范围选择器 */}
+			{/* Time range selector */}
 			<div className='mb-4'>
 				<RangeSelector
 					currentRange={range}
@@ -396,7 +451,7 @@ export default function StockPage() {
 				/>
 			</div>
 
-			{/* 图表区域 */}
+			{/* Chart area */}
 			<ChartContainer
 				chartData={chartData}
 				chartLoading={chartLoading}
@@ -416,7 +471,7 @@ export default function StockPage() {
 				useStream={true}
 			/>
 
-			{/* 状态指示器 */}
+			{/* Status indicator */}
 			<StatusIndicator
 				lastUpdated={lastUpdated}
 				lastChartUpdated={lastChartUpdated}
@@ -428,7 +483,7 @@ export default function StockPage() {
 				onRefresh={handleRefresh}
 			/>
 
-			{/* 添加股票详情网格 */}
+			{/* Add stock details grid */}
 			{realTimeData && <StockDetails {...realTimeData} />}
 		</div>
 	);
