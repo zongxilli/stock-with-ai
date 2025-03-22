@@ -46,7 +46,7 @@ export default function GlobalError({
 
 					<div className='flex flex-wrap gap-4'>
 						<Button
-							onClick={() => (window.location.href = '/')}
+							onClick={() => (window.location.href = '/home')}
 							variant='outline'
 							size='lg'
 						>
