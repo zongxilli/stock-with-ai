@@ -115,6 +115,10 @@ export default function AIAssistantDialog({
 	useEffect(() => {
 		if (!isOpen || !useStream || initialData) return;
 
+		// 创建AbortController用于中止fetch请求
+		const abortController = new AbortController();
+		const signal = abortController.signal;
+
 		const fetchStreamData = async () => {
 			try {
 				setIsStreaming(true);
@@ -148,6 +152,7 @@ export default function AIAssistantDialog({
 						language: 'EN',
 						comprehensiveData,
 					}),
+					signal, // 添加abort signal以支持中止请求
 				});
 
 				if (!response.ok) {
@@ -229,6 +234,8 @@ export default function AIAssistantDialog({
 										...data.content,
 									};
 									setStreamData(processedData);
+									// 设置streaming状态为false，确保UI切换到数据展示模式
+									setIsStreaming(false);
 								} else {
 									console.error(
 										'Unexpected complete data format:',
@@ -237,6 +244,7 @@ export default function AIAssistantDialog({
 									setStreamError(
 										'Received unexpected data format'
 									);
+									setIsStreaming(false);
 								}
 							} else if (data.type === 'error') {
 								console.error('Stream error:', data.content);
@@ -253,26 +261,44 @@ export default function AIAssistantDialog({
 						}
 					}
 				}
-			} catch (error) {
-				console.error('Streaming error:', error);
-				setStreamError(
-					error instanceof Error ? error.message : 'Unknown error'
-				);
-				// Add streaming errors to thinking process display
-				setThinkingContent(
-					(prev) =>
-						prev +
-						`\n\n[Stream Error] ${error instanceof Error ? error.message : 'Unknown error'}\n\n`
-				);
-			} finally {
-				setIsStreaming(false);
+			} catch (error: unknown) {
+				// 处理AbortError，用户主动中止的情况
+				if (error instanceof Error && error.name === 'AbortError') {
+					console.log('Stream request aborted by user');
+					// 即使是用户中止，也需要重置状态，防止重新打开时出现问题
+					setIsStreaming(false);
+					setThinking('');
+					setThinkingContent('');
+					setThinkingStatus('');
+				} else {
+					// 仅在组件仍然挂载时更新错误状态
+					console.error('Streaming error:', error);
+					const errorMessage =
+						error instanceof Error
+							? error.message
+							: 'Unknown error';
+					setStreamError(errorMessage);
+					setIsStreaming(false);
+				}
 			}
 		};
 
 		fetchStreamData();
 
-		// No cleanup needed for fetch API with ReadableStream
-		return () => {};
+		// 清理函数，当组件卸载或依赖项变化时调用
+		return () => {
+			// 中止fetch请求，释放资源并节省DeepSeek API token使用
+			abortController.abort();
+			console.log(
+				'Aborting DeepSeek API stream connection to save token usage'
+			);
+
+			// 立即重置状态，确保下次打开时状态干净
+			setIsStreaming(false);
+			setThinking('');
+			setThinkingContent('');
+			setThinkingStatus('');
+		};
 	}, [isOpen, useStream, symbol, initialData]);
 
 	// Auto-scroll thinking containers when content changes
