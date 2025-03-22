@@ -49,7 +49,7 @@ export default function GlobalError({
 
 					<div className='flex flex-wrap gap-4'>
 						<Button
-							onClick={() => router.push('/home')}
+							onClick={() => router.push('/')}
 							variant='outline'
 							size='lg'
 						>

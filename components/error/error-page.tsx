@@ -24,7 +24,7 @@ export default function ErrorPage({ error }: ErrorPageProps) {
 	};
 
 	const handleGoHome = () => {
-		router.push('/home');
+		router.push('/');
 	};
 
 	return (

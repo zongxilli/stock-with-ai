@@ -64,7 +64,7 @@ export default function ErrorView({
 
 				<div className='flex flex-wrap gap-4 mb-8'>
 					<Button asChild variant='outline' size='lg'>
-						<Link href='/home'>
+						<Link href='/'>
 							<Home className='mr-2 h-5 w-5' />
 							Back to Home
 						</Link>
