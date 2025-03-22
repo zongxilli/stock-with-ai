@@ -66,7 +66,12 @@ export default function StockHeader({
 }: StockHeaderProps) {
 	// 判断是否显示盘前价格
 	const shouldShowPreMarketPrice = () => {
-		if (!realTimeData) return false;
+		if (
+			!realTimeData ||
+			typeof realTimeData !== 'object' ||
+			!('preMarketPrice' in realTimeData)
+		)
+			return false;
 
 		// 检查是否有有效的盘前数据
 		const hasValidPreMarketData =
@@ -80,13 +85,19 @@ export default function StockHeader({
 		return (
 			hasValidPreMarketData &&
 			(realTimeData.marketState === 'PRE' ||
-				Math.abs(realTimeData.preMarketChange!) > 0.001)
+				(typeof realTimeData.preMarketChange === 'number' &&
+					Math.abs(realTimeData.preMarketChange) > 0.001))
 		);
 	};
 
 	// 判断是否显示盘后价格
 	const shouldShowPostMarketPrice = () => {
-		if (!realTimeData) return false;
+		if (
+			!realTimeData ||
+			typeof realTimeData !== 'object' ||
+			!('postMarketPrice' in realTimeData)
+		)
+			return false;
 
 		// 如果市场处于盘中状态，不显示盘后价格
 		if (realTimeData.marketState === 'REGULAR') return false;
@@ -137,7 +148,10 @@ export default function StockHeader({
 			</div>
 
 			{/* 使用实时数据显示当前价格 */}
-			{realTimeData ? (
+			{realTimeData &&
+			typeof realTimeData === 'object' &&
+			'price' in realTimeData &&
+			realTimeData.price !== undefined ? (
 				<div className='flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3'>
 					<div className='flex flex-col'>
 						{/* 常规市场价格 */}
@@ -196,32 +210,46 @@ export default function StockHeader({
 					<span className='text-3xl font-bold mr-3'>
 						${chartData.meta.regularMarketPrice.toFixed(2)}
 					</span>
-					{chartData.quotes.length > 1 && (
+					{chartData.quotes && chartData.quotes.length > 1 && (
 						<PriceDisplayFallback
 							current={chartData.meta.regularMarketPrice}
 							previous={chartData.quotes[0].close}
 						/>
 					)}
 				</div>
-			) : null}
-
-			{/* 最高/最低价格 */}
-			{realTimeData && (
-				<div className='flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted-foreground'>
-					<div>Open: ${realTimeData.open.toFixed(2)}</div>
-					<div>
-						Prev Close: ${realTimeData.previousClose.toFixed(2)}
-					</div>
-					<div>
-						Day Range: ${realTimeData.dayLow.toFixed(2)} - $
-						{realTimeData.dayHigh.toFixed(2)}
-					</div>
-					<div>
-						52wk Range: ${realTimeData.fiftyTwoWeekLow.toFixed(2)} -
-						${realTimeData.fiftyTwoWeekHigh.toFixed(2)}
-					</div>
+			) : (
+				<div className='h-10 mt-2 text-muted-foreground'>
+					{loading
+						? 'Loading price data...'
+						: 'Price data not available'}
 				</div>
 			)}
+
+			{/* 最高/最低价格 */}
+			{realTimeData &&
+				typeof realTimeData === 'object' &&
+				'open' in realTimeData &&
+				'previousClose' in realTimeData &&
+				'dayLow' in realTimeData &&
+				'dayHigh' in realTimeData &&
+				'fiftyTwoWeekLow' in realTimeData &&
+				'fiftyTwoWeekHigh' in realTimeData && (
+					<div className='flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted-foreground'>
+						<div>Open: ${realTimeData.open.toFixed(2)}</div>
+						<div>
+							Prev Close: ${realTimeData.previousClose.toFixed(2)}
+						</div>
+						<div>
+							Day Range: ${realTimeData.dayLow.toFixed(2)} - $
+							{realTimeData.dayHigh.toFixed(2)}
+						</div>
+						<div>
+							52wk Range: $
+							{realTimeData.fiftyTwoWeekLow.toFixed(2)} - $
+							{realTimeData.fiftyTwoWeekHigh.toFixed(2)}
+						</div>
+					</div>
+				)}
 		</div>
 	);
 }

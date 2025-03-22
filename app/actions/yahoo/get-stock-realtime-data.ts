@@ -38,7 +38,11 @@ export async function getStockRealTimeData(symbol: string) {
 
 			// 检查返回数据中的错误或空数据
 			if (!quote || !quote.symbol) {
-				throw new Error(`找不到股票代码: ${symbol}`);
+				// 返回结构化的错误对象，而不是抛出错误
+				return {
+					error: `找不到股票代码: ${symbol}`,
+					errorType: 'SYMBOL_NOT_FOUND',
+				};
 			}
 
 			// 提取需要的基本数据
@@ -369,14 +373,24 @@ export async function getStockRealTimeData(symbol: string) {
 		} catch (innerError) {
 			// 这里处理Yahoo Finance API可能抛出的错误
 			console.error(`Yahoo Finance API错误 (${symbol}):`, innerError);
-			throw new Error(
-				`找不到股票数据: ${symbol}. 该股票代码可能不存在或暂时无法获取数据。`
-			);
+			// 返回结构化的错误对象，而不是抛出错误
+			return {
+				error: `找不到股票数据: ${symbol}. 该股票代码可能不存在或暂时无法获取数据。`,
+				errorType: 'API_ERROR',
+				originalError:
+					innerError instanceof Error
+						? innerError.message
+						: String(innerError),
+			};
 		}
 	} catch (error) {
 		console.error(`获取股票${symbol}实时数据失败:`, error);
-		throw new Error(
-			`获取股票实时数据失败: ${error instanceof Error ? error.message : String(error)}`
-		);
+		// 返回结构化的错误对象，而不是抛出错误
+		return {
+			error: `获取股票实时数据失败: ${error instanceof Error ? error.message : String(error)}`,
+			errorType: 'UNKNOWN_ERROR',
+			originalError:
+				error instanceof Error ? error.message : String(error),
+		};
 	}
 }

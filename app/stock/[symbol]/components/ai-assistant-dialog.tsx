@@ -126,6 +126,14 @@ export default function AIAssistantDialog({
 				const comprehensiveData =
 					await getComprehensiveStockData(symbol);
 
+				// 检查是否有错误
+				if (comprehensiveData && 'error' in comprehensiveData) {
+					const errorMsg = comprehensiveData.error;
+					setStreamError(`Error: ${errorMsg}`);
+					setIsStreaming(false);
+					return;
+				}
+
 				// Add loading state feedback
 				console.log(`Fetching analysis for ${symbol}...`);
 

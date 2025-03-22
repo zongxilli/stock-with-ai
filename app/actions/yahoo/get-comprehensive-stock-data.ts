@@ -9,7 +9,11 @@ export async function getComprehensiveStockData(symbol: string) {
 	try {
 		// 参数验证
 		if (!symbol || typeof symbol !== 'string' || symbol.trim() === '') {
-			throw new Error('必须提供有效的股票代码');
+			// 返回结构化的错误对象，而不是抛出错误
+			return {
+				error: '必须提供有效的股票代码',
+				errorType: 'INVALID_SYMBOL',
+			};
 		}
 
 		// 标准化股票代码
@@ -144,10 +148,13 @@ export async function getComprehensiveStockData(symbol: string) {
 
 		return optimizedData;
 	} catch (error) {
-		console.error(`获取${symbol}全面数据失败:`, error);
-		throw new Error(
-			`获取全面股票数据失败: ${error instanceof Error ? error.message : String(error)}`
-		);
+		console.error(`获取${symbol}综合数据失败:`, error);
+		// 返回结构化的错误对象，而不是抛出错误
+		return {
+			error: `获取综合股票数据失败: ${error instanceof Error ? error.message : String(error)}`,
+			errorType: 'UNKNOWN_ERROR',
+			originalError: error instanceof Error ? error.message : String(error)
+		};
 	}
 }
 

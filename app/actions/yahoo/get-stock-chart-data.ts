@@ -31,7 +31,11 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 
 		// 检查报价数据是否有效
 		if (!quoteData || !quoteData.regularMarketTime) {
-			throw new Error(`无法获取${symbol}的实时市场数据`);
+			// 返回结构化的错误对象，而不是抛出错误
+			return {
+				error: `无法获取${symbol}的实时市场数据`,
+				errorType: 'QUOTE_NOT_FOUND',
+			};
 		}
 
 		// 获取证券类型
@@ -205,9 +209,12 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					`Yahoo Finance Chart API错误 (${symbol}):`,
 					innerError
 				);
-				throw new Error(
-					`未找到证券代码: ${symbol}。请检查代码并重试。`
-				);
+				// 返回结构化的错误对象，而不是抛出错误
+				return {
+					error: `未找到证券代码: ${symbol}。请检查代码并重试。`,
+					errorType: 'API_ERROR',
+					originalError: innerError instanceof Error ? innerError.message : String(innerError)
+				};
 			}
 		} else {
 			// 对于其他时间范围的处理保持不变
@@ -291,15 +298,21 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					`Yahoo Finance Chart API错误 (${symbol}):`,
 					innerError
 				);
-				throw new Error(
-					`未找到证券代码: ${symbol}。请检查代码并重试。`
-				);
+				// 返回结构化的错误对象，而不是抛出错误
+				return {
+					error: `未找到证券代码: ${symbol}。请检查代码并重试。`,
+					errorType: 'API_ERROR',
+					originalError: innerError instanceof Error ? innerError.message : String(innerError)
+				};
 			}
 		}
 	} catch (error) {
 		console.error(`获取${symbol}图表数据失败:`, error);
-		throw new Error(
-			`获取图表数据失败: ${error instanceof Error ? error.message : String(error)}`
-		);
+		// 返回结构化的错误对象，而不是抛出错误
+		return {
+			error: `获取图表数据失败: ${error instanceof Error ? error.message : String(error)}`,
+			errorType: 'UNKNOWN_ERROR',
+			originalError: error instanceof Error ? error.message : String(error)
+		};
 	}
 }

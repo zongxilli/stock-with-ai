@@ -199,6 +199,29 @@ export default function StockPage() {
 
 			const data = await getStockChartData(symbol, range);
 
+			// 检查返回的数据是否包含错误
+			if (data && 'error' in data) {
+				const errorMsg = data.error;
+				setError(errorMsg);
+
+				if (!silentUpdate) {
+					setChartLoading(false);
+				} else {
+					setIsChartUpdating(false);
+				}
+
+				if (
+					data.errorType === 'SYMBOL_NOT_FOUND' ||
+					data.errorType === 'QUOTE_NOT_FOUND' ||
+					errorMsg.toLowerCase().includes('找不到股票') ||
+					errorMsg.toLowerCase().includes('未找到证券代码')
+				) {
+					setStopAutoRefresh(true);
+				}
+
+				return;
+			}
+
 			// 为静默更新添加平滑过渡
 			if (silentUpdate && chartData) {
 				// 给React一点时间，在下一个渲染周期更新图表
@@ -218,6 +241,7 @@ export default function StockPage() {
 				setStopAutoRefresh(false);
 			}
 		} catch (err) {
+			// 处理其他可能的错误（例如网络错误）
 			const errorMsg = `Failed to load chart data: ${
 				err instanceof Error ? err.message : String(err)
 			}`;
@@ -247,15 +271,35 @@ export default function StockPage() {
 
 			setLoading(true);
 			const data = await getStockRealTimeData(symbol);
+
+			// 检查返回的数据是否包含错误
+			if (data && 'error' in data) {
+				const errorMsg = data.error;
+				setError(errorMsg);
+				setLoading(false);
+
+				if (
+					data.errorType === 'SYMBOL_NOT_FOUND' ||
+					errorMsg.toLowerCase().includes('找不到股票代码') ||
+					errorMsg.toLowerCase().includes('找不到股票数据')
+				) {
+					setStopAutoRefresh(true);
+				}
+
+				return;
+			}
+
 			setRealTimeData(data);
 			setLastUpdated(new Date().toLocaleTimeString());
 			setLoading(false);
+
 			// 如果之前有错误但现在成功获取了数据，清除错误
 			if (error) {
 				setError(null);
 				setStopAutoRefresh(false); // 恢复自动刷新
 			}
 		} catch (err) {
+			// 处理其他可能的错误（例如网络错误）
 			console.error('Failed to load real-time data:', err);
 			const errorMsg = err instanceof Error ? err.message : String(err);
 			setError(errorMsg);
@@ -371,6 +415,38 @@ export default function StockPage() {
 	// 如果有错误，显示错误界面
 	if (error && !loading && stopAutoRefresh) {
 		return <ErrorView error={error} onRetry={handleRefresh} />;
+	}
+
+	// 如果有错误但还在加载中，显示加载状态
+	if (error && loading) {
+		return (
+			<div className='w-full px-6 py-8 flex justify-center items-center'>
+				<div className='text-center'>
+					<p className='mb-4'>Loading...</p>
+					<p className='text-red-500'>{error}</p>
+				</div>
+			</div>
+		);
+	}
+
+	// 检查realTimeData是否为错误对象 - 这种情况不应该发生，但为了健壮性还是添加检查
+	if (realTimeData && 'error' in realTimeData) {
+		return (
+			<ErrorView
+				error={String(realTimeData.error)}
+				onRetry={handleRefresh}
+			/>
+		);
+	}
+
+	// 检查chartData是否为错误对象
+	if (chartData && 'error' in chartData) {
+		return (
+			<ErrorView
+				error={String(chartData.error)}
+				onRetry={handleRefresh}
+			/>
+		);
 	}
 
 	return (
