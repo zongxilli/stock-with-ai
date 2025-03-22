@@ -19,7 +19,7 @@ export default function NotFound() {
 
 			<div className='flex flex-wrap gap-4'>
 				<Button asChild variant='outline' size='lg'>
-					<Link href='/home'>Back to Home</Link>
+					<Link href='/'>Back to Home</Link>
 				</Button>
 			</div>
 		</div>

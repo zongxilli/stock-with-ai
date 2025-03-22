@@ -2,6 +2,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev --turbopack",
+		"dev:non-turbopack": "next dev",
 		"build": "next build",
 		"start": "next start",
 		"seed": "node prisma/seeds/seed.js",
@@ -20,6 +21,7 @@
 		"@radix-ui/react-tabs": "^1.1.3",
 		"@radix-ui/react-toast": "^1.2.6",
 		"@radix-ui/react-tooltip": "^1.1.8",
+		"@sentry/nextjs": "9",
 		"@supabase/ssr": "latest",
 		"@supabase/supabase-js": "latest",
 		"@vercel/edge": "^1.2.1",

@@ -1,30 +1,56 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
+import { AlertTriangle, Home, MessageSquare, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 interface ErrorPageProps {
 	error?: Error | null;
+	eventId?: string;
 }
 
-export default function ErrorPage({ error }: ErrorPageProps) {
+export default function ErrorPage({ error, eventId }: ErrorPageProps) {
 	const router = useRouter();
+	const { toast } = useToast();
+	const [feedback, setFeedback] = useState('');
+	const [showFeedback, setShowFeedback] = useState(false);
+	const [sentryEventId, setSentryEventId] = useState(eventId);
 
 	useEffect(() => {
-		// 可以在这里记录错误到日志服务
+		// 如果没有提供 eventId，则创建一个新的 Sentry 事件
+		if (error && !sentryEventId) {
+			const newEventId = Sentry.captureException(error);
+			setSentryEventId(newEventId);
+		}
+
+		// 记录错误到控制台
 		console.error('应用发生错误:', error);
-	}, [error]);
+	}, [error, sentryEventId]);
 
 	const handleRefresh = () => {
 		window.location.reload();
 	};
 
 	const handleGoHome = () => {
-		router.push('/home');
+		router.push('/');
+	};
+
+	const handleShowReportDialog = () => {
+		if (sentryEventId) {
+			Sentry.showReportDialog({ eventId: sentryEventId });
+		} else {
+			// 如果没有事件 ID，创建一个新的并显示对话框
+			const newEventId = Sentry.captureException(
+				new Error('用户主动报告错误')
+			);
+			Sentry.showReportDialog({ eventId: newEventId });
+		}
 	};
 
 	return (
@@ -45,10 +71,15 @@ export default function ErrorPage({ error }: ErrorPageProps) {
 					<p className='font-mono text-sm text-destructive'>
 						{error.message || 'Unknown error'}
 					</p>
+					{sentryEventId && (
+						<p className='font-mono text-xs text-muted-foreground mt-2'>
+							Error ID: {sentryEventId}
+						</p>
+					)}
 				</div>
 			)}
 
-			<div className='flex flex-wrap gap-4'>
+			<div className='flex flex-wrap gap-4 mb-6'>
 				<Button onClick={handleGoHome} variant='outline' size='lg'>
 					<Home className='mr-2 h-5 w-5' />
 					Back to Home
@@ -56,6 +87,14 @@ export default function ErrorPage({ error }: ErrorPageProps) {
 				<Button onClick={handleRefresh} variant='default' size='lg'>
 					<RefreshCw className='mr-2 h-5 w-5' />
 					Refresh Page
+				</Button>
+				<Button
+					onClick={handleShowReportDialog}
+					variant='secondary'
+					size='lg'
+				>
+					<MessageSquare className='mr-2 h-5 w-5' />
+					Report Problem
 				</Button>
 			</div>
 		</div>

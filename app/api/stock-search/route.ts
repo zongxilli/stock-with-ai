@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import yahooFinance from 'yahoo-finance2';
 
 import { getCache, setCache } from '@/lib/redis';
+import { handleApiError } from '@/utils/utils';
 
 // 定义我们需要的结果类型
 interface FormattedQuote {
@@ -69,7 +70,7 @@ export async function GET(request: Request) {
 
 		return NextResponse.json(formattedResults);
 	} catch (error) {
-		console.error('股票搜索API错误:', error);
-		return NextResponse.json({ error: 'Search failed' }, { status: 500 });
+		// 使用通用错误处理函数
+		return handleApiError(error, '股票搜索失败，请稍后再试', 500);
 	}
 }
