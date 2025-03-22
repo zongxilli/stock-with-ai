@@ -49,7 +49,7 @@ export function StockSearch() {
 		e.preventDefault();
 		if (symbol.trim()) {
 			// 直接使用symbol，不进行编码
-			router.push(`/stock/${symbol.trim()}`);
+			router.push(`/stock/${symbol.trim().toUpperCase()}`);
 			setIsDropdownOpen(false);
 
 			setSymbol('');
