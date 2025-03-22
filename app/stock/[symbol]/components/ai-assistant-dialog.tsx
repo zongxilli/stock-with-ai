@@ -151,7 +151,7 @@ export default function AIAssistantDialog({
 					},
 					body: JSON.stringify({
 						symbol,
-						language: 'EN',
+						language: 'CN',
 						comprehensiveData,
 					}),
 					signal, // 添加abort signal以支持中止请求
@@ -211,9 +211,7 @@ export default function AIAssistantDialog({
 								console.log('Status update:', data.content);
 								// Add status updates to thinking process display with a label
 								setThinkingStatus(
-									(prev) =>
-										prev +
-										`\n\n[DeepSeek R1] ${data.content}\n\n`
+									(prev) => prev + `\n\n${data.content}\n\n`
 								);
 							} else if (data.type === 'complete') {
 								console.log('Received complete data');
@@ -298,7 +296,7 @@ export default function AIAssistantDialog({
 					'Aborting DeepSeek API stream connection to save token usage'
 				);
 			}
-			
+
 			// 无论如何，重置状态以便下次打开时状态干净
 			setIsStreaming(false);
 			setThinking('');

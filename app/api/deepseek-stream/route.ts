@@ -37,16 +37,10 @@ export async function POST(req: NextRequest) {
 						encoder.encode(
 							`data: ${JSON.stringify({
 								type: 'status',
-								content: `Analyzing ${symbol}...`,
+								content: `[DeepSeek-R1 671B] Analyzing ${symbol}...`,
 							})}\n\n`
 						)
 					);
-
-					// 设置系统提示和用户提示
-					const systemPrompt =
-						language === 'CN'
-							? '你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议，当你回答问题时，首先用中文一步一步地思考，确保你的每一个思考步骤都是用中文表达的。然后给出你的最终答案，也必须完全用中文。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。非常重要：你的思考过程(reasoning_content)必须使用中文，这样用户才能理解你的分析思路。'
-							: 'You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice.Please think and answer all questions completely in English. When you answer questions, first think step by step in English, ensuring that each of your thought steps is expressed in English. Then give your final answer, which must also be completely in English. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format. Very important: Your thinking process (reasoning_content) must be in English so users can understand your analytical approach.';
 
 					// 准备股票数据字符串
 					const stockDataString = JSON.stringify(
@@ -55,9 +49,12 @@ export async function POST(req: NextRequest) {
 						2
 					);
 
+					// 设置用户提示
 					const userPrompt =
 						language === 'CN'
-							? `请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
+							? `你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议，当你回答问题时，首先用中文一步一步地思考，确保你的每一个思考步骤都是用中文表达的。然后给出你的最终答案，也必须完全用中文。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。非常重要：你的思考过程(reasoning_content)必须使用中文，这样用户才能理解你的分析思路。
+
+请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
 
 以下是该股票的全面数据，请在你的分析中充分利用这些数据：
 ${stockDataString}
@@ -142,7 +139,9 @@ ${stockDataString}
 7. 权衡风险与回报，提供平衡视角
 
 请确保返回的是有效的JSON格式，不要包含任何额外的文本、解释或markdown格式。`
-							: `Please provide a comprehensive analysis of the stock with symbol ${symbol} and return the data in the following JSON structure.
+							: `You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice. Please think and answer all questions completely in English. When you answer questions, first think step by step in English, ensuring that each of your thought steps is expressed in English. Then give your final answer, which must also be completely in English. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format. Very important: Your thinking process (reasoning_content) must be in English so users can understand your analytical approach.
+
+Please provide a comprehensive analysis of the stock with symbol ${symbol} and return the data in the following JSON structure.
 
 Here is the comprehensive data for this stock. Please use this data extensively in your analysis:
 ${stockDataString}
@@ -227,6 +226,7 @@ Analysis requirements:
 7. Balance risk and reward, providing a balanced perspective
 
 Please ensure that the response is in valid JSON format without any additional text, explanations, or markdown formatting.`;
+
 					// 调用DeepSeek API启用流式传输
 					const response = await fetch(DEEPSEEK_API_URL, {
 						method: 'POST',
@@ -239,32 +239,17 @@ Please ensure that the response is in valid JSON format without any additional t
 							stream: true,
 							messages: [
 								{
-									role: 'system',
-									content:
-										'你是一个有用的AI助手。请始终使用' +
-										(language === 'CN' ? '中文' : '英文') +
-										'思考和回答所有问题。当你思考问题时，确保你的每一个推理步骤都完全用' +
-										(language === 'CN' ? '中文' : '英文') +
-										'表达。你的最终回答也必须完全用' +
-										(language === 'CN' ? '中文' : '英文') +
-										'。即使问题使用其他语言提出，你也必须用' +
-										(language === 'CN' ? '中文' : '英文') +
-										'回答。' +
-										systemPrompt,
-								},
-								{
 									role: 'user',
-									content:
-										(language === 'CN'
-											? '请用中文回答：'
-											: 'Please answer in English: ') +
-										userPrompt,
+									content: userPrompt,
 								},
 							],
 							reasoning_language:
 								language === 'CN' ? '中文' : 'English',
 							language: language === 'CN' ? '中文' : 'English',
-							
+							response_format: {
+								type: 'json_object',
+							},
+							temperature: 0.6,
 						}),
 					});
 
@@ -500,62 +485,6 @@ Please ensure that the response is in valid JSON format without any additional t
 								})}\n\n`
 							)
 						);
-					}
-					// 发送带有完整数据的最终消息
-					try {
-						let finalData = {};
-						try {
-							// 通过删除markdown代码块标记来清理累积的内容
-							let contentToProcess = accumulatedContent.trim();
-
-							// 如果存在，则删除开头的markdown代码块
-							if (
-								contentToProcess.startsWith('```json') ||
-								contentToProcess.startsWith('```')
-							) {
-								contentToProcess = contentToProcess.replace(
-									/^```(json)?/,
-									''
-								);
-							}
-
-							// 如果存在，则删除结尾的markdown代码块
-							if (contentToProcess.endsWith('```')) {
-								contentToProcess = contentToProcess.replace(
-									/```$/,
-									''
-								);
-							}
-
-							// 删除标记后修剪多余的空白
-							contentToProcess = contentToProcess.trim();
-
-							// 尝试将清理后的内容解析为JSON
-							finalData = JSON.parse(contentToProcess);
-						} catch (error) {
-							console.error(
-								'Error parsing final content as JSON:',
-								error
-							);
-							// 如果解析失败，使用基本结构
-							finalData = {
-								analysis: accumulatedContent,
-								recommendations: [],
-								sentiment: 'neutral',
-							};
-						}
-
-						controller.enqueue(
-							encoder.encode(
-								`data: ${JSON.stringify({
-									type: 'complete',
-									content: finalData,
-									thinking: accumulatedThinking,
-								})}\n\n`
-							)
-						);
-					} catch (error) {
-						console.error('Error sending final message:', error);
 					}
 				} catch (error) {
 					console.error('Stream processing error:', error);
