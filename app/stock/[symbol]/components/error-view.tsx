@@ -1,11 +1,11 @@
 'use client';
 
-import { AlertTriangle, Home, RefreshCw, Search } from 'lucide-react';
+import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 
-// Popular stocks recommendation list
+// 热门股票推荐列表
 const POPULAR_STOCKS = [
 	{ symbol: 'AAPL', name: 'Apple Inc.' },
 	{ symbol: 'MSFT', name: 'Microsoft Corporation' },
@@ -18,39 +18,9 @@ const POPULAR_STOCKS = [
 interface ErrorViewProps {
 	error: string;
 	onRetry: () => void;
-	isSearching?: boolean;
-	searchQuery?: string;
 }
 
-export default function ErrorView({
-	error,
-	onRetry,
-	isSearching = false,
-	searchQuery = '',
-}: ErrorViewProps) {
-	// If searching for alternatives, show a special screen
-	if (isSearching) {
-		return (
-			<div className='w-full px-6 py-8'>
-				<div className='flex flex-col items-center justify-center py-12 text-center'>
-					<div className='mb-6 flex items-center justify-center'>
-						<Search className='h-12 w-12 text-primary animate-pulse' />
-					</div>
-					<h1 className='text-3xl font-bold mb-4'>
-						Finding Alternative Symbol
-					</h1>
-					<p className='text-lg text-muted-foreground mb-6 max-w-lg'>
-						Couldn't find "{searchQuery}". Searching for similar
-						symbols...
-					</p>
-					<div className='animate-pulse text-sm text-muted-foreground'>
-						Please wait a moment...
-					</div>
-				</div>
-			</div>
-		);
-	}
-
+export default function ErrorView({ error, onRetry }: ErrorViewProps) {
 	return (
 		<div className='w-full px-6 py-8'>
 			<div className='flex flex-col items-center justify-center py-12 text-center'>
