@@ -1,25 +1,9 @@
 'use server';
 
-import { calculateDateRange, TimeRange } from './indicators/types/types';
+import { HistoricalDataPoint } from './get-historical-data';
+import { calculateDateRange } from './indicators/types/types';
 
 import { getCache, setCache } from '@/lib/redis';
-
-// 定义历史数据的数据点接口
-export interface HistoricalDataPoint {
-	date: string; // 日期，格式 YYYY-MM-DD
-	open: number; // 开盘价
-	high: number; // 最高价
-	low: number; // 最低价
-	close: number; // 收盘价
-	adjusted_close: number; // 调整后的收盘价（已根据分红和拆股调整）
-	volume: number; // 成交量
-}
-
-export interface HistoricalDataMinimal {
-	date: string;
-	adjusted_close: number;
-	volume: number;
-}
 
 /**
  * 获取股票历史数据
@@ -28,21 +12,18 @@ export interface HistoricalDataMinimal {
  *
  * @param code 股票代码
  * @param exchange 交易所代码
- * @param range 时间范围：5d(5天), 1mo(1个月), 3mo(3个月), 6mo(6个月), 1y(1年), 5y(5年), max(全部历史)
  * @returns 历史数据点数组，按日期排序（从最旧到最新）
  */
-export async function getHistoricalData(
+export async function getHistoricalData1MonthFull(
 	code: string,
-	exchange: string,
-	range: TimeRange,
-	minimal: boolean = true
-): Promise<HistoricalDataPoint[] | HistoricalDataMinimal[]> {
+	exchange: string
+): Promise<HistoricalDataPoint[]> {
 	try {
 		// 构建完整的股票标识符（格式：CODE.EXCHANGE）
 		const symbol = `${code}.${exchange}`;
 
 		// 尝试从Redis缓存获取数据
-		const cacheKey = `eodhd_historical:${symbol}:${range}:minimal=${minimal}`;
+		const cacheKey = `eodhd_historical_1_month_full:${symbol}`;
 		const cachedData = await getCache(cacheKey);
 		if (cachedData) {
 			return cachedData;
@@ -54,8 +35,10 @@ export async function getHistoricalData(
 			throw new Error('EODHD API密钥未配置');
 		}
 
-		const { startDate, endDate } = calculateDateRange(range);
+		// 计算开始日期（基于当前日期和请求的范围）
+		const { startDate, endDate } = calculateDateRange('1mo');
 
+		// 构建API请求参数
 		// 构建API请求参数
 		const params = new URLSearchParams({
 			api_token: apiKey,
@@ -89,17 +72,8 @@ export async function getHistoricalData(
 		// 解析API响应数据
 		const apiData = await response.json();
 
-		let historicalData: HistoricalDataPoint[] | HistoricalDataMinimal[] =
-			[];
-
-		if (minimal) {
-			historicalData = apiData.map((item: any) => ({
-				date: item.date,
-				adjusted_close: item.adjusted_close,
-				volume: item.volume,
-			}));
-		} else {
-			historicalData = apiData.map((item: any) => ({
+		const historicalData: HistoricalDataPoint[] = apiData.map(
+			(item: any) => ({
 				date: item.date,
 				open: item.open,
 				high: item.high,
@@ -107,8 +81,8 @@ export async function getHistoricalData(
 				close: item.close,
 				adjusted_close: item.adjusted_close,
 				volume: item.volume,
-			}));
-		}
+			})
+		);
 
 		// 将数据缓存到Redis（缓存1小时）
 		await setCache(cacheKey, historicalData, 3600);
