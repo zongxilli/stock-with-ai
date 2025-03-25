@@ -64,9 +64,83 @@ export async function POST(req: NextRequest) {
 						: 'No historical data available';
 
 					// 设置用户提示
+					const systemPrompt =
+						language === 'CN'
+							? `
+您现在是顶尖对冲基金的量化分析师，需要结合以下数据进行多维度股票分析：
+
+<核心任务>
+1. 严格遵循JSON模板结构
+2. 每个分析字段必须引用输入数据
+3. 保持绝对的专业中立性
+4. 区分事实描述与预测推断
+</核心任务>
+
+<数据使用规范>
+1. 若技术指标数据缺失，相关字段标记为"数据不足"
+2. 对矛盾数据需标注"矛盾点分析"
+3. 异常值必须用"⚠️"标识
+</数据使用规范>
+
+<数据关联指南>
+1. 将PE比率与行业平均值比较时，必须标注具体数值差异
+2. RSI分析需关联最近5个交易日的价格变化
+3. 现金流分析必须对比过去3个财季数据
+</数据关联指南>
+
+<格式强制要求>
+1. 禁用Markdown符号（包括\`\`\`）
+2. 数值保留两位小数
+3. 时间格式：YYYY-MM-DD
+4. 计量单位统一为美元
+5. 情感字段必须大写（POSITIVE/NEUTRAL/NEGATIVE）
+</格式强制要求>
+
+<错误预防机制>
+1. 如果JSON生成失败，返回{"error": "详细错误描述"}
+2. 遇到空值字段使用null占位
+3. 日期缺失时标注"日期未知"
+</错误预防机制>`
+							: `
+As a top-tier quant analyst at a hedge fund, conduct multidimensional stock analysis with strict adherence to:
+
+<Core Requirements>
+1. Follow JSON schema precisely
+2. Ground every analysis in provided data
+3. Maintain professional neutrality
+4. Clearly separate facts from predictions
+</Core Requirements>
+
+<Data Usage Rules>
+1. Mark fields as "Insufficient Data" if inputs are missing
+2. Highlight data contradictions with "Contradiction Alert"
+3. Flag anomalies with "⚠️" symbol
+</Data Usage Rules>
+
+<Data Correlation Guidelines>
+1. Compare PE ratios with industry average using exact percentage differences
+2. Relate RSI analysis to 5-day price movements 
+3. Cash flow analysis must contrast last 3 fiscal quarters
+</Data Correlation Guidelines>
+
+<Format Enforcement>
+1. Strictly NO markdown symbols (including \`\`\`)
+2. Numeric values to 2 decimal places  
+3. Date format: YYYY-MM-DD
+4. Currency units in USD
+5. Sentiment field MUST be uppercase
+</Format Enforcement>
+
+<Error Prevention>
+1. If JSON generation fails, return {"error": "Detailed description"}
+2. Use null for missing values  
+3. Mark missing dates as "DATE_UNAVAILABLE"
+</Error Prevention>`;
+
+					// 设置用户提示
 					const userPrompt =
 						language === 'CN'
-							? `你是一个专业的股票分析师，擅长分析股票数据并提供详细的投资建议，当你回答问题时，首先用中文一步一步地思考，确保你的每一个思考步骤都是用中文表达的。然后给出你的最终答案，也必须完全用中文。你需要从多个维度对股票进行全面分析，包括技术面、基本面、行业地位、风险因素和未来展望。请确保分析深入、数据充分，并给出明确的投资建议。重要：你必须以JSON格式返回数据，不要使用markdown格式。非常重要：你的思考过程(reasoning_content)必须使用中文，这样用户才能理解你的分析思路。
+							? `${systemPrompt}
 
 请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：
 
@@ -146,7 +220,7 @@ ${historicalDataString}
     "midTerm": "6-12个月预测价格及依据",
     "longTerm": "1-3年预测价格及依据"
   },
-  "sentiment": "整体投资情绪，必须是以下三种之一：positive、neutral、negative"
+  "sentiment": "整体投资情绪，必须是以下三种之一：POSITIVE、NEUTRAL、NEGATIVE"
 }
 
 分析要求：
@@ -159,7 +233,7 @@ ${historicalDataString}
 7. 权衡风险与回报，提供平衡视角
 
 请确保返回的是有效的JSON格式，不要包含任何额外的文本、解释或markdown格式。`
-							: `You are a professional stock analyst skilled at analyzing stock data and providing detailed investment advice. Please think and answer all questions completely in English. When you answer questions, first think step by step in English, ensuring that each of your thought steps is expressed in English. Then give your final answer, which must also be completely in English. You need to comprehensively analyze stocks from multiple dimensions, including technical analysis, fundamentals, industry position, risk factors, and future outlook. Please ensure your analysis is in-depth, data-rich, and provides clear investment recommendations. Important: You must return data in JSON format, not in markdown format. Very important: Your thinking process (reasoning_content) must be in English so users can understand your analytical approach.
+							: `${systemPrompt}
 
 Please provide a comprehensive analysis of the stock with symbol ${symbol} and return the data in the following JSON structure.
 
@@ -168,6 +242,9 @@ ${stockDataString}
 
 Here is the technical indicators data for this stock. Please use this data extensively in your technical analysis:
 ${technicalDataString}
+
+Here is the historical data for this stock. Please use this data extensively in your analysis:
+${historicalDataString}
 
 Based on the above data, please conduct a thorough analysis and return your findings in the following JSON format:
 
@@ -236,7 +313,7 @@ Based on the above data, please conduct a thorough analysis and return your find
     "midTerm": "6-12 month price forecast and rationale",
     "longTerm": "1-3 year price forecast and rationale"
   },
-  "sentiment": "Overall investment sentiment, must be one of the following: positive, neutral, negative"
+  "sentiment": "Overall investment sentiment, must be one of the following: POSITIVE, NEUTRAL, NEGATIVE"
 }
 
 Analysis requirements:
@@ -272,7 +349,10 @@ Please ensure that the response is in valid JSON format without any additional t
 							response_format: {
 								type: 'json_object',
 							},
-							temperature: 0.6,
+							temperature: 0.3, // 降低随机性
+							top_p: 0.9,
+							frequency_penalty: 0.5, // 减少重复
+							presence_penalty: 0.3,
 						}),
 					});
 
