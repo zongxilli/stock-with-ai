@@ -168,7 +168,17 @@ export default function StockPage() {
 	// 如果没有指定时间范围，重定向到默认的1年范围
 	useEffect(() => {
 		if (!searchParams.get('range') && symbol) {
-			router.replace(`/stock/${symbol}?range=1y`, { scroll: false });
+			// 创建一个新的URLSearchParams对象，复制当前所有的查询参数
+			const newSearchParams = new URLSearchParams(
+				searchParams.toString()
+			);
+
+			newSearchParams.set('range', '1y');
+
+			// 构建新的URL，保留所有原有参数
+			router.replace(`/stock/${symbol}?${newSearchParams.toString()}`, {
+				scroll: false,
+			});
 		}
 	}, [searchParams, symbol, router]);
 
@@ -231,8 +241,13 @@ export default function StockPage() {
 						const correctSymbol = searchResult.firstResult.symbol;
 						console.log(`重定向到正确的股票代码: ${correctSymbol}`);
 						setIsRedirecting(true);
+
+						const newSearchParams = new URLSearchParams(
+							searchParams.toString()
+						);
+
 						router.replace(
-							`/stock/${correctSymbol}?range=${range}`
+							`/stock/${correctSymbol}?${newSearchParams.toString()}`
 						);
 						return;
 					}
@@ -335,8 +350,11 @@ export default function StockPage() {
 						const correctSymbol = searchResult.firstResult.symbol;
 						console.log(`重定向到正确的股票代码: ${correctSymbol}`);
 						setIsRedirecting(true);
+						const newSearchParams = new URLSearchParams(
+							searchParams.toString()
+						);
 						router.replace(
-							`/stock/${correctSymbol}?range=${range}`
+							`/stock/${correctSymbol}?${newSearchParams.toString()}`
 						);
 						return;
 					}

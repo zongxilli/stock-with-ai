@@ -42,8 +42,14 @@ export function StockSearch() {
 		}
 	};
 
-	const redirectToStockAndClearSearch = (symbol: string) => {
-		router.push(`/stock/${symbol.trim()}`);
+	const redirectToStockAndClearSearch = (
+		eodhdSymbol: string,
+		exchange: string = ''
+	) => {
+		// 构建包含股票代码和交易所的URL
+		const url = `/stock/${eodhdSymbol}?code=${eodhdSymbol}&exchange=${exchange}&range=1y`;
+
+		router.push(url);
 		clearSearch();
 	};
 
@@ -61,8 +67,11 @@ export function StockSearch() {
 				const eodhdResults = await searchStock(symbol.trim(), {});
 
 				if (eodhdResults && eodhdResults.length > 0) {
-					// 优先使用搜索结果中的第一项
-					redirectToStockAndClearSearch(eodhdResults[0].Code);
+					// 优先使用搜索结果中的第一项，同时提供交易所信息
+					redirectToStockAndClearSearch(
+						eodhdResults[0].Code,
+						eodhdResults[0].Exchange
+					);
 				} else {
 					// 没有搜索结果时才使用用户输入
 					redirectToStockAndClearSearch(symbol.trim());
@@ -80,7 +89,7 @@ export function StockSearch() {
 	// 选择搜索结果
 	const handleSelectResult = (result: StockSearchResult) => {
 		if (result.symbol) {
-			redirectToStockAndClearSearch(result.symbol);
+			redirectToStockAndClearSearch(result.symbol, result.exchange);
 		}
 	};
 
