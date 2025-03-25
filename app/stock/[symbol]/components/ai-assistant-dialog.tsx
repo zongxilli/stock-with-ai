@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
+import { getHistoricalData } from '@/app/actions/eodhd/get-historical-data';
+import { getTechnicalIndicators } from '@/app/actions/eodhd/get-technical-indicators';
 import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
 import JsonFormatter from '@/components/custom/json-formatter';
 import EnhancedTextFormatter from '@/components/custom/text-formatter-enhanced';
@@ -59,6 +61,8 @@ interface AIAssistantDialogProps {
 	isLoading: boolean;
 	data: AIAssistantData | null;
 	useStream?: boolean;
+	code: string;
+	exchange: string;
 }
 
 export default function AIAssistantDialog({
@@ -68,6 +72,8 @@ export default function AIAssistantDialog({
 	isLoading: initialIsLoading,
 	data: initialData,
 	useStream = false,
+	code,
+	exchange,
 }: AIAssistantDialogProps) {
 	const [activeTab, setActiveTab] = useState('analysis');
 	const [streamData, setStreamData] = useState<AIAssistantData | null>(null);
@@ -140,6 +146,23 @@ export default function AIAssistantDialog({
 					return;
 				}
 
+				// 获取技术指标数据
+				const technicalIndicatorsData = await getTechnicalIndicators(
+					code,
+					exchange,
+					'3mo' // 默认一年数据范围
+				);
+
+				console.log(technicalIndicatorsData);
+
+				const historicalData = await getHistoricalData(
+					code,
+					exchange,
+					'3mo' // 默认一年数据范围
+				);
+
+				console.log(historicalData);
+
 				// Add loading state feedback
 				console.log(`Fetching analysis for ${symbol}...`);
 
@@ -153,6 +176,8 @@ export default function AIAssistantDialog({
 						symbol,
 						language: 'CN',
 						comprehensiveData,
+						technicalIndicatorsData,
+						historicalData,
 					}),
 					signal, // 添加abort signal以支持中止请求
 				});
