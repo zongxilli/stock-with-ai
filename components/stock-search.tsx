@@ -103,7 +103,7 @@ export function StockSearch() {
 					symbol: item.Code,
 					shortname: item.Name,
 					longname: item.Name,
-					type: mapEodhdTypeToYahooType(item.Type),
+					type: item.Type,
 					exchange: item.Exchange,
 					ISIN: item.ISIN ?? '',
 				}));
@@ -125,44 +125,6 @@ export function StockSearch() {
 			setIsDropdownOpen(false);
 		}
 	}, [debouncedSearchTerm]);
-
-	// 将EODHD类型映射到之前使用的Yahoo类型
-	const mapEodhdTypeToYahooType = (type: string): string => {
-		switch (type.toUpperCase()) {
-			case 'COMMON_STOCK':
-				return 'EQUITY';
-			case 'ETF':
-				return 'ETF';
-			case 'INDEX':
-				return 'INDEX';
-			case 'MUTUAL_FUND':
-			case 'FUND':
-				return 'MUTUALFUND';
-			case 'CRYPTO':
-			case 'CRYPTOCURRENCY':
-				return 'CRYPTOCURRENCY';
-			default:
-				return type.toUpperCase();
-		}
-	};
-
-	// 根据结果类型返回标签文本
-	const getTypeLabel = (type: string) => {
-		switch (type) {
-			case 'EQUITY':
-				return 'Stock';
-			case 'ETF':
-				return 'ETF';
-			case 'INDEX':
-				return 'Index';
-			case 'MUTUALFUND':
-				return 'Fund';
-			case 'CRYPTOCURRENCY':
-				return 'Crypto';
-			default:
-				return type;
-		}
-	};
 
 	return (
 		<div className='w-full min-w-0 relative' ref={dropdownRef}>
@@ -226,7 +188,7 @@ export function StockSearch() {
 										</div>
 									</div>
 									<div className='text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground divide-solid border-2 border-indigo-700'>
-										{getTypeLabel(result.type)}
+										{result.type}
 									</div>
 								</div>
 							</li>
