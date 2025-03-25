@@ -10,6 +10,8 @@ export async function POST(req: NextRequest) {
 			symbol,
 			language = 'EN',
 			comprehensiveData, // 接收全面的股票数据
+			technicalIndicatorsData, // 接收技术指标数据
+			historicalData, // 接收历史数据
 		} = await req.json();
 
 		if (!symbol) {
@@ -51,6 +53,16 @@ export async function POST(req: NextRequest) {
 						2
 					);
 
+					// 准备技术指标数据字符串
+					const technicalDataString = technicalIndicatorsData
+						? JSON.stringify(technicalIndicatorsData, null, 2)
+						: 'No technical indicator data available';
+
+					// 准备历史数据字符串
+					const historicalDataString = historicalData
+						? JSON.stringify(historicalData, null, 2)
+						: 'No historical data available';
+
 					// 设置用户提示
 					const userPrompt =
 						language === 'CN'
@@ -60,6 +72,12 @@ export async function POST(req: NextRequest) {
 
 以下是该股票的全面数据，请在你的分析中充分利用这些数据：
 ${stockDataString}
+
+以下是该股票的技术指标数据，请在技术分析中充分利用这些数据：
+${technicalDataString}
+
+以下是该股票的历史数据，请在分析中充分利用这些数据：
+${historicalDataString}
 
 请基于上述数据，进行深入分析并返回以下JSON格式的结果：
 
@@ -147,6 +165,9 @@ Please provide a comprehensive analysis of the stock with symbol ${symbol} and r
 
 Here is the comprehensive data for this stock. Please use this data extensively in your analysis:
 ${stockDataString}
+
+Here is the technical indicators data for this stock. Please use this data extensively in your technical analysis:
+${technicalDataString}
 
 Based on the above data, please conduct a thorough analysis and return your findings in the following JSON format:
 
