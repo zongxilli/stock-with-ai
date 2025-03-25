@@ -42,24 +42,45 @@ export function StockSearch() {
 		}
 	};
 
-	const redirectToStock = (symbol: string) => {
+	const redirectToStockAndClearSearch = (symbol: string) => {
 		router.push(`/stock/${symbol.trim()}`);
+		clearSearch();
 	};
 
 	// 处理搜索提交
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+
 		if (symbol.trim()) {
-			redirectToStock(symbol.trim());
-			clearSearch();
+			// 立即触发搜索，不管debounce状态
+			try {
+				// 先设置加载状态
+				setIsLoading(true);
+
+				// 主动触发搜索，不依赖debounce
+				const eodhdResults = await searchStock(symbol.trim(), {});
+
+				if (eodhdResults && eodhdResults.length > 0) {
+					// 优先使用搜索结果中的第一项
+					redirectToStockAndClearSearch(eodhdResults[0].Code);
+				} else {
+					// 没有搜索结果时才使用用户输入
+					redirectToStockAndClearSearch(symbol.trim());
+				}
+			} catch (error) {
+				console.error('搜索股票时出错:', error);
+				// 出错时使用用户输入的symbol
+				redirectToStockAndClearSearch(symbol.trim());
+			} finally {
+				setIsLoading(false);
+			}
 		}
 	};
 
 	// 选择搜索结果
 	const handleSelectResult = (result: StockSearchResult) => {
 		if (result.symbol) {
-			redirectToStock(result.symbol);
-			clearSearch();
+			redirectToStockAndClearSearch(result.symbol);
 		}
 	};
 
