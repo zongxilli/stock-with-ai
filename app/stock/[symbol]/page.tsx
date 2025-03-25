@@ -12,14 +12,15 @@ import StatusIndicator from './components/status-indicator';
 import StockDetails from './components/stock-details';
 import StockHeader from './components/stock-header';
 
+import { getHistoricalData } from '@/app/actions/eodhd/get-historical-data';
+import { getHistoricalData1MonthFull } from '@/app/actions/eodhd/get-historical-data-1-month-full';
+import { compressHistoricalData } from '@/app/actions/eodhd/utils/compress';
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
 import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
 import { searchStock } from '@/app/actions/yahoo/search-stock';
+import { Button } from '@/components/ui/button';
 import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
 import { usePrevious } from '@/hooks/use-previous';
-import { Button } from '@/components/ui/button';
-import { getHistoricalData } from '@/app/actions/eodhd/get-historical-data';
-import { getHistoricalData1MonthFull } from '@/app/actions/eodhd/get-historical-data-1-month-full';
 
 // 定义股票实时数据类型
 interface StockRealTimeData {
@@ -608,13 +609,17 @@ export default function StockPage() {
 						exchange || '',
 						'1y'
 					);
-					console.log(data);
+					console.log(
+						compressHistoricalData(data, false, code || '')
+					);
 
 					const data1 = await getHistoricalData1MonthFull(
 						code || '',
 						exchange || ''
 					);
-					console.log(data1);
+					console.log(
+						compressHistoricalData(data1, true, code || '')
+					);
 				}}
 			>
 				Historical Data
