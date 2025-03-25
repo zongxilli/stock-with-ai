@@ -73,26 +73,9 @@ export async function getComprehensiveStockData(symbol: string) {
 			),
 		];
 
-		// 图表数据 - 只获取过去2年的数据，足够长期趋势分析
-		const chartPromise = fetchSafely(
-			() =>
-				yahooFinance.chart(normalizedSymbol, {
-					period1: new Date(
-						new Date().setFullYear(new Date().getFullYear() - 2)
-					),
-					interval: '1d', // 每日数据点，足够详细且有意义
-				}),
-			'chartData5y'
-		);
-
 		// 并行执行所有请求
-		const [mainResults, chartResult] = await Promise.all([
-			Promise.all(fetchPromises),
-			chartPromise,
-		]);
-
-		// 将结果数组转换为便于访问的对象
-		const [quoteResult, quoteSummaryResult, insightsResult] = mainResults;
+		const [quoteResult, quoteSummaryResult, insightsResult] =
+			await Promise.all(fetchPromises);
 
 		// 验证关键数据是否成功获取
 		if (!quoteResult.success && !quoteSummaryResult.success) {
@@ -126,13 +109,10 @@ export async function getComprehensiveStockData(symbol: string) {
 			insights: insightsResult.success
 				? trimInsightsData(insightsResult.data)
 				: null,
-			// 移除recommendationsBySymbol
-			chartData: chartResult.success
-				? trimChartData(chartResult.data)
-				: null,
+			// 已移除chartData
+			fetchTime: new Date().toISOString(),
 			// 保留提取的关键指标 - 这是最重要的分析数据
 			keyMetrics,
-			fetchTime: new Date().toISOString(),
 		};
 
 		try {
@@ -153,7 +133,8 @@ export async function getComprehensiveStockData(symbol: string) {
 		return {
 			error: `获取综合股票数据失败: ${error instanceof Error ? error.message : String(error)}`,
 			errorType: 'UNKNOWN_ERROR',
-			originalError: error instanceof Error ? error.message : String(error)
+			originalError:
+				error instanceof Error ? error.message : String(error),
 		};
 	}
 }
@@ -349,24 +330,6 @@ function trimInsightsData(insightsData: any) {
 	}
 
 	return trimmed;
-}
-
-// 裁剪图表数据
-function trimChartData(chartData: any) {
-	if (!chartData || !chartData.quotes) return null;
-
-	// 保留关键的价格数据点，但移除不必要的元数据
-	return {
-		quotes: chartData.quotes.map((quote: any) => ({
-			date: quote.date,
-			open: quote.open,
-			high: quote.high,
-			low: quote.low,
-			close: quote.close,
-			volume: quote.volume,
-			adjclose: quote.adjclose,
-		})),
-	};
 }
 
 // 安全地获取数据，包装为统一格式的结果对象
