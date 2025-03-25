@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
-import { getHistoricalData } from '@/app/actions/eodhd/get-historical-data';
-import { getTechnicalIndicators } from '@/app/actions/eodhd/get-technical-indicators';
+import { getCompressedHistoricalDataForAnalysis } from '@/app/actions/eodhd/get-compressed-historical-data-for-analysis';
+import { getCompressedTechnicalIndicatorsDataForAnalysis } from '@/app/actions/eodhd/get-compressed-technical-indicators-data-for-analysis';
 import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
 import JsonFormatter from '@/components/custom/json-formatter';
 import EnhancedTextFormatter from '@/components/custom/text-formatter-enhanced';
@@ -147,19 +147,21 @@ export default function AIAssistantDialog({
 				}
 
 				// 获取技术指标数据
-				const technicalIndicatorsData = await getTechnicalIndicators(
-					code,
-					exchange,
-					'3mo' // 默认一年数据范围
-				);
+				const technicalIndicatorsData =
+					await getCompressedTechnicalIndicatorsDataForAnalysis(
+						code,
+						exchange,
+						'1y' // 默认一年数据范围
+					);
 
 				console.log(technicalIndicatorsData);
 
-				const historicalData = await getHistoricalData(
-					code,
-					exchange,
-					'3mo' // 默认一年数据范围
-				);
+				const historicalData =
+					await getCompressedHistoricalDataForAnalysis(
+						code,
+						exchange,
+						'1y'
+					);
 
 				console.log(historicalData);
 

@@ -8,7 +8,7 @@ import {
  * @param dateStr 原始日期字符串，格式为 "YYYY-MM-DD"
  * @returns 压缩后的日期字符串，格式为 "YYMMDD"
  */
-function compressDate(dateStr: string): string {
+export function compressDate(dateStr: string): string {
 	// 从日期字符串中提取年、月、日
 	const [year, month, day] = dateStr.split('-');
 
