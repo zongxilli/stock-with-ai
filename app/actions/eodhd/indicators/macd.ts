@@ -3,7 +3,7 @@
 import {
 	BaseIndicatorParams,
 	MultiValueIndicatorDataPoint,
-} from './types/types';
+} from '../types/types';
 import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 // MACD参数接口

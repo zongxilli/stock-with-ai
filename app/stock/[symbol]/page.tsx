@@ -17,6 +17,9 @@ import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-dat
 import { searchStock } from '@/app/actions/yahoo/search-stock';
 import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
 import { usePrevious } from '@/hooks/use-previous';
+import { Button } from '@/components/ui/button';
+import { getHistoricalData } from '@/app/actions/eodhd/get-historical-data';
+import { getHistoricalData1MonthFull } from '@/app/actions/eodhd/get-historical-data-1-month-full';
 
 // 定义股票实时数据类型
 interface StockRealTimeData {
@@ -535,6 +538,9 @@ export default function StockPage() {
 		);
 	}
 
+	const code = searchParams.get('code');
+	const exchange = searchParams.get('exchange');
+
 	return (
 		<div className='w-full px-6 py-8'>
 			{/* 股票头部信息 */}
@@ -576,6 +582,8 @@ export default function StockPage() {
 				isLoading={_aiLoading}
 				data={_aiData}
 				useStream={true}
+				code={code || ''}
+				exchange={exchange || ''}
 			/>
 
 			{/* 状态指示器 */}
@@ -592,6 +600,25 @@ export default function StockPage() {
 
 			{/* 添加股票详情网格 */}
 			{realTimeData && <StockDetails {...realTimeData} />}
+
+			<Button
+				onClick={async () => {
+					const data = await getHistoricalData(
+						code || '',
+						exchange || '',
+						'1y'
+					);
+					console.log(data);
+
+					const data1 = await getHistoricalData1MonthFull(
+						code || '',
+						exchange || ''
+					);
+					console.log(data1);
+				}}
+			>
+				Historical Data
+			</Button>
 		</div>
 	);
 }

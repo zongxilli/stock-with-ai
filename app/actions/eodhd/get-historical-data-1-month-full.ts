@@ -1,7 +1,7 @@
 'use server';
 
 import { HistoricalDataPoint } from './get-historical-data';
-import { calculateDateRange } from './indicators/types/types';
+import { calculateDateRange } from './types/types';
 
 import { getCache, setCache } from '@/lib/redis';
 

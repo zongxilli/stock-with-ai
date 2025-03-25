@@ -3,7 +3,7 @@
 import {
 	BaseIndicatorParams,
 	MultiValueIndicatorDataPoint,
-} from './types/types';
+} from '../types/types';
 import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 // 随机RSI参数接口

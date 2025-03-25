@@ -4,7 +4,7 @@ import {
 	BaseIndicatorParams,
 	calculateDateRange,
 	formatDate,
-} from '../types/types';
+} from '../../types/types';
 
 import { getCache, setCache } from '@/lib/redis';
 

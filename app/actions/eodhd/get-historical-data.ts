@@ -1,6 +1,6 @@
 'use server';
 
-import { calculateDateRange, TimeRange } from './indicators/types/types';
+import { calculateDateRange, TimeRange } from './types/types';
 
 import { getCache, setCache } from '@/lib/redis';
 

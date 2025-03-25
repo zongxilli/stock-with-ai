@@ -27,7 +27,7 @@ import {
 	getStochasticRSI,
 	StochasticRSIDataPoint,
 } from './indicators/stochrsi';
-import { BaseIndicatorParams, TimeRange } from './indicators/types/types';
+import { BaseIndicatorParams, TimeRange } from './types/types';
 import { TechnicalIndicatorPresets } from './indicators/utils/presets';
 import { getVolatility } from './indicators/volatility';
 import { getWMA } from './indicators/wma';

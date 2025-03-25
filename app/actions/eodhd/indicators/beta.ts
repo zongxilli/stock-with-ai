@@ -1,6 +1,6 @@
 'use server';
 
-import { BaseIndicatorParams, IndicatorDataPoint } from './types/types';
+import { BaseIndicatorParams, IndicatorDataPoint } from '../types/types';
 import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 // BETA参数接口

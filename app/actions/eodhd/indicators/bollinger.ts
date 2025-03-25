@@ -3,7 +3,7 @@
 import {
 	BaseIndicatorParams,
 	MultiValueIndicatorDataPoint,
-} from './types/types';
+} from '../types/types';
 import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 // 布林带返回数据结构
