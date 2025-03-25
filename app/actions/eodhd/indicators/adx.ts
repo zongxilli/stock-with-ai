@@ -1,7 +1,7 @@
 'use server';
 
 import { BaseIndicatorParams, IndicatorDataPoint } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 /**
  * 获取平均方向动量指标(ADX)
@@ -27,13 +27,5 @@ export async function getADX(
 		'adx'
 	);
 
-	// 转换API响应数据
-	const transformer = (apiData: any): IndicatorDataPoint[] => {
-		return Object.entries(apiData).map(([date, value]) => ({
-			date,
-			value: Number(value),
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	return getIndicatorData(cacheKey, requestUrl);
 }

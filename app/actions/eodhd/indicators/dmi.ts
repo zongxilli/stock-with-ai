@@ -4,13 +4,13 @@ import {
 	BaseIndicatorParams,
 	MultiValueIndicatorDataPoint,
 } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 // DMI返回数据结构
 export interface DMIDataPoint extends MultiValueIndicatorDataPoint {
 	date: string;
-	plusDI: number; // +DI值
-	minusDI: number; // -DI值
+	plus_di: number; // +DI值 - 与API一致
+	minus_di: number; // -DI值 - 与API一致
 	dx: number; // DX值
 }
 
@@ -21,7 +21,7 @@ export interface DMIDataPoint extends MultiValueIndicatorDataPoint {
  * @param params.exchange 交易所代码
  * @param params.range 时间范围
  * @param params.period 计算周期（默认14）
- * @returns DMI数据点数组，包含+DI、-DI和DX值
+ * @returns DMI数据点数组，包含plus_di、minus_di和dx值
  */
 export async function getDMI(
 	params: BaseIndicatorParams
@@ -38,15 +38,6 @@ export async function getDMI(
 		'dmi'
 	);
 
-	// 转换API响应数据
-	const transformer = (apiData: any): DMIDataPoint[] => {
-		return Object.entries(apiData).map(([date, values]: [string, any]) => ({
-			date,
-			plusDI: Number(values.plus_di), // +DI值
-			minusDI: Number(values.minus_di), // -DI值
-			dx: Number(values.dx), // DX值
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	// 直接返回API数据
+	return getIndicatorData(cacheKey, requestUrl);
 }

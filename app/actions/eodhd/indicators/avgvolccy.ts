@@ -1,7 +1,7 @@
 'use server';
 
 import { BaseIndicatorParams, IndicatorDataPoint } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 /**
  * 获取按金额计算的平均成交量(Average Volume by Price)指标
@@ -24,13 +24,5 @@ export async function getAverageVolumeByPrice(
 	// 构建请求URL
 	const requestUrl = await buildIndicatorRequest(params, 'avgvolccy');
 
-	// 转换API响应数据
-	const transformer = (apiData: any): IndicatorDataPoint[] => {
-		return Object.entries(apiData).map(([date, value]) => ({
-			date,
-			value: Number(value),
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	return getIndicatorData(cacheKey, requestUrl);
 }

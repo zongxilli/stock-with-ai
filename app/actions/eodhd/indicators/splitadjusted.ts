@@ -1,7 +1,7 @@
 'use server';
 
 import { BaseIndicatorParams } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 // 拆分调整数据参数接口
 interface SplitAdjustedParams extends BaseIndicatorParams {
@@ -46,17 +46,5 @@ export async function getSplitAdjustedData(
 		agg_period: aggPeriod,
 	});
 
-	// 转换API响应数据
-	const transformer = (apiData: any): SplitAdjustedDataPoint[] => {
-		return Object.entries(apiData).map(([date, values]: [string, any]) => ({
-			date,
-			open: Number(values.open),
-			high: Number(values.high),
-			low: Number(values.low),
-			close: Number(values.close),
-			volume: Number(values.volume),
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	return getIndicatorData(cacheKey, requestUrl);
 }

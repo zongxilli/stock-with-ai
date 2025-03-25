@@ -13,7 +13,6 @@ import { getCCI } from './indicators/cci';
 import { DMIDataPoint, getDMI } from './indicators/dmi';
 import { getEMA } from './indicators/ema';
 import { getMACD, MACDDataPoint } from './indicators/macd';
-import { indicatorPresets } from './indicators/presets';
 import { getRSI } from './indicators/rsi';
 import { getSAR } from './indicators/sar';
 import { getSlope } from './indicators/slope';
@@ -29,6 +28,7 @@ import {
 	StochasticRSIDataPoint,
 } from './indicators/stochrsi';
 import { BaseIndicatorParams, TimeRange } from './indicators/types/types';
+import { TechnicalIndicatorPresets } from './indicators/utils/presets';
 import { getVolatility } from './indicators/volatility';
 import { getWMA } from './indicators/wma';
 
@@ -100,135 +100,143 @@ export async function getTechnicalIndicators(
 			averageVolumeByPrice,
 			splitAdjustedData,
 		] = await Promise.all([
-			getSMA({ ...baseParams, ...indicatorPresets.sma.default }).catch(
-				(err) => {
-					console.error('获取SMA数据失败:', err);
-					return [];
-				}
-			),
-			getEMA({ ...baseParams, ...indicatorPresets.ema.default }).catch(
-				(err) => {
-					console.error('获取EMA数据失败:', err);
-					return [];
-				}
-			),
-			getWMA({ ...baseParams, ...indicatorPresets.wma.default }).catch(
-				(err) => {
-					console.error('获取WMA数据失败:', err);
-					return [];
-				}
-			),
-			getRSI({ ...baseParams, ...indicatorPresets.rsi.default }).catch(
-				(err) => {
-					console.error('获取RSI数据失败:', err);
-					return [];
-				}
-			),
+			getSMA({
+				...baseParams,
+				...TechnicalIndicatorPresets.sma.default,
+			}).catch((err) => {
+				console.error('获取SMA数据失败:', err);
+				return [];
+			}),
+			getEMA({
+				...baseParams,
+				...TechnicalIndicatorPresets.ema.default,
+			}).catch((err) => {
+				console.error('获取EMA数据失败:', err);
+				return [];
+			}),
+			getWMA({
+				...baseParams,
+				...TechnicalIndicatorPresets.wma.default,
+			}).catch((err) => {
+				console.error('获取WMA数据失败:', err);
+				return [];
+			}),
+			getRSI({
+				...baseParams,
+				...TechnicalIndicatorPresets.rsi.default,
+			}).catch((err) => {
+				console.error('获取RSI数据失败:', err);
+				return [];
+			}),
 			getMACD({
 				...baseParams,
-				...indicatorPresets.macd.default,
+				...TechnicalIndicatorPresets.macd.default,
 			}).catch((err) => {
 				console.error('获取MACD数据失败:', err);
 				return [];
 			}),
 			getBollingerBands({
 				...baseParams,
-				...indicatorPresets.bollingerBands.default,
+				...TechnicalIndicatorPresets.bollingerBands.default,
 			}).catch((err) => {
 				console.error('获取布林带数据失败:', err);
 				return [];
 			}),
-			getATR({ ...baseParams, ...indicatorPresets.atr.default }).catch(
-				(err) => {
-					console.error('获取ATR数据失败:', err);
-					return [];
-				}
-			),
+			getATR({
+				...baseParams,
+				...TechnicalIndicatorPresets.atr.default,
+			}).catch((err) => {
+				console.error('获取ATR数据失败:', err);
+				return [];
+			}),
 			getVolatility({
 				...baseParams,
-				...indicatorPresets.volatility.default,
+				...TechnicalIndicatorPresets.volatility.default,
 			}).catch((err) => {
 				console.error('获取波动率数据失败:', err);
 				return [];
 			}),
 			getStdDev({
 				...baseParams,
-				...indicatorPresets.stdDev.default,
+				...TechnicalIndicatorPresets.stdDev.default,
 			}).catch((err) => {
 				console.error('获取标准差数据失败:', err);
 				return [];
 			}),
 			getSlope({
 				...baseParams,
-				...indicatorPresets.slope.default,
+				...TechnicalIndicatorPresets.slope.default,
 			}).catch((err) => {
 				console.error('获取斜率数据失败:', err);
 				return [];
 			}),
-			getDMI({ ...baseParams, ...indicatorPresets.dmi.default }).catch(
-				(err) => {
-					console.error('获取DMI数据失败:', err);
-					return [];
-				}
-			),
-			getADX({ ...baseParams, ...indicatorPresets.adx.default }).catch(
-				(err) => {
-					console.error('获取ADX数据失败:', err);
-					return [];
-				}
-			),
-			getCCI({ ...baseParams, ...indicatorPresets.cci.default }).catch(
-				(err) => {
-					console.error('获取CCI数据失败:', err);
-					return [];
-				}
-			),
-			getSAR({ ...baseParams, ...indicatorPresets.sar.default }).catch(
-				(err) => {
-					console.error('获取SAR数据失败:', err);
-					return [];
-				}
-			),
-			getBETA({ ...baseParams, ...indicatorPresets.beta.default }).catch(
-				(err) => {
-					console.error('获取BETA数据失败:', err);
-					return [];
-				}
-			),
+			getDMI({
+				...baseParams,
+				...TechnicalIndicatorPresets.dmi.default,
+			}).catch((err) => {
+				console.error('获取DMI数据失败:', err);
+				return [];
+			}),
+			getADX({
+				...baseParams,
+				...TechnicalIndicatorPresets.adx.default,
+			}).catch((err) => {
+				console.error('获取ADX数据失败:', err);
+				return [];
+			}),
+			getCCI({
+				...baseParams,
+				...TechnicalIndicatorPresets.cci.default,
+			}).catch((err) => {
+				console.error('获取CCI数据失败:', err);
+				return [];
+			}),
+			getSAR({
+				...baseParams,
+				...TechnicalIndicatorPresets.sar.default,
+			}).catch((err) => {
+				console.error('获取SAR数据失败:', err);
+				return [];
+			}),
+			getBETA({
+				...baseParams,
+				...TechnicalIndicatorPresets.beta.default,
+			}).catch((err) => {
+				console.error('获取BETA数据失败:', err);
+				return [];
+			}),
 			getStochastic({
 				...baseParams,
-				...indicatorPresets.stochastic.default,
+				...TechnicalIndicatorPresets.stochastic.default,
 			}).catch((err) => {
 				console.error('获取随机指标数据失败:', err);
 				return [];
 			}),
 			getStochasticRSI({
 				...baseParams,
-				...indicatorPresets.stochasticRSI.default,
+				...TechnicalIndicatorPresets.stochasticRSI.default,
 			}).catch((err) => {
 				console.error('获取随机RSI数据失败:', err);
 				return [];
 			}),
 			getAverageVolume({
 				...baseParams,
-				...indicatorPresets.averageVolume.default,
+				...TechnicalIndicatorPresets.averageVolume.default,
 			}).catch((err) => {
 				console.error('获取平均成交量数据失败:', err);
 				return [];
 			}),
 			getAverageVolumeByPrice({
 				...baseParams,
-				...indicatorPresets.averageVolumeByPrice.default,
+				...TechnicalIndicatorPresets.averageVolumeByPrice.default,
 			}).catch((err) => {
 				console.error('获取按金额平均成交量数据失败:', err);
 				return [];
 			}),
 			getSplitAdjustedData({
 				...baseParams,
-				aggPeriod: indicatorPresets.splitAdjusted.default.aggPeriod as
-					| 'd'
-					| 'w'
-					| 'm',
+				aggPeriod: TechnicalIndicatorPresets.splitAdjusted.default
+					.aggPeriod as 'd' | 'w' | 'm',
 			}).catch((err) => {
 				console.error('获取拆分调整数据失败:', err);
 				return [];
@@ -351,6 +359,98 @@ export async function getTechnicalIndicators(
 				: '无数据'
 		);
 
+		// 记录指标数据获取结果
+		console.log('---------- 技术指标数据获取结果 ----------');
+
+		// 辅助函数：显示最近的10个数据点
+		const logLatestDataPoints = (name: string, data: any[]): void => {
+			if (!data || data.length === 0) {
+				console.log(`${name}：无数据`);
+				return;
+			}
+
+			// 对数据按日期排序 (假设date格式为YYYY-MM-DD)
+			const sortedData = [...data].sort(
+				(a, b) =>
+					new Date(b.date).getTime() - new Date(a.date).getTime()
+			);
+			const latest10 = sortedData.slice(0, 10);
+
+			console.log(
+				`${name}：共 ${data.length} 个数据点，最近10个数据点：`
+			);
+			console.table(latest10);
+		};
+
+		// 显示基本指标的最近数据
+		logLatestDataPoints('SMA(50)', sma);
+		logLatestDataPoints('EMA(50)', ema);
+		logLatestDataPoints('WMA(50)', wma);
+		logLatestDataPoints('RSI(14)', rsi);
+		logLatestDataPoints('MACD', macd);
+		logLatestDataPoints('Bollinger Bands', bollingerBands);
+		logLatestDataPoints('ATR', atr);
+		logLatestDataPoints('Volatility', volatility);
+		logLatestDataPoints('StdDev', stdDev);
+		logLatestDataPoints('Slope', slope);
+		logLatestDataPoints('DMI', dmi);
+		logLatestDataPoints('ADX', adx);
+		logLatestDataPoints('CCI', cci);
+		logLatestDataPoints('SAR', sar);
+		logLatestDataPoints('BETA', beta);
+		logLatestDataPoints('Stochastic', stochastic);
+		logLatestDataPoints('StochasticRSI', stochasticRSI);
+		logLatestDataPoints('Average Volume', averageVolume);
+		logLatestDataPoints('Average Volume by Price', averageVolumeByPrice);
+		logLatestDataPoints('Split Adjusted Data', splitAdjustedData);
+
+		console.log('---------- 获取所有Preset标准配置数据 ----------');
+
+		// 获取SMA的所有标准配置数据
+		await Promise.all(
+			TechnicalIndicatorPresets.sma.standard.map(async (config) => {
+				try {
+					const data = await getSMA({
+						...baseParams,
+						period: config.period,
+					});
+					logLatestDataPoints(`SMA(${config.period})`, data);
+				} catch (err) {
+					console.error(`获取SMA(${config.period})失败:`, err);
+				}
+			})
+		);
+
+		// 获取EMA的所有标准配置数据
+		await Promise.all(
+			TechnicalIndicatorPresets.ema.standard.map(async (config) => {
+				try {
+					const data = await getEMA({
+						...baseParams,
+						period: config.period,
+					});
+					logLatestDataPoints(`EMA(${config.period})`, data);
+				} catch (err) {
+					console.error(`获取EMA(${config.period})失败:`, err);
+				}
+			})
+		);
+
+		// 获取WMA的所有标准配置数据
+		await Promise.all(
+			TechnicalIndicatorPresets.wma.standard.map(async (config) => {
+				try {
+					const data = await getWMA({
+						...baseParams,
+						period: config.period,
+					});
+					logLatestDataPoints(`WMA(${config.period})`, data);
+				} catch (err) {
+					console.error(`获取WMA(${config.period})失败:`, err);
+				}
+			})
+		);
+
 		// 返回所有指标数据
 		return {
 			sma,
@@ -437,7 +537,7 @@ export async function getTechnicalIndicator(
 		case 'sma':
 			params = {
 				...params,
-				...indicatorPresets.sma.default,
+				...TechnicalIndicatorPresets.sma.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -445,7 +545,7 @@ export async function getTechnicalIndicator(
 		case 'ema':
 			params = {
 				...params,
-				...indicatorPresets.ema.default,
+				...TechnicalIndicatorPresets.ema.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -453,7 +553,7 @@ export async function getTechnicalIndicator(
 		case 'wma':
 			params = {
 				...params,
-				...indicatorPresets.wma.default,
+				...TechnicalIndicatorPresets.wma.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -461,7 +561,7 @@ export async function getTechnicalIndicator(
 		case 'rsi':
 			params = {
 				...params,
-				...indicatorPresets.rsi.default,
+				...TechnicalIndicatorPresets.rsi.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -469,7 +569,7 @@ export async function getTechnicalIndicator(
 		case 'macd':
 			params = {
 				...params,
-				...indicatorPresets.macd.default,
+				...TechnicalIndicatorPresets.macd.default,
 				...additionalParams,
 			};
 			return getMACD(params);
@@ -477,7 +577,7 @@ export async function getTechnicalIndicator(
 		case 'bollingerbands':
 			params = {
 				...params,
-				...indicatorPresets.bollingerBands.default,
+				...TechnicalIndicatorPresets.bollingerBands.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -485,7 +585,7 @@ export async function getTechnicalIndicator(
 		case 'atr':
 			params = {
 				...params,
-				...indicatorPresets.atr.default,
+				...TechnicalIndicatorPresets.atr.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -493,7 +593,7 @@ export async function getTechnicalIndicator(
 		case 'volatility':
 			params = {
 				...params,
-				...indicatorPresets.volatility.default,
+				...TechnicalIndicatorPresets.volatility.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -501,7 +601,7 @@ export async function getTechnicalIndicator(
 		case 'stddev':
 			params = {
 				...params,
-				...indicatorPresets.stdDev.default,
+				...TechnicalIndicatorPresets.stdDev.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -509,7 +609,7 @@ export async function getTechnicalIndicator(
 		case 'slope':
 			params = {
 				...params,
-				...indicatorPresets.slope.default,
+				...TechnicalIndicatorPresets.slope.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -518,7 +618,7 @@ export async function getTechnicalIndicator(
 		case 'dx':
 			params = {
 				...params,
-				...indicatorPresets.dmi.default,
+				...TechnicalIndicatorPresets.dmi.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -526,7 +626,7 @@ export async function getTechnicalIndicator(
 		case 'adx':
 			params = {
 				...params,
-				...indicatorPresets.adx.default,
+				...TechnicalIndicatorPresets.adx.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -534,7 +634,7 @@ export async function getTechnicalIndicator(
 		case 'cci':
 			params = {
 				...params,
-				...indicatorPresets.cci.default,
+				...TechnicalIndicatorPresets.cci.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -542,14 +642,14 @@ export async function getTechnicalIndicator(
 		case 'sar':
 			params = {
 				...params,
-				...indicatorPresets.sar.default,
+				...TechnicalIndicatorPresets.sar.default,
 				...additionalParams,
 			};
 			return getSAR(params);
 		case 'beta':
 			params = {
 				...params,
-				...indicatorPresets.beta.default,
+				...TechnicalIndicatorPresets.beta.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -557,14 +657,14 @@ export async function getTechnicalIndicator(
 		case 'stochastic':
 			params = {
 				...params,
-				...indicatorPresets.stochastic.default,
+				...TechnicalIndicatorPresets.stochastic.default,
 				...additionalParams,
 			};
 			return getStochastic(params);
 		case 'stochrsi':
 			params = {
 				...params,
-				...indicatorPresets.stochasticRSI.default,
+				...TechnicalIndicatorPresets.stochasticRSI.default,
 				...additionalParams,
 			};
 			return getStochasticRSI(params);
@@ -572,7 +672,7 @@ export async function getTechnicalIndicator(
 		case 'averagevolume':
 			params = {
 				...params,
-				...indicatorPresets.averageVolume.default,
+				...TechnicalIndicatorPresets.averageVolume.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -581,7 +681,7 @@ export async function getTechnicalIndicator(
 		case 'averagevolumebyrice':
 			params = {
 				...params,
-				...indicatorPresets.averageVolumeByPrice.default,
+				...TechnicalIndicatorPresets.averageVolumeByPrice.default,
 				...additionalParams,
 			};
 			if (period) params.period = period;
@@ -592,8 +692,8 @@ export async function getTechnicalIndicator(
 			const splitParams = {
 				...params,
 				...additionalParams,
-				aggPeriod: (indicatorPresets.splitAdjusted.default.aggPeriod ||
-					'd') as 'd' | 'w' | 'm',
+				aggPeriod: (TechnicalIndicatorPresets.splitAdjusted.default
+					.aggPeriod || 'd') as 'd' | 'w' | 'm',
 			};
 			return getSplitAdjustedData(splitParams);
 		default:

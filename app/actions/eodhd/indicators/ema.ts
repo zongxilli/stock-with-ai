@@ -1,7 +1,7 @@
 'use server';
 
 import { BaseIndicatorParams, IndicatorDataPoint } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 /**
  * 获取指数移动平均线(EMA)指标
@@ -24,20 +24,6 @@ export async function getEMA(
 	// 构建请求URL
 	const requestUrl = await buildIndicatorRequest(params, 'ema');
 
-	// 转换API响应数据
-	const transformer = (apiData: any): IndicatorDataPoint[] => {
-		// 检查API响应格式
-		if (!apiData || typeof apiData !== 'object') {
-			console.warn('EMA数据格式无效:', apiData);
-			return [];
-		}
-
-		// 转换数据
-		return Object.entries(apiData).map(([date, value]) => ({
-			date,
-			value: value === null ? null : Number(value),
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	// 直接返回API数据
+	return getIndicatorData(cacheKey, requestUrl);
 }

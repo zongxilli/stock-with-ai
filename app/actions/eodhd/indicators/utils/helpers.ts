@@ -53,8 +53,7 @@ export async function buildIndicatorRequest(
  */
 export async function getIndicatorData<T>(
 	cacheKey: string,
-	requestUrl: string,
-	transformer: (data: any) => T
+	requestUrl: string
 ): Promise<T> {
 	try {
 		// 尝试从Redis缓存获取数据
@@ -74,45 +73,13 @@ export async function getIndicatorData<T>(
 			);
 		}
 
-		// 解析响应
+		// 解析响应并直接返回
 		const apiData = await response.json();
 
-		// 验证API响应数据
-		if (!apiData || typeof apiData !== 'object') {
-			console.error('API返回的数据格式无效:', apiData);
-			throw new Error('API返回的数据格式无效');
-		}
-
-		// 检查是否有错误消息
-		if (apiData.error || apiData.message) {
-			console.error('API返回错误:', apiData.error || apiData.message);
-			throw new Error(`API错误: ${apiData.error || apiData.message}`);
-		}
-
-		// 如果返回空对象或空数组，记录警告
-		if (
-			(Array.isArray(apiData) && apiData.length === 0) ||
-			(typeof apiData === 'object' && Object.keys(apiData).length === 0)
-		) {
-			console.warn('API返回空数据', { url: requestUrl });
-		}
-
-		// 转换数据
-		const transformedData = transformer(apiData);
-
-		// 记录转换后的数据信息
-		console.log(
-			`指标数据获取成功: ${cacheKey}, 数据点数量: ${
-				Array.isArray(transformedData)
-					? transformedData.length
-					: '非数组'
-			}`
-		);
-
 		// 缓存数据1小时
-		await setCache(cacheKey, transformedData, 3600);
+		await setCache(cacheKey, apiData, 3600);
 
-		return transformedData;
+		return apiData as T;
 	} catch (error: any) {
 		console.error('获取技术指标数据时出错:', error, { url: requestUrl });
 		throw new Error(`获取技术指标数据失败: ${error.message || '未知错误'}`);

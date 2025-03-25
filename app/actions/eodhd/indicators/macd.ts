@@ -4,7 +4,7 @@ import {
 	BaseIndicatorParams,
 	MultiValueIndicatorDataPoint,
 } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 // MACD参数接口
 interface MACDParams extends BaseIndicatorParams {
@@ -18,7 +18,7 @@ export interface MACDDataPoint extends MultiValueIndicatorDataPoint {
 	date: string;
 	macd: number;
 	signal: number;
-	histogram: number;
+	hist: number; // 修改为与API一致的字段名
 }
 
 /**
@@ -30,7 +30,7 @@ export interface MACDDataPoint extends MultiValueIndicatorDataPoint {
  * @param params.fastPeriod 快线周期（默认12）
  * @param params.slowPeriod 慢线周期（默认26）
  * @param params.signalPeriod 信号线周期（默认9）
- * @returns MACD数据点数组，包含macd、signal和histogram值
+ * @returns MACD数据点数组，包含macd、signal和hist值
  */
 export async function getMACD(params: MACDParams): Promise<MACDDataPoint[]> {
 	const {
@@ -54,15 +54,6 @@ export async function getMACD(params: MACDParams): Promise<MACDDataPoint[]> {
 		signal_period: signalPeriod,
 	});
 
-	// 转换API响应数据
-	const transformer = (apiData: any): MACDDataPoint[] => {
-		return Object.entries(apiData).map(([date, values]: [string, any]) => ({
-			date,
-			macd: Number(values.macd),
-			signal: Number(values.signal),
-			histogram: Number(values.hist),
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	// 直接返回API数据
+	return getIndicatorData(cacheKey, requestUrl);
 }

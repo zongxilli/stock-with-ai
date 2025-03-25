@@ -4,7 +4,7 @@ import {
 	BaseIndicatorParams,
 	MultiValueIndicatorDataPoint,
 } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 // 随机指标参数接口
 interface StochasticParams extends BaseIndicatorParams {
@@ -16,8 +16,8 @@ interface StochasticParams extends BaseIndicatorParams {
 // 随机指标返回数据结构
 export interface StochasticDataPoint extends MultiValueIndicatorDataPoint {
 	date: string;
-	k: number; // K值
-	d: number; // D值
+	k_values: number; // K值 - 与API一致
+	d_values: number; // D值 - 与API一致
 }
 
 /**
@@ -29,7 +29,7 @@ export interface StochasticDataPoint extends MultiValueIndicatorDataPoint {
  * @param params.fastKPeriod 快速K周期（默认14）
  * @param params.slowKPeriod 慢速K周期（默认3）
  * @param params.slowDPeriod 慢速D周期（默认3）
- * @returns 随机指标数据点数组，包含k和d值
+ * @returns 随机指标数据点数组，包含k_values和d_values值
  */
 export async function getStochastic(
 	params: StochasticParams
@@ -55,14 +55,6 @@ export async function getStochastic(
 		slow_dperiod: slowDPeriod,
 	});
 
-	// 转换API响应数据
-	const transformer = (apiData: any): StochasticDataPoint[] => {
-		return Object.entries(apiData).map(([date, values]: [string, any]) => ({
-			date,
-			k: Number(values.k),
-			d: Number(values.d),
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	// 直接返回API数据
+	return getIndicatorData(cacheKey, requestUrl);
 }

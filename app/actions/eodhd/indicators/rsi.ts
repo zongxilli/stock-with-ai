@@ -1,10 +1,11 @@
 'use server';
 
 import { BaseIndicatorParams, IndicatorDataPoint } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 /**
  * 获取相对强弱指标(RSI)
+import { createIndicatorTransformer } from './utils/utils';
  *
  * @param params.code 股票代码
  * @param params.exchange 交易所代码
@@ -27,13 +28,5 @@ export async function getRSI(
 		'rsi'
 	);
 
-	// 转换API响应数据
-	const transformer = (apiData: any): IndicatorDataPoint[] => {
-		return Object.entries(apiData).map(([date, value]) => ({
-			date,
-			value: Number(value),
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	return getIndicatorData(cacheKey, requestUrl);
 }

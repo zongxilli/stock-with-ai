@@ -1,7 +1,7 @@
 'use server';
 
 import { BaseIndicatorParams, IndicatorDataPoint } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 /**
  * 获取加权移动平均线(WMA)指标
@@ -24,13 +24,5 @@ export async function getWMA(
 	// 构建请求URL
 	const requestUrl = await buildIndicatorRequest(params, 'wma');
 
-	// 转换API响应数据
-	const transformer = (apiData: any): IndicatorDataPoint[] => {
-		return Object.entries(apiData).map(([date, value]) => ({
-			date,
-			value: Number(value),
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	return getIndicatorData(cacheKey, requestUrl);
 }

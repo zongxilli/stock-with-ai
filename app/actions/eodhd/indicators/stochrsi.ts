@@ -4,7 +4,7 @@ import {
 	BaseIndicatorParams,
 	MultiValueIndicatorDataPoint,
 } from './types/types';
-import { buildIndicatorRequest, getIndicatorData } from './utils/utils';
+import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 // 随机RSI参数接口
 interface StochasticRSIParams extends BaseIndicatorParams {
@@ -15,8 +15,8 @@ interface StochasticRSIParams extends BaseIndicatorParams {
 // 随机RSI返回数据结构
 export interface StochasticRSIDataPoint extends MultiValueIndicatorDataPoint {
 	date: string;
-	k: number; // K值
-	d: number; // D值
+	fastkline: number; // K值 - 与API一致
+	fastdline: number; // D值 - 与API一致
 }
 
 /**
@@ -27,7 +27,7 @@ export interface StochasticRSIDataPoint extends MultiValueIndicatorDataPoint {
  * @param params.range 时间范围
  * @param params.fastKPeriod 快速K周期（默认14）
  * @param params.fastDPeriod 快速D周期（默认14）
- * @returns 随机RSI数据点数组，包含k和d值
+ * @returns 随机RSI数据点数组，包含fastkline和fastdline值
  */
 export async function getStochasticRSI(
 	params: StochasticRSIParams
@@ -51,14 +51,6 @@ export async function getStochasticRSI(
 		fast_dperiod: fastDPeriod,
 	});
 
-	// 转换API响应数据
-	const transformer = (apiData: any): StochasticRSIDataPoint[] => {
-		return Object.entries(apiData).map(([date, values]: [string, any]) => ({
-			date,
-			k: Number(values.k),
-			d: Number(values.d),
-		}));
-	};
-
-	return getIndicatorData(cacheKey, requestUrl, transformer);
+	// 直接返回API数据
+	return getIndicatorData(cacheKey, requestUrl);
 }
