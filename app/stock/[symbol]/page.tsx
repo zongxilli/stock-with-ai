@@ -602,7 +602,7 @@ export default function StockPage() {
 			{/* 添加股票详情网格 */}
 			{realTimeData && <StockDetails {...realTimeData} />}
 
-			<Button
+			{/* <Button
 				onClick={async () => {
 					const data = await getHistoricalData(
 						code || '',
@@ -623,7 +623,7 @@ export default function StockPage() {
 				}}
 			>
 				Historical Data
-			</Button>
+			</Button> */}
 		</div>
 	);
 }
