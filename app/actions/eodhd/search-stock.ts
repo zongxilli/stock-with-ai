@@ -4,13 +4,13 @@ import { getCache, setCache } from '@/lib/redis';
 
 // 定义返回的股票信息类型
 interface StockSearchResult {
-	Code: string;
-	Exchange: string;
-	Name: string;
-	Type: string;
-	Country: string;
-	Currency: string;
-	ISIN?: string;
+	Code: string; // 股票代码
+	Exchange: string; // 交易所代码
+	Name: string; // 股票名称
+	Type: string; // 股票类型
+	Country: string; // 国家代码
+	Currency: string; // 货币代码
+	ISIN?: string; // 国际证券识别码
 	previousClose?: number;
 	previousCloseDate?: string;
 }
@@ -41,15 +41,14 @@ export async function searchStock(
 ): Promise<StockSearchResult[]> {
 	try {
 		// 设置默认选项
-		const { limit = 15, type = 'stock' } = options;
+		const { limit = 15 } = options;
 
-		// 默认不指定exchange时，只搜索美国、加拿大、中国和香港的股票
-		// 交易所代码：US(美国), CA(加拿大), SS(上海), SZ(深圳), HK(香港)
-		const targetExchanges = ['US', 'CA', 'SS', 'SZ', 'HK'];
+		// 目标国家列表，只保留美国和中国
+		const targetCountries = ['USA', 'China'];
 
 		// 尝试从Redis缓存获取数据
 		// 使用选项作为缓存键的一部分，以确保不同选项的请求有不同的缓存
-		const cacheKey = `eodhd_search:${symbol}:${limit}:${type}:${options.exchange || targetExchanges.join(',')}`;
+		const cacheKey = `eodhd_search:${symbol}:${limit}:${options.exchange || targetCountries.join(',')}`;
 		const cachedData = await getCache(cacheKey);
 		if (cachedData) {
 			return cachedData;
@@ -66,7 +65,6 @@ export async function searchStock(
 			api_token: apiKey,
 			fmt: 'json',
 			limit: limit.toString(),
-			type: type,
 		});
 
 		// 如果提供了特定的交易所，则使用指定交易所
@@ -88,16 +86,10 @@ export async function searchStock(
 
 		let data = (await response.json()) as StockSearchResult[];
 
-		// 如果没有指定特定交易所，过滤只保留目标交易所的结果
-		if (!options.exchange) {
-			data = data.filter((item) =>
-				targetExchanges.some(
-					(exchange) =>
-						item.Exchange.includes(exchange) ||
-						(item.Code && item.Code.endsWith(`.${exchange}`))
-				)
-			);
-		}
+		// 过滤只保留目标国家的结果
+		data = data.filter((item) =>
+			targetCountries.some((country) => item.Country === country)
+		);
 
 		// 将数据缓存1小时 (3600秒)
 		await setCache(cacheKey, data, 3600);

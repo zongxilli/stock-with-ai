@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { searchStock } from '@/app/actions/eodhd/search-stock';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -16,11 +17,7 @@ interface StockSearchResult {
 	longname: string;
 	type: string;
 	exchange: string;
-}
-
-interface SearchResponse {
-	quotes: StockSearchResult[];
-	error?: string;
+	ISIN: string;
 }
 
 export function StockSearch() {
@@ -98,16 +95,21 @@ export function StockSearch() {
 
 			setIsLoading(true);
 			try {
-				const response = await fetch(
-					`/api/stock-search?q=${encodeURIComponent(debouncedSearchTerm)}`
-				);
-				if (!response.ok) {
-					throw new Error('搜索请求失败');
-				}
+				// 使用新的EODHD搜索函数
+				const eodhdResults = await searchStock(debouncedSearchTerm, {});
 
-				const data: SearchResponse = await response.json();
-				setSearchResults(data.quotes || []);
-				setIsDropdownOpen(data.quotes && data.quotes.length > 0);
+				// 转换EODHD结果格式以匹配现有的StockSearchResult接口
+				const formattedResults = eodhdResults.map((item) => ({
+					symbol: item.Code,
+					shortname: item.Name,
+					longname: item.Name,
+					type: mapEodhdTypeToYahooType(item.Type),
+					exchange: item.Exchange,
+					ISIN: item.ISIN ?? '',
+				}));
+
+				setSearchResults(formattedResults);
+				setIsDropdownOpen(formattedResults.length > 0);
 			} catch (error) {
 				console.error('获取股票搜索结果失败:', error);
 				setSearchResults([]);
@@ -123,6 +125,26 @@ export function StockSearch() {
 			setIsDropdownOpen(false);
 		}
 	}, [debouncedSearchTerm]);
+
+	// 将EODHD类型映射到之前使用的Yahoo类型
+	const mapEodhdTypeToYahooType = (type: string): string => {
+		switch (type.toUpperCase()) {
+			case 'COMMON_STOCK':
+				return 'EQUITY';
+			case 'ETF':
+				return 'ETF';
+			case 'INDEX':
+				return 'INDEX';
+			case 'MUTUAL_FUND':
+			case 'FUND':
+				return 'MUTUALFUND';
+			case 'CRYPTO':
+			case 'CRYPTOCURRENCY':
+				return 'CRYPTOCURRENCY';
+			default:
+				return type.toUpperCase();
+		}
+	};
 
 	// 根据结果类型返回标签文本
 	const getTypeLabel = (type: string) => {
@@ -188,7 +210,7 @@ export function StockSearch() {
 					<ul>
 						{searchResults.map((result) => (
 							<li
-								key={result.symbol}
+								key={result.ISIN ?? result.symbol}
 								className='px-4 py-2 hover:bg-muted cursor-pointer border-b last:border-0'
 								onClick={() => handleSelectResult(result)}
 							>
