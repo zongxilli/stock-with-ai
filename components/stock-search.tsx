@@ -36,35 +36,31 @@ export function StockSearch() {
 	const clearSearch = () => {
 		setSymbol('');
 		setSearchResults([]);
+		setIsDropdownOpen(false);
 		if (inputRef.current) {
 			inputRef.current.focus();
 		}
+	};
+
+	const redirectToStock = (symbol: string) => {
+		router.push(`/stock/${symbol.trim()}`);
 	};
 
 	// 处理搜索提交
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		if (symbol.trim()) {
-			// 直接使用symbol，不进行编码
-			router.push(`/stock/${symbol.trim().toUpperCase()}`);
-			setIsDropdownOpen(false);
-
-			setSymbol('');
-			setSearchResults([]);
+			redirectToStock(symbol.trim());
+			clearSearch();
 		}
 	};
 
 	// 选择搜索结果
 	const handleSelectResult = (result: StockSearchResult) => {
 		if (result.symbol) {
-			// 直接使用symbol，不进行编码
-			router.push(`/stock/${result.symbol}`);
-			setSymbol(result.symbol);
-			setIsDropdownOpen(false);
+			redirectToStock(result.symbol);
+			clearSearch();
 		}
-
-		setSymbol('');
-		setSearchResults([]);
 	};
 
 	// 点击外部关闭下拉菜单
