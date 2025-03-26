@@ -428,33 +428,33 @@ export const compressGetIndicatorDataResult = (
 	compressedResult += avgVolCcyData + '\n\n';
 
 	//` 压缩拆分调整数据
-	try {
-		const { periods: splitadj_periods, data: splitadj_data } =
-			result.splitAdjustedData;
-		let splitAdjData = `split adjusted data for ${splitadj_periods.join(', ')} periods:\n`;
+	// try {
+	// 	const { periods: splitadj_periods, data: splitadj_data } =
+	// 		result.splitAdjustedData;
+	// 	let splitAdjData = `split adjusted data for ${splitadj_periods.join(', ')} periods:\n`;
 
-		for (const period of splitadj_periods) {
-			splitAdjData += `split adjusted period: ${period} with format: date|open|high|low|close|volume\n`;
+	// 	for (const period of splitadj_periods) {
+	// 		splitAdjData += `split adjusted period: ${period} with format: date|open|high|low|close|volume\n`;
 
-			let periodSplitAdjData = '';
-			if (splitadj_data[period] && Array.isArray(splitadj_data[period])) {
-				for (const item of splitadj_data[period]) {
-					if (item && item.date) {
-						const { date, open, high, low, close, volume } = item;
-						periodSplitAdjData += `${compressDate(date)}|${open}|${high}|${low}|${close}|${volume}\n`;
-					}
-				}
-			} else {
-				periodSplitAdjData += `no data available for period ${period}\n`;
-			}
-			splitAdjData += periodSplitAdjData;
-		}
+	// 		let periodSplitAdjData = '';
+	// 		if (splitadj_data[period] && Array.isArray(splitadj_data[period])) {
+	// 			for (const item of splitadj_data[period]) {
+	// 				if (item && item.date) {
+	// 					const { date, open, high, low, close, volume } = item;
+	// 					periodSplitAdjData += `${compressDate(date)}|${open}|${high}|${low}|${close}|${volume}\n`;
+	// 				}
+	// 			}
+	// 		} else {
+	// 			periodSplitAdjData += `no data available for period ${period}\n`;
+	// 		}
+	// 		splitAdjData += periodSplitAdjData;
+	// 	}
 
-		compressedResult += splitAdjData;
-	} catch (error) {
-		console.error('Error processing split adjusted data:', error);
-		compressedResult += 'Error processing split adjusted data\n';
-	}
+	// 	compressedResult += splitAdjData;
+	// } catch (error) {
+	// 	console.error('Error processing split adjusted data:', error);
+	// 	compressedResult += 'Error processing split adjusted data\n';
+	// }
 
 	return compressedResult;
 };
