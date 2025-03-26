@@ -56,10 +56,10 @@ export async function getComprehensiveStockData(symbol: string) {
 							'earningsTrend', // 分析师预测
 							'industryTrend', // 行业趋势 - 了解行业整体情况
 							'recommendationTrend', // 分析师推荐
-							'upgradeDowngradeHistory', // 升降级历史 - 了解分析师观点变化
+							// 'upgradeDowngradeHistory', // 升降级历史 - 了解分析师观点变化
 							'majorHoldersBreakdown', // 主要持股明细
-							'insiderHolders', // 内部人持股 - 了解管理层信心
-							'institutionOwnership', // 机构持股 - 了解机构投资者兴趣
+							// 'insiderHolders', // 内部人持股 - 了解管理层信心
+							// 'institutionOwnership', // 机构持股 - 了解机构投资者兴趣
 							'calendarEvents', // 即将到来的事件（财报、分红等）
 						],
 					}),
