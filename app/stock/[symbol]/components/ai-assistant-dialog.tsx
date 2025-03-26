@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, JSX } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
@@ -22,36 +22,13 @@ interface PriceTarget {
 	longTerm?: string;
 }
 
+// 更改AIAssistantData接口为更通用的结构，以适应动态JSON
 interface AIAssistantData {
+	[key: string]: any;
 	analysis?: string;
-	recommendations: string[];
-	sentiment: string;
+	recommendations?: string[];
+	sentiment?: string;
 	sequentialThinking?: SequentialThinkingStep[];
-	technicalAnalysis?: {
-		priceTrend?: string;
-		technicalIndicators?: string;
-		volume?: string;
-		patterns?: string;
-	};
-	fundamentalAnalysis?: {
-		financials?: string;
-		valuation?: string;
-		growth?: string;
-		balance?: string;
-	};
-	industryAnalysis?: {
-		position?: string;
-		trends?: string;
-		competitors?: string;
-		cycle?: string;
-	};
-	riskFactors?: {
-		market?: string;
-		industry?: string;
-		company?: string;
-		regulatory?: string;
-	};
-	priceTargets?: PriceTarget;
 }
 
 interface AIAssistantDialogProps {
@@ -151,7 +128,7 @@ export default function AIAssistantDialog({
 					await getCompressedTechnicalIndicatorsDataForAnalysis(
 						code,
 						exchange,
-						'6mo' // 默认一年数据范围
+						'6mo' // 为了token不超额，暂时只获取6个月数据
 					);
 
 				console.log(technicalIndicatorsData);
@@ -248,6 +225,7 @@ export default function AIAssistantDialog({
 								if (typeof data.content === 'object') {
 									// Ensure minimum properties exist
 									const processedData = {
+										...data.content,
 										analysis:
 											data.content.analysis ||
 											'No analysis available',
@@ -258,11 +236,13 @@ export default function AIAssistantDialog({
 											: [],
 										sentiment:
 											data.content.sentiment || 'neutral',
-										...data.content,
 									};
 									setStreamData(processedData);
 									// 设置streaming状态为false，确保UI切换到数据展示模式
 									setIsStreaming(false);
+
+									// 确保activeTab设置为'analysis'
+									setActiveTab('analysis');
 								} else {
 									console.error(
 										'Unexpected complete data format:',
@@ -330,7 +310,7 @@ export default function AIAssistantDialog({
 			setThinkingContent('');
 			setThinkingStatus('');
 		};
-	}, [isOpen, useStream, symbol, initialData]);
+	}, [isOpen, useStream, symbol, initialData, code, exchange]); // 移除activeTab依赖
 
 	// Auto-scroll thinking containers when content changes
 	useEffect(() => {
@@ -345,6 +325,82 @@ export default function AIAssistantDialog({
 	}, [thinking, thinkingContent]);
 
 	if (!isOpen) return null;
+
+	// 动态渲染内容的函数
+	const renderContent = (content: any, depth = 0): JSX.Element => {
+		if (content === null || content === undefined) {
+			return <p className='text-muted-foreground'>暂无数据</p>;
+		}
+
+		// 处理字符串
+		if (typeof content === 'string') {
+			return <p className='text-sm'>{content}</p>;
+		}
+
+		// 处理数组
+		if (Array.isArray(content)) {
+			if (content.length === 0) {
+				return <p className='text-muted-foreground'>暂无数据</p>;
+			}
+
+			return (
+				<ul className='list-disc pl-5 space-y-2 text-sm'>
+					{content.map((item, index) => (
+						<li key={index}>
+							{typeof item === 'object'
+								? renderContent(item, depth + 1)
+								: item}
+						</li>
+					))}
+				</ul>
+			);
+		}
+
+		// 处理对象
+		if (typeof content === 'object') {
+			return (
+				<div className={`space-y-4 ${depth > 0 ? 'ml-2' : ''}`}>
+					{Object.entries(content).map(([key, value]) => (
+						<div key={key} className='mb-4'>
+							<h3 className='font-medium mb-1 text-sm capitalize'>
+								{formatKeyName(key)}
+							</h3>
+							{renderContent(value, depth + 1)}
+						</div>
+					))}
+				</div>
+			);
+		}
+
+		// 处理其他类型
+		return <p className='text-sm'>{String(content)}</p>;
+	};
+
+	// 格式化键名，例如将camelCase转换为空格分隔的单词
+	const formatKeyName = (key: string): string => {
+		// 将camelCase转换为空格分隔的单词
+		return key
+			.replace(/([A-Z])/g, ' $1')
+			.replace(/^./, (str) => str.toUpperCase());
+	};
+
+	// 过滤掉特殊键，只保留主要内容
+	const getMainContent = () => {
+		if (!data) return null;
+
+		// 创建一个从数据中过滤掉我们不想展示的键的复制版本
+		const filteredData = { ...data };
+
+		// 移除thinking相关的数据，它在另一个标签页中显示
+		const keysToRemove = ['sequentialThinking'];
+		keysToRemove.forEach((key) => {
+			if (key in filteredData) {
+				delete filteredData[key];
+			}
+		});
+
+		return filteredData;
+	};
 
 	return (
 		<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
@@ -414,7 +470,7 @@ export default function AIAssistantDialog({
 					</div>
 				) : data ? (
 					<div className='space-y-4'>
-						{/* Navigation Tabs */}
+						{/* 简化为只有两个标签页 */}
 						<div className='flex border-b'>
 							<button
 								className={`px-4 py-2 font-medium text-sm ${
@@ -425,36 +481,6 @@ export default function AIAssistantDialog({
 								onClick={() => setActiveTab('analysis')}
 							>
 								Analysis
-							</button>
-							<button
-								className={`px-4 py-2 font-medium text-sm ${
-									activeTab === 'recommendations'
-										? 'border-b-2 border-primary text-primary'
-										: 'text-muted-foreground hover:text-foreground'
-								}`}
-								onClick={() => setActiveTab('recommendations')}
-							>
-								Recommendations
-							</button>
-							<button
-								className={`px-4 py-2 font-medium text-sm ${
-									activeTab === 'technical'
-										? 'border-b-2 border-primary text-primary'
-										: 'text-muted-foreground hover:text-foreground'
-								}`}
-								onClick={() => setActiveTab('technical')}
-							>
-								Technical
-							</button>
-							<button
-								className={`px-4 py-2 font-medium text-sm ${
-									activeTab === 'fundamental'
-										? 'border-b-2 border-primary text-primary'
-										: 'text-muted-foreground hover:text-foreground'
-								}`}
-								onClick={() => setActiveTab('fundamental')}
-							>
-								Fundamental
 							</button>
 							{thinking && (
 								<button
@@ -470,201 +496,103 @@ export default function AIAssistantDialog({
 							)}
 						</div>
 
-						{/* Tab Content */}
+						{/* 标签页内容 */}
 						<div className='pt-2'>
 							{activeTab === 'analysis' && (
-								<div>
+								<div className='space-y-6'>
+									{/* 首先显示情感分析 */}
+									{data.sentiment && (
+										<div className='p-4 rounded-lg border mb-6'>
+											<div className='text-center'>
+												<span className='font-medium text-lg'>
+													Overall Sentiment:{' '}
+												</span>
+												<span
+													className={`font-bold text-lg ${
+														data.sentiment.toLowerCase() ===
+														'positive'
+															? 'text-green-500'
+															: data.sentiment.toLowerCase() ===
+																  'negative'
+																? 'text-red-500'
+																: 'text-yellow-500'
+													}`}
+												>
+													{data.sentiment}
+												</span>
+											</div>
+										</div>
+									)}
+
+									{/* 然后显示主要分析内容 */}
 									{data.analysis && (
-										<p className='text-sm'>
-											{data.analysis}
-										</p>
+										<div className='mb-6'>
+											<h3 className='font-medium text-lg mb-2'>
+												Summary
+											</h3>
+											<p className='text-sm'>
+												{data.analysis}
+											</p>
+										</div>
 									)}
-									<div className='mt-4 text-sm'>
-										<span className='font-medium'>
-											Sentiment:{' '}
-										</span>
-										<span
-											className={
-												data.sentiment === 'positive'
-													? 'text-green-500'
-													: data.sentiment ===
-														  'negative'
-														? 'text-red-500'
-														: 'text-yellow-500'
-											}
-										>
-											{data.sentiment}
-										</span>
-									</div>
-								</div>
-							)}
 
-							{activeTab === 'recommendations' && (
-								<div>
+									{/* 然后是推荐内容 */}
 									{data.recommendations &&
-									data.recommendations.length > 0 ? (
-										<ul className='list-disc pl-5 space-y-2 text-sm'>
-											{data.recommendations.map(
-												(recommendation, index) => (
-													<li key={index}>
-														{recommendation}
-													</li>
-												)
-											)}
-										</ul>
-									) : (
-										<p className='text-muted-foreground text-sm'>
-											No recommendations available.
-										</p>
+										data.recommendations.length > 0 && (
+											<div className='mb-6'>
+												<h3 className='font-medium text-lg mb-2'>
+													Recommendations
+												</h3>
+												<ul className='list-disc pl-5 space-y-2 text-sm'>
+													{data.recommendations.map(
+														(
+															recommendation,
+															index
+														) => (
+															<li key={index}>
+																{recommendation}
+															</li>
+														)
+													)}
+												</ul>
+											</div>
+										)}
+
+									{/* 最后递归渲染其他所有内容 */}
+									{data && (
+										<div className='space-y-6'>
+											{Object.entries(
+												getMainContent() || {}
+											).map(([key, value]) => {
+												// 跳过已经单独显示的字段
+												if (
+													[
+														'analysis',
+														'sentiment',
+														'recommendations',
+													].includes(key)
+												) {
+													return null;
+												}
+
+												return (
+													<div
+														key={key}
+														className='border p-4 rounded-lg'
+													>
+														<h3 className='font-medium text-lg mb-3 capitalize'>
+															{formatKeyName(key)}
+														</h3>
+														{renderContent(value)}
+													</div>
+												);
+											})}
+										</div>
 									)}
 								</div>
 							)}
 
-							{activeTab === 'technical' && (
-								<div className='space-y-4 text-sm'>
-									{data.technicalAnalysis ? (
-										<>
-											{data.technicalAnalysis
-												.priceTrend && (
-												<div>
-													<h3 className='font-medium mb-1'>
-														Price Trend
-													</h3>
-													<p>
-														{
-															data
-																.technicalAnalysis
-																.priceTrend
-														}
-													</p>
-												</div>
-											)}
-											{data.technicalAnalysis
-												.technicalIndicators && (
-												<div>
-													<h3 className='font-medium mb-1'>
-														Technical Indicators
-													</h3>
-													<p>
-														{
-															data
-																.technicalAnalysis
-																.technicalIndicators
-														}
-													</p>
-												</div>
-											)}
-											{data.technicalAnalysis.volume && (
-												<div>
-													<h3 className='font-medium mb-1'>
-														Volume Analysis
-													</h3>
-													<p>
-														{
-															data
-																.technicalAnalysis
-																.volume
-														}
-													</p>
-												</div>
-											)}
-											{data.technicalAnalysis
-												.patterns && (
-												<div>
-													<h3 className='font-medium mb-1'>
-														Chart Patterns
-													</h3>
-													<p>
-														{
-															data
-																.technicalAnalysis
-																.patterns
-														}
-													</p>
-												</div>
-											)}
-										</>
-									) : (
-										<p className='text-muted-foreground'>
-											No technical analysis available.
-										</p>
-									)}
-								</div>
-							)}
-
-							{activeTab === 'fundamental' && (
-								<div className='space-y-4 text-sm'>
-									{data.fundamentalAnalysis ? (
-										<>
-											{data.fundamentalAnalysis
-												.financials && (
-												<div>
-													<h3 className='font-medium mb-1'>
-														Financial Performance
-													</h3>
-													<p>
-														{
-															data
-																.fundamentalAnalysis
-																.financials
-														}
-													</p>
-												</div>
-											)}
-											{data.fundamentalAnalysis
-												.valuation && (
-												<div>
-													<h3 className='font-medium mb-1'>
-														Valuation Metrics
-													</h3>
-													<p>
-														{
-															data
-																.fundamentalAnalysis
-																.valuation
-														}
-													</p>
-												</div>
-											)}
-											{data.fundamentalAnalysis
-												.growth && (
-												<div>
-													<h3 className='font-medium mb-1'>
-														Growth Prospects
-													</h3>
-													<p>
-														{
-															data
-																.fundamentalAnalysis
-																.growth
-														}
-													</p>
-												</div>
-											)}
-											{data.fundamentalAnalysis
-												.balance && (
-												<div>
-													<h3 className='font-medium mb-1'>
-														Balance Sheet Health
-													</h3>
-													<p>
-														{
-															data
-																.fundamentalAnalysis
-																.balance
-														}
-													</p>
-												</div>
-											)}
-										</>
-									) : (
-										<p className='text-muted-foreground'>
-											No fundamental analysis available.
-										</p>
-									)}
-								</div>
-							)}
-
+							{/* 思考过程标签页 */}
 							{activeTab === 'thinking' && (
 								<div className='space-y-4 text-sm'>
 									<div className='p-3 rounded-lg bg-muted border border-border'>
