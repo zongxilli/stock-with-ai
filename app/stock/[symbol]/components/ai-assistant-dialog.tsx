@@ -332,6 +332,7 @@ export default function AIAssistantDialog({
 		depth = 0,
 		parentKey?: string
 	): JSX.Element => {
+		// 处理空值
 		if (content === null || content === undefined) {
 			return <p className='text-muted-foreground'>暂无数据</p>;
 		}
@@ -341,23 +342,94 @@ export default function AIAssistantDialog({
 			return <p className='text-sm leading-relaxed'>{content}</p>;
 		}
 
+		// 处理数字
+		if (typeof content === 'number') {
+			return <p className='text-sm font-medium'>{content}</p>;
+		}
+
+		// 处理布尔值
+		if (typeof content === 'boolean') {
+			return (
+				<p className='text-sm font-medium'>{content ? 'Yes' : 'No'}</p>
+			);
+		}
+
 		// 处理数组
 		if (Array.isArray(content)) {
 			if (content.length === 0) {
 				return <p className='text-muted-foreground'>暂无数据</p>;
 			}
 
-			// 特殊处理：如果数组中的项都是字符串（例如支撑位/阻力位的reasons数组）
-			if (content.every((item) => typeof item === 'string')) {
+			// 特殊处理：如果数组中的项都是字符串或数字（简单类型的数组）
+			if (
+				content.every(
+					(item) =>
+						typeof item === 'string' || typeof item === 'number'
+				)
+			) {
 				return (
-					<ul className='list-disc pl-5 space-y-1 text-xs text-muted-foreground'>
+					<ul className='list-disc pl-5 space-y-1 text-xs'>
 						{content.map((item, index) => (
-							<li key={index}>{item}</li>
+							<li key={index} className='text-muted-foreground'>
+								{item}
+							</li>
 						))}
 					</ul>
 				);
 			}
 
+			// 如果数组包含对象，检查是否有特定模式（如支撑/阻力位）
+			if (
+				content.every(
+					(item) =>
+						typeof item === 'object' &&
+						item !== null &&
+						'price' in item
+				)
+			) {
+				return (
+					<div className='space-y-2'>
+						{content.map((item, index) => (
+							<div
+								key={index}
+								className='mb-3 p-2 border-l-2 border-muted pl-2'
+							>
+								<div className='flex items-center gap-2 mb-1'>
+									<span className='font-medium'>
+										{item.price}
+									</span>
+								</div>
+								{item.reasons &&
+									Array.isArray(item.reasons) && (
+										<div className='ml-2'>
+											<ul className='list-disc pl-4 space-y-1 text-xs text-muted-foreground'>
+												{item.reasons.map(
+													(
+														reason: string,
+														idx: number
+													) => (
+														<li key={idx}>
+															{reason}
+														</li>
+													)
+												)}
+											</ul>
+										</div>
+									)}
+								{item.reason && (
+									<div className='ml-2'>
+										<p className='text-xs text-muted-foreground'>
+											— {item.reason}
+										</p>
+									</div>
+								)}
+							</div>
+						))}
+					</div>
+				);
+			}
+
+			// 一般数组处理
 			return (
 				<ul className='list-disc pl-5 space-y-2 text-sm'>
 					{content.map((item, index) => (
@@ -371,9 +443,64 @@ export default function AIAssistantDialog({
 			);
 		}
 
-		// 处理对象 - 支撑位和阻力位特殊处理
+		// 处理对象
 		if (typeof content === 'object') {
-			// 特殊处理keyLevels中的supports和resistances
+			// 检测对象模式和布局
+			const keys = Object.keys(content);
+
+			// 根据键名和内容结构选择布局
+
+			// 栅格布局 - 用于多个简单键值对（如indicators, patterns等）
+			const shouldUseGrid =
+				keys.length >= 3 &&
+				keys.every((key) => {
+					const value = content[key];
+					return (
+						typeof value === 'string' ||
+						typeof value === 'number' ||
+						typeof value === 'boolean'
+					);
+				});
+
+			// 用于支撑位/阻力位等特定结构
+			if (keys.includes('supports') && keys.includes('resistances')) {
+				return (
+					<div className='space-y-4'>
+						{content.supports &&
+							Array.isArray(content.supports) &&
+							content.supports.length > 0 && (
+								<div className='mb-4'>
+									<h5 className='text-sm font-medium mb-2'>
+										支撑位
+									</h5>
+									<div>
+										{renderContent(
+											content.supports,
+											depth + 1
+										)}
+									</div>
+								</div>
+							)}
+						{content.resistances &&
+							Array.isArray(content.resistances) &&
+							content.resistances.length > 0 && (
+								<div>
+									<h5 className='text-sm font-medium mb-2'>
+										阻力位
+									</h5>
+									<div>
+										{renderContent(
+											content.resistances,
+											depth + 1
+										)}
+									</div>
+								</div>
+							)}
+					</div>
+				);
+			}
+
+			// 如果是一个具有price属性的对象（单个支撑位/阻力位）
 			if ('price' in content) {
 				return (
 					<div className='mb-3 p-2 border-l-2 border-muted pl-2'>
@@ -402,164 +529,49 @@ export default function AIAssistantDialog({
 				);
 			}
 
-			// 特殊处理技术分析中的keyLevels
-			if (parentKey === 'supports' || parentKey === 'resistances') {
+			// 使用网格布局（适用于具有多个简单键值的对象）
+			if (shouldUseGrid) {
 				return (
-					<div className='space-y-1'>
-						{renderContent(content, depth + 1)}
+					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
+						{Object.entries(content).map(([key, value]) => (
+							<div
+								key={key}
+								className='p-2 border rounded-md bg-muted/30'
+							>
+								<h5 className='font-medium text-xs uppercase mb-1'>
+									{formatKeyName(key)}
+								</h5>
+								<p className='text-xs text-muted-foreground'>
+									{String(value)}
+								</p>
+							</div>
+						))}
 					</div>
 				);
 			}
 
+			// 默认对象布局
 			return (
 				<div className={`space-y-3 ${depth > 0 ? 'ml-2 mt-2' : ''}`}>
 					{Object.entries(content).map(([key, value]) => {
 						// 跳过空值
 						if (value === null || value === undefined) return null;
 
-						// 特殊处理技术分析中的indicators部分，使其以网格形式展示
-						if (key === 'indicators' && typeof value === 'object') {
-							return (
-								<div
-									key={key}
-									className={`${depth > 0 ? 'mb-2' : 'mb-4'}`}
-								>
-									<h4
-										className={`font-medium mb-2 ${depth > 0 ? 'text-sm' : 'text-base'} capitalize`}
-									>
-										{formatKeyName(key)}
-									</h4>
-									<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
-										{Object.entries(value).map(
-											([indKey, indValue]) => (
-												<div
-													key={indKey}
-													className='p-2 border rounded-md bg-muted/30'
-												>
-													<h5 className='font-medium text-xs uppercase mb-1'>
-														{formatKeyName(indKey)}
-													</h5>
-													<p className='text-xs text-muted-foreground'>
-														{indValue as string}
-													</p>
-												</div>
-											)
-										)}
-									</div>
-								</div>
-							);
-						}
+						// 估计子对象的复杂度
+						const isComplexValue =
+							typeof value === 'object' &&
+							value !== null &&
+							(Array.isArray(value)
+								? value.length > 0
+								: Object.keys(value).length > 0);
 
-						// 特殊处理支撑位和阻力位
-						if (key === 'keyLevels') {
-							const keyLevels = value as Record<string, any>;
-							return (
-								<div
-									key={key}
-									className={`${depth > 0 ? 'mb-2' : 'mb-4'}`}
-								>
-									<h4
-										className={`font-medium mb-2 ${depth > 0 ? 'text-sm' : 'text-base'} capitalize`}
-									>
-										关键价位
-									</h4>
-									{keyLevels.supports &&
-										Array.isArray(keyLevels.supports) &&
-										keyLevels.supports.length > 0 && (
-											<div className='mb-4'>
-												<h5 className='text-sm font-medium mb-2'>
-													支撑位
-												</h5>
-												<div>
-													{keyLevels.supports.map(
-														(
-															support: any,
-															idx: number
-														) => (
-															<Fragment key={idx}>
-																{renderContent(
-																	support,
-																	depth + 1,
-																	'supports'
-																)}
-															</Fragment>
-														)
-													)}
-												</div>
-											</div>
-										)}
-									{keyLevels.resistances &&
-										Array.isArray(keyLevels.resistances) &&
-										keyLevels.resistances.length > 0 && (
-											<div>
-												<h5 className='text-sm font-medium mb-2'>
-													阻力位
-												</h5>
-												<div>
-													{keyLevels.resistances.map(
-														(
-															resistance: any,
-															idx: number
-														) => (
-															<Fragment key={idx}>
-																{renderContent(
-																	resistance,
-																	depth + 1,
-																	'resistances'
-																)}
-															</Fragment>
-														)
-													)}
-												</div>
-											</div>
-										)}
-								</div>
-							);
-						}
-
-						// 特殊处理成交量和形态分析部分，以便更好地展示结构
-						if (
-							(key === 'volume' ||
-								key === 'patterns' ||
-								key === 'marketBreadth') &&
-							typeof value === 'object'
-						) {
-							return (
-								<div
-									key={key}
-									className={`${depth > 0 ? 'mb-2' : 'mb-4'}`}
-								>
-									<h4
-										className={`font-medium mb-2 ${depth > 0 ? 'text-sm' : 'text-base'} capitalize`}
-									>
-										{formatKeyName(key)}
-									</h4>
-									<div className='grid grid-cols-1 gap-2 pl-2'>
-										{Object.entries(value).map(
-											([subKey, subValue]) => (
-												<div
-													key={subKey}
-													className='mb-2'
-												>
-													<h5 className='text-xs font-medium mb-1 capitalize'>
-														{formatKeyName(subKey)}
-													</h5>
-													<p className='text-xs text-muted-foreground'>
-														{subValue as string}
-													</p>
-												</div>
-											)
-										)}
-									</div>
-								</div>
-							);
-						}
+						// 布局调整（针对不同复杂度的对象）
+						const sectionClass = isComplexValue
+							? `${depth > 0 ? 'mb-3' : 'mb-4'} ${depth > 1 ? 'border-l pl-3' : ''}`
+							: `${depth > 0 ? 'mb-2' : 'mb-3'}`;
 
 						return (
-							<div
-								key={key}
-								className={`${depth > 0 ? 'mb-2' : 'mb-4'}`}
-							>
+							<div key={key} className={sectionClass}>
 								<h4
 									className={`font-medium mb-1 ${depth > 0 ? 'text-sm' : 'text-base'} capitalize`}
 								>
