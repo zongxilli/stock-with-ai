@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
 
@@ -20,6 +20,7 @@ export default function RangeSelector({
 	exchangeName = '', // 默认为空字符串
 }: RangeSelectorProps) {
 	const router = useRouter();
+	const searchParams = useSearchParams();
 
 	// 判断是否为美股市场
 	const isUSMarket =
@@ -48,10 +49,13 @@ export default function RangeSelector({
 			// 保存当前滚动位置
 			const scrollPosition = window.scrollY;
 
-			// 修改URL但不触发完全刷新，不对symbol进行编码
-			router.push(`/stock/${symbol}?range=${rangeValue}`, {
-				scroll: false,
-			});
+			const newSearchParams = new URLSearchParams(
+				searchParams.toString()
+			);
+
+			newSearchParams.set('range', rangeValue);
+
+			router.replace(`/stock/${symbol}?${newSearchParams.toString()}`);
 
 			// 使用setTimeout确保在路由更新后恢复滚动位置
 			setTimeout(() => {
