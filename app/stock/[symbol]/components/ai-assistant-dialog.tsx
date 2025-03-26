@@ -151,7 +151,7 @@ export default function AIAssistantDialog({
 					await getCompressedTechnicalIndicatorsDataForAnalysis(
 						code,
 						exchange,
-						'1y' // 默认一年数据范围
+						'6mo' // 默认一年数据范围
 					);
 
 				console.log(technicalIndicatorsData);
