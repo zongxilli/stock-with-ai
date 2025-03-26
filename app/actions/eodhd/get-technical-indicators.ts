@@ -27,10 +27,10 @@ import {
 	getStochasticRSI,
 	StochasticRSIDataPoint,
 } from './indicators/stochrsi';
-import { BaseIndicatorParams, TimeRange } from './types/types';
 import { TechnicalIndicatorPresets } from './indicators/utils/presets';
 import { getVolatility } from './indicators/volatility';
 import { getWMA } from './indicators/wma';
+import { BaseIndicatorParams, TimeRange } from './types/types';
 
 // 通用的指标返回结构接口
 interface IndicatorWithPeriods<T> {
@@ -847,8 +847,6 @@ export async function getTechnicalIndicators(
 				}
 			})
 		);
-
-		console.log('result', result);
 
 		// 返回完整的结果对象
 		return result;
