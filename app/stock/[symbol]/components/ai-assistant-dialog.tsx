@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, JSX } from 'react';
+import { useEffect, useState, useRef, JSX, Fragment } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
@@ -327,14 +327,18 @@ export default function AIAssistantDialog({
 	if (!isOpen) return null;
 
 	// 动态渲染内容的函数
-	const renderContent = (content: any, depth = 0): JSX.Element => {
+	const renderContent = (
+		content: any,
+		depth = 0,
+		parentKey?: string
+	): JSX.Element => {
 		if (content === null || content === undefined) {
 			return <p className='text-muted-foreground'>暂无数据</p>;
 		}
 
 		// 处理字符串
 		if (typeof content === 'string') {
-			return <p className='text-sm'>{content}</p>;
+			return <p className='text-sm leading-relaxed'>{content}</p>;
 		}
 
 		// 处理数组
@@ -343,10 +347,21 @@ export default function AIAssistantDialog({
 				return <p className='text-muted-foreground'>暂无数据</p>;
 			}
 
+			// 特殊处理：如果数组中的项都是字符串（例如支撑位/阻力位的reasons数组）
+			if (content.every((item) => typeof item === 'string')) {
+				return (
+					<ul className='list-disc pl-5 space-y-1 text-xs text-muted-foreground'>
+						{content.map((item, index) => (
+							<li key={index}>{item}</li>
+						))}
+					</ul>
+				);
+			}
+
 			return (
 				<ul className='list-disc pl-5 space-y-2 text-sm'>
 					{content.map((item, index) => (
-						<li key={index}>
+						<li key={index} className='leading-relaxed'>
 							{typeof item === 'object'
 								? renderContent(item, depth + 1)
 								: item}
@@ -356,18 +371,204 @@ export default function AIAssistantDialog({
 			);
 		}
 
-		// 处理对象
+		// 处理对象 - 支撑位和阻力位特殊处理
 		if (typeof content === 'object') {
-			return (
-				<div className={`space-y-4 ${depth > 0 ? 'ml-2' : ''}`}>
-					{Object.entries(content).map(([key, value]) => (
-						<div key={key} className='mb-4'>
-							<h3 className='font-medium mb-1 text-sm capitalize'>
-								{formatKeyName(key)}
-							</h3>
-							{renderContent(value, depth + 1)}
+			// 特殊处理keyLevels中的supports和resistances
+			if ('price' in content) {
+				return (
+					<div className='mb-3 p-2 border-l-2 border-muted pl-2'>
+						<div className='flex items-center gap-2 mb-1'>
+							<span className='font-medium'>{content.price}</span>
 						</div>
-					))}
+						{content.reasons && Array.isArray(content.reasons) && (
+							<div className='ml-2'>
+								<ul className='list-disc pl-4 space-y-1 text-xs text-muted-foreground'>
+									{content.reasons.map(
+										(reason: string, idx: number) => (
+											<li key={idx}>{reason}</li>
+										)
+									)}
+								</ul>
+							</div>
+						)}
+						{content.reason && (
+							<div className='ml-2'>
+								<p className='text-xs text-muted-foreground'>
+									— {content.reason}
+								</p>
+							</div>
+						)}
+					</div>
+				);
+			}
+
+			// 特殊处理技术分析中的keyLevels
+			if (parentKey === 'supports' || parentKey === 'resistances') {
+				return (
+					<div className='space-y-1'>
+						{renderContent(content, depth + 1)}
+					</div>
+				);
+			}
+
+			return (
+				<div className={`space-y-3 ${depth > 0 ? 'ml-2 mt-2' : ''}`}>
+					{Object.entries(content).map(([key, value]) => {
+						// 跳过空值
+						if (value === null || value === undefined) return null;
+
+						// 特殊处理技术分析中的indicators部分，使其以网格形式展示
+						if (key === 'indicators' && typeof value === 'object') {
+							return (
+								<div
+									key={key}
+									className={`${depth > 0 ? 'mb-2' : 'mb-4'}`}
+								>
+									<h4
+										className={`font-medium mb-2 ${depth > 0 ? 'text-sm' : 'text-base'} capitalize`}
+									>
+										{formatKeyName(key)}
+									</h4>
+									<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
+										{Object.entries(value).map(
+											([indKey, indValue]) => (
+												<div
+													key={indKey}
+													className='p-2 border rounded-md bg-muted/30'
+												>
+													<h5 className='font-medium text-xs uppercase mb-1'>
+														{formatKeyName(indKey)}
+													</h5>
+													<p className='text-xs text-muted-foreground'>
+														{indValue as string}
+													</p>
+												</div>
+											)
+										)}
+									</div>
+								</div>
+							);
+						}
+
+						// 特殊处理支撑位和阻力位
+						if (key === 'keyLevels') {
+							const keyLevels = value as Record<string, any>;
+							return (
+								<div
+									key={key}
+									className={`${depth > 0 ? 'mb-2' : 'mb-4'}`}
+								>
+									<h4
+										className={`font-medium mb-2 ${depth > 0 ? 'text-sm' : 'text-base'} capitalize`}
+									>
+										关键价位
+									</h4>
+									{keyLevels.supports &&
+										Array.isArray(keyLevels.supports) &&
+										keyLevels.supports.length > 0 && (
+											<div className='mb-4'>
+												<h5 className='text-sm font-medium mb-2'>
+													支撑位
+												</h5>
+												<div>
+													{keyLevels.supports.map(
+														(
+															support: any,
+															idx: number
+														) => (
+															<Fragment key={idx}>
+																{renderContent(
+																	support,
+																	depth + 1,
+																	'supports'
+																)}
+															</Fragment>
+														)
+													)}
+												</div>
+											</div>
+										)}
+									{keyLevels.resistances &&
+										Array.isArray(keyLevels.resistances) &&
+										keyLevels.resistances.length > 0 && (
+											<div>
+												<h5 className='text-sm font-medium mb-2'>
+													阻力位
+												</h5>
+												<div>
+													{keyLevels.resistances.map(
+														(
+															resistance: any,
+															idx: number
+														) => (
+															<Fragment key={idx}>
+																{renderContent(
+																	resistance,
+																	depth + 1,
+																	'resistances'
+																)}
+															</Fragment>
+														)
+													)}
+												</div>
+											</div>
+										)}
+								</div>
+							);
+						}
+
+						// 特殊处理成交量和形态分析部分，以便更好地展示结构
+						if (
+							(key === 'volume' ||
+								key === 'patterns' ||
+								key === 'marketBreadth') &&
+							typeof value === 'object'
+						) {
+							return (
+								<div
+									key={key}
+									className={`${depth > 0 ? 'mb-2' : 'mb-4'}`}
+								>
+									<h4
+										className={`font-medium mb-2 ${depth > 0 ? 'text-sm' : 'text-base'} capitalize`}
+									>
+										{formatKeyName(key)}
+									</h4>
+									<div className='grid grid-cols-1 gap-2 pl-2'>
+										{Object.entries(value).map(
+											([subKey, subValue]) => (
+												<div
+													key={subKey}
+													className='mb-2'
+												>
+													<h5 className='text-xs font-medium mb-1 capitalize'>
+														{formatKeyName(subKey)}
+													</h5>
+													<p className='text-xs text-muted-foreground'>
+														{subValue as string}
+													</p>
+												</div>
+											)
+										)}
+									</div>
+								</div>
+							);
+						}
+
+						return (
+							<div
+								key={key}
+								className={`${depth > 0 ? 'mb-2' : 'mb-4'}`}
+							>
+								<h4
+									className={`font-medium mb-1 ${depth > 0 ? 'text-sm' : 'text-base'} capitalize`}
+								>
+									{formatKeyName(key)}
+								</h4>
+								{renderContent(value, depth + 1, key)}
+							</div>
+						);
+					})}
 				</div>
 			);
 		}
@@ -526,11 +727,11 @@ export default function AIAssistantDialog({
 
 									{/* 然后显示主要分析内容 */}
 									{data.analysis && (
-										<div className='mb-6'>
+										<div className='mb-6 p-4 rounded-lg border'>
 											<h3 className='font-medium text-lg mb-2'>
 												Summary
 											</h3>
-											<p className='text-sm'>
+											<p className='text-sm leading-relaxed'>
 												{data.analysis}
 											</p>
 										</div>
@@ -539,7 +740,7 @@ export default function AIAssistantDialog({
 									{/* 然后是推荐内容 */}
 									{data.recommendations &&
 										data.recommendations.length > 0 && (
-											<div className='mb-6'>
+											<div className='mb-6 p-4 rounded-lg border'>
 												<h3 className='font-medium text-lg mb-2'>
 													Recommendations
 												</h3>
@@ -549,7 +750,10 @@ export default function AIAssistantDialog({
 															recommendation,
 															index
 														) => (
-															<li key={index}>
+															<li
+																key={index}
+																className='leading-relaxed'
+															>
 																{recommendation}
 															</li>
 														)
@@ -558,37 +762,208 @@ export default function AIAssistantDialog({
 											</div>
 										)}
 
-									{/* 最后递归渲染其他所有内容 */}
-									{data && (
-										<div className='space-y-6'>
-											{Object.entries(
-												getMainContent() || {}
-											).map(([key, value]) => {
-												// 跳过已经单独显示的字段
-												if (
-													[
-														'analysis',
-														'sentiment',
-														'recommendations',
-													].includes(key)
-												) {
-													return null;
-												}
-
-												return (
-													<div
-														key={key}
-														className='border p-4 rounded-lg'
-													>
-														<h3 className='font-medium text-lg mb-3 capitalize'>
-															{formatKeyName(key)}
-														</h3>
-														{renderContent(value)}
+									{/* 价格目标单独展示 */}
+									{data.priceTargets && (
+										<div className='mb-6 p-4 rounded-lg border'>
+											<h3 className='font-medium text-lg mb-2'>
+												Price Targets
+											</h3>
+											<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+												{data.priceTargets
+													.shortTerm && (
+													<div className='p-3 rounded border bg-muted/50'>
+														<h4 className='font-medium text-sm mb-1'>
+															Short Term (3m)
+														</h4>
+														<p className='text-sm'>
+															{
+																data
+																	.priceTargets
+																	.shortTerm
+															}
+														</p>
 													</div>
-												);
-											})}
+												)}
+												{data.priceTargets.midTerm && (
+													<div className='p-3 rounded border bg-muted/50'>
+														<h4 className='font-medium text-sm mb-1'>
+															Mid Term (6-12m)
+														</h4>
+														<p className='text-sm'>
+															{
+																data
+																	.priceTargets
+																	.midTerm
+															}
+														</p>
+													</div>
+												)}
+												{data.priceTargets.longTerm && (
+													<div className='p-3 rounded border bg-muted/50'>
+														<h4 className='font-medium text-sm mb-1'>
+															Long Term (1-3y)
+														</h4>
+														<p className='text-sm'>
+															{
+																data
+																	.priceTargets
+																	.longTerm
+															}
+														</p>
+													</div>
+												)}
+											</div>
 										</div>
 									)}
+
+									{/* 技术分析和基本面分析并排展示 */}
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
+										{data.technicalAnalysis && (
+											<div className='border p-4 rounded-lg'>
+												<h3 className='font-medium text-lg mb-3'>
+													Technical Analysis
+												</h3>
+												{renderContent(
+													data.technicalAnalysis
+												)}
+											</div>
+										)}
+
+										{data.fundamentalAnalysis && (
+											<div className='border p-4 rounded-lg'>
+												<h3 className='font-medium text-lg mb-3'>
+													Fundamental Analysis
+												</h3>
+												{renderContent(
+													data.fundamentalAnalysis
+												)}
+											</div>
+										)}
+									</div>
+
+									{/* 行业分析和公司概况并排展示 */}
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
+										{data.industryAnalysis && (
+											<div className='border p-4 rounded-lg'>
+												<h3 className='font-medium text-lg mb-3'>
+													Industry Analysis
+												</h3>
+												{renderContent(
+													data.industryAnalysis
+												)}
+											</div>
+										)}
+
+										{data.companyProfile && (
+											<div className='border p-4 rounded-lg'>
+												<h3 className='font-medium text-lg mb-3'>
+													Company Profile
+												</h3>
+												{renderContent(
+													data.companyProfile
+												)}
+											</div>
+										)}
+									</div>
+
+									{/* 催化剂、风险因素、宏观环境和内部活动统一为一组卡片 */}
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
+										{data.catalysts && (
+											<div className='border p-4 rounded-lg'>
+												<h3 className='font-medium text-lg mb-3'>
+													Catalysts
+												</h3>
+												{renderContent(data.catalysts)}
+											</div>
+										)}
+
+										{data.riskFactors && (
+											<div className='border p-4 rounded-lg'>
+												<h3 className='font-medium text-lg mb-3'>
+													Risk Factors
+												</h3>
+												{renderContent(
+													data.riskFactors
+												)}
+											</div>
+										)}
+									</div>
+
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
+										{data.macroEnvironment && (
+											<div className='border p-4 rounded-lg'>
+												<h3 className='font-medium text-lg mb-3'>
+													Macro Environment
+												</h3>
+												{renderContent(
+													data.macroEnvironment
+												)}
+											</div>
+										)}
+
+										{data.insiderActivity && (
+											<div className='border p-4 rounded-lg'>
+												<h3 className='font-medium text-lg mb-3'>
+													Insider Activity
+												</h3>
+												{renderContent(
+													data.insiderActivity
+												)}
+											</div>
+										)}
+									</div>
+
+									{/* 市场情绪单独一行 */}
+									{data.marketSentiment && (
+										<div className='border p-4 rounded-lg mb-6'>
+											<h3 className='font-medium text-lg mb-3'>
+												Market Sentiment
+											</h3>
+											{renderContent(
+												data.marketSentiment
+											)}
+										</div>
+									)}
+
+									{/* 其他未明确处理的顶级属性 */}
+									<div className='space-y-6'>
+										{Object.entries(
+											getMainContent() || {}
+										).map(([key, value]) => {
+											// 跳过已经单独显示的字段
+											if (
+												[
+													'analysis',
+													'sentiment',
+													'recommendations',
+													'technicalAnalysis',
+													'fundamentalAnalysis',
+													'industryAnalysis',
+													'companyProfile',
+													'catalysts',
+													'riskFactors',
+													'macroEnvironment',
+													'insiderActivity',
+													'marketSentiment',
+													'priceTargets',
+												].includes(key)
+											) {
+												return null;
+											}
+
+											return (
+												<div
+													key={key}
+													className='border p-4 rounded-lg'
+												>
+													<h3 className='font-medium text-lg mb-3 capitalize'>
+														{formatKeyName(key)}
+													</h3>
+													{renderContent(value)}
+												</div>
+											);
+										})}
+									</div>
 								</div>
 							)}
 
