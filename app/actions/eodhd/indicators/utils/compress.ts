@@ -15,8 +15,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodSMAData = '';
 		if (sma_data[period] && Array.isArray(sma_data[period])) {
-			for (const { date, sma } of sma_data[period]) {
-				if (date && sma !== undefined) {
+			for (const item of sma_data[period]) {
+				if (item && item.date) {
+					const { date, sma } = item;
 					periodSMAData += `${compressDate(date)}|${sma}\n`;
 				}
 			}
@@ -35,8 +36,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodEMAData = '';
 		if (ema_data[period] && Array.isArray(ema_data[period])) {
-			for (const { date, ema } of ema_data[period]) {
-				if (date && ema !== undefined) {
+			for (const item of ema_data[period]) {
+				if (item && item.date) {
+					const { date, ema } = item;
 					periodEMAData += `${compressDate(date)}|${ema}\n`;
 				}
 			}
@@ -55,8 +57,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodWMAData = '';
 		if (wma_data[period] && Array.isArray(wma_data[period])) {
-			for (const { date, wma } of wma_data[period]) {
-				if (date && wma !== undefined) {
+			for (const item of wma_data[period]) {
+				if (item && item.date) {
+					const { date, wma } = item;
 					periodWMAData += `${compressDate(date)}|${wma}\n`;
 				}
 			}
@@ -75,8 +78,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodRSIData = '';
 		if (rsi_data[period] && Array.isArray(rsi_data[period])) {
-			for (const { date, rsi } of rsi_data[period]) {
-				if (date && rsi !== undefined) {
+			for (const item of rsi_data[period]) {
+				if (item && item.date) {
+					const { date, rsi } = item;
 					periodRSIData += `${compressDate(date)}|${rsi}\n`;
 				}
 			}
@@ -97,15 +101,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodMACDData = '';
 		if (macd_data[dataKey] && Array.isArray(macd_data[dataKey])) {
-			for (const { date, macd, signal, divergence } of macd_data[
-				dataKey
-			]) {
-				if (
-					date &&
-					macd !== undefined &&
-					signal !== undefined &&
-					divergence !== undefined
-				) {
+			for (const item of macd_data[dataKey]) {
+				if (item && item.date) {
+					const { date, macd, signal, divergence } = item;
 					periodMACDData += `${compressDate(date)}|${macd}|${signal}|${divergence}\n`;
 				}
 			}
@@ -124,13 +122,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodBBData = '';
 		if (bb_data[period] && Array.isArray(bb_data[period])) {
-			for (const { date, middle, upper, lower } of bb_data[period]) {
-				if (
-					date &&
-					middle !== undefined &&
-					upper !== undefined &&
-					lower !== undefined
-				) {
+			for (const item of bb_data[period]) {
+				if (item && item.date) {
+					const { date, middle, upper, lower } = item;
 					periodBBData += `${compressDate(date)}|${middle}|${upper}|${lower}\n`;
 				}
 			}
@@ -149,8 +143,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodATRData = '';
 		if (atr_data[period] && Array.isArray(atr_data[period])) {
-			for (const { date, atr } of atr_data[period]) {
-				if (date && atr !== undefined) {
+			for (const item of atr_data[period]) {
+				if (item && item.date) {
+					const { date, atr } = item;
 					periodATRData += `${compressDate(date)}|${atr}\n`;
 				}
 			}
@@ -170,8 +165,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodVolatilityData = '';
 		if (volatility_data[period] && Array.isArray(volatility_data[period])) {
-			for (const { date, volatility } of volatility_data[period]) {
-				if (date && volatility !== undefined) {
+			for (const item of volatility_data[period]) {
+				if (item && item.date) {
+					const { date, volatility } = item;
 					periodVolatilityData += `${compressDate(date)}|${volatility}\n`;
 				}
 			}
@@ -190,8 +186,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodStdDevData = '';
 		if (stddev_data[period] && Array.isArray(stddev_data[period])) {
-			for (const { date, stddev } of stddev_data[period]) {
-				if (date && stddev !== undefined) {
+			for (const item of stddev_data[period]) {
+				if (item && item.date) {
+					const { date, stddev } = item;
 					periodStdDevData += `${compressDate(date)}|${stddev}\n`;
 				}
 			}
@@ -210,8 +207,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodSlopeData = '';
 		if (slope_data[period] && Array.isArray(slope_data[period])) {
-			for (const { date, slope } of slope_data[period]) {
-				if (date && slope !== undefined) {
+			for (const item of slope_data[period]) {
+				if (item && item.date) {
+					const { date, slope } = item;
 					periodSlopeData += `${compressDate(date)}|${slope}\n`;
 				}
 			}
@@ -230,13 +228,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodDMIData = '';
 		if (dmi_data[period] && Array.isArray(dmi_data[period])) {
-			for (const { date, plus_di, minus_di, dx } of dmi_data[period]) {
-				if (
-					date &&
-					plus_di !== undefined &&
-					minus_di !== undefined &&
-					dx !== undefined
-				) {
+			for (const item of dmi_data[period]) {
+				if (item && item.date) {
+					const { date, plus_di, minus_di, dx } = item;
 					periodDMIData += `${compressDate(date)}|${plus_di}|${minus_di}|${dx}\n`;
 				}
 			}
@@ -255,8 +249,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodADXData = '';
 		if (adx_data[period] && Array.isArray(adx_data[period])) {
-			for (const { date, adx } of adx_data[period]) {
-				if (date && adx !== undefined) {
+			for (const item of adx_data[period]) {
+				if (item && item.date) {
+					const { date, adx } = item;
 					periodADXData += `${compressDate(date)}|${adx}\n`;
 				}
 			}
@@ -275,8 +270,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodCCIData = '';
 		if (cci_data[period] && Array.isArray(cci_data[period])) {
-			for (const { date, cci } of cci_data[period]) {
-				if (date && cci !== undefined) {
+			for (const item of cci_data[period]) {
+				if (item && item.date) {
+					const { date, cci } = item;
 					periodCCIData += `${compressDate(date)}|${cci}\n`;
 				}
 			}
@@ -297,8 +293,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodSARData = '';
 		if (sar_data[dataKey] && Array.isArray(sar_data[dataKey])) {
-			for (const { date, sar } of sar_data[dataKey]) {
-				if (date && sar !== undefined) {
+			for (const item of sar_data[dataKey]) {
+				if (item && item.date) {
+					const { date, sar } = item;
 					periodSARData += `${compressDate(date)}|${sar}\n`;
 				}
 			}
@@ -319,8 +316,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodBetaData = '';
 		if (beta_data[dataKey] && Array.isArray(beta_data[dataKey])) {
-			for (const { date, beta } of beta_data[dataKey]) {
-				if (date && beta !== undefined) {
+			for (const item of beta_data[dataKey]) {
+				if (item && item.date) {
+					const { date, beta } = item;
 					periodBetaData += `${compressDate(date)}|${beta}\n`;
 				}
 			}
@@ -349,8 +347,9 @@ export const compressGetIndicatorDataResult = (
 			stochastic_data[dataKey] &&
 			Array.isArray(stochastic_data[dataKey])
 		) {
-			for (const { date, k, d } of stochastic_data[dataKey]) {
-				if (date && k !== undefined && d !== undefined) {
+			for (const item of stochastic_data[dataKey]) {
+				if (item && item.date) {
+					const { date, k, d } = item;
 					periodStochasticData += `${compressDate(date)}|${k}|${d}\n`;
 				}
 			}
@@ -372,8 +371,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodStochRSIData = '';
 		if (stochrsi_data[dataKey] && Array.isArray(stochrsi_data[dataKey])) {
-			for (const { date, k, d } of stochrsi_data[dataKey]) {
-				if (date && k !== undefined && d !== undefined) {
+			for (const item of stochrsi_data[dataKey]) {
+				if (item && item.date) {
+					const { date, k, d } = item;
 					periodStochRSIData += `${compressDate(date)}|${k}|${d}\n`;
 				}
 			}
@@ -392,8 +392,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodAvgVolData = '';
 		if (avgvol_data[period] && Array.isArray(avgvol_data[period])) {
-			for (const { date, avgvol } of avgvol_data[period]) {
-				if (date && avgvol !== undefined) {
+			for (const item of avgvol_data[period]) {
+				if (item && item.date) {
+					const { date, avgvol } = item;
 					periodAvgVolData += `${compressDate(date)}|${avgvol}\n`;
 				}
 			}
@@ -413,8 +414,9 @@ export const compressGetIndicatorDataResult = (
 
 		let periodAvgVolCcyData = '';
 		if (avgvolccy_data[period] && Array.isArray(avgvolccy_data[period])) {
-			for (const { date, avgvolccy } of avgvolccy_data[period]) {
-				if (date && avgvolccy !== undefined) {
+			for (const item of avgvolccy_data[period]) {
+				if (item && item.date) {
+					const { date, avgvolccy } = item;
 					periodAvgVolCcyData += `${compressDate(date)}|${avgvolccy}\n`;
 				}
 			}
@@ -435,7 +437,6 @@ export const compressGetIndicatorDataResult = (
 			splitAdjData += `split adjusted period: ${period} with format: date|open|high|low|close|volume\n`;
 
 			let periodSplitAdjData = '';
-			// 检查数据是否存在且可迭代
 			if (splitadj_data[period] && Array.isArray(splitadj_data[period])) {
 				for (const item of splitadj_data[period]) {
 					if (item && item.date) {
@@ -445,9 +446,6 @@ export const compressGetIndicatorDataResult = (
 				}
 			} else {
 				periodSplitAdjData += `no data available for period ${period}\n`;
-				console.log(
-					`Split adjusted data for period ${period} is not available or not iterable`
-				);
 			}
 			splitAdjData += periodSplitAdjData;
 		}
@@ -457,7 +455,26 @@ export const compressGetIndicatorDataResult = (
 		compressedResult += 'Error processing split adjusted data\n';
 	}
 
-	console.log(compressedResult);
+	console.log('Technical indicators data compression v2.0');
+	console.log(smaData.slice(0, 200));
+	console.log(emaData.slice(0, 200));
+	console.log(wmaData.slice(0, 200));
+	console.log(rsiData.slice(0, 200));
+	console.log(macdData.slice(0, 200));
+	console.log(bbData.slice(0, 200));
+	console.log(atrData.slice(0, 200));
+	console.log(volatilityData.slice(0, 200));
+	console.log(stdDevData.slice(0, 200));
+	console.log(slopeData.slice(0, 200));
+	console.log(dmiData.slice(0, 200));
+	console.log(adxData.slice(0, 200));
+	console.log(cciData.slice(0, 200));
+	console.log(sarData.slice(0, 200));
+	console.log(betaData.slice(0, 200));
+	console.log(stochasticData.slice(0, 200));
+	console.log(stochRSIData.slice(0, 200));
+	console.log(avgVolData.slice(0, 200));
+	console.log(avgVolCcyData.slice(0, 200));
 
 	return compressedResult;
 };
