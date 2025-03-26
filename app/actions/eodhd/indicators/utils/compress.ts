@@ -118,14 +118,14 @@ export const compressGetIndicatorDataResult = (
 	const { periods: bb_periods, data: bb_data } = result.bollingerBands;
 	let bbData = `bollinger bands data for ${bb_periods.join(', ')} periods:\n`;
 	for (const period of bb_periods) {
-		bbData += `bollinger bands period: ${period} with format: date|middle|upper|lower\n`;
+		bbData += `bollinger bands period: ${period} with format: date|middle_band|upper_band|lower_band\n`;
 
 		let periodBBData = '';
 		if (bb_data[period] && Array.isArray(bb_data[period])) {
 			for (const item of bb_data[period]) {
 				if (item && item.date) {
-					const { date, middle, upper, lower } = item;
-					periodBBData += `${compressDate(date)}|${middle}|${upper}|${lower}\n`;
+					const { date, uband, mband, lband } = item;
+					periodBBData += `${compressDate(date)}|${mband}|${uband}|${lband}\n`;
 				}
 			}
 		} else {
@@ -230,8 +230,8 @@ export const compressGetIndicatorDataResult = (
 		if (dmi_data[period] && Array.isArray(dmi_data[period])) {
 			for (const item of dmi_data[period]) {
 				if (item && item.date) {
-					const { date, plus_di, minus_di, dx } = item;
-					periodDMIData += `${compressDate(date)}|${plus_di}|${minus_di}|${dx}\n`;
+					const { date, dmi } = item;
+					periodDMIData += `${compressDate(date)}|${dmi}|${dmi}|${dmi}\n`;
 				}
 			}
 		} else {
@@ -340,7 +340,7 @@ export const compressGetIndicatorDataResult = (
 		slowDPeriod,
 	} of stochastic_configs) {
 		const dataKey = `${fastKPeriod}_${slowKPeriod}_${slowDPeriod}`;
-		stochasticData += `fastKPeriod: ${fastKPeriod}, slowKPeriod: ${slowKPeriod}, slowDPeriod: ${slowDPeriod} with format: date|k|d\n`;
+		stochasticData += `fastKPeriod: ${fastKPeriod}, slowKPeriod: ${slowKPeriod}, slowDPeriod: ${slowDPeriod} with format: date|slowk|slowd\n`;
 
 		let periodStochasticData = '';
 		if (
@@ -349,8 +349,8 @@ export const compressGetIndicatorDataResult = (
 		) {
 			for (const item of stochastic_data[dataKey]) {
 				if (item && item.date) {
-					const { date, k, d } = item;
-					periodStochasticData += `${compressDate(date)}|${k}|${d}\n`;
+					const { date, k_values, d_values } = item;
+					periodStochasticData += `${compressDate(date)}|${k_values}|${d_values}\n`;
 				}
 			}
 		} else {
@@ -367,14 +367,14 @@ export const compressGetIndicatorDataResult = (
 
 	for (const { fastKPeriod, fastDPeriod } of stochrsi_configs) {
 		const dataKey = `${fastKPeriod}_${fastDPeriod}`;
-		stochRSIData += `fastKPeriod: ${fastKPeriod}, fastDPeriod: ${fastDPeriod} with format: date|k|d\n`;
+		stochRSIData += `fastKPeriod: ${fastKPeriod}, fastDPeriod: ${fastDPeriod} with format: date|fastk|fastd\n`;
 
 		let periodStochRSIData = '';
 		if (stochrsi_data[dataKey] && Array.isArray(stochrsi_data[dataKey])) {
 			for (const item of stochrsi_data[dataKey]) {
 				if (item && item.date) {
-					const { date, k, d } = item;
-					periodStochRSIData += `${compressDate(date)}|${k}|${d}\n`;
+					const { date, fastkline, fastdline } = item;
+					periodStochRSIData += `${compressDate(date)}|${fastkline}|${fastdline}\n`;
 				}
 			}
 		} else {
@@ -449,32 +449,12 @@ export const compressGetIndicatorDataResult = (
 			}
 			splitAdjData += periodSplitAdjData;
 		}
+
 		compressedResult += splitAdjData;
 	} catch (error) {
 		console.error('Error processing split adjusted data:', error);
 		compressedResult += 'Error processing split adjusted data\n';
 	}
-
-	console.log('Technical indicators data compression v2.0');
-	console.log(smaData.slice(0, 200));
-	console.log(emaData.slice(0, 200));
-	console.log(wmaData.slice(0, 200));
-	console.log(rsiData.slice(0, 200));
-	console.log(macdData.slice(0, 200));
-	console.log(bbData.slice(0, 200));
-	console.log(atrData.slice(0, 200));
-	console.log(volatilityData.slice(0, 200));
-	console.log(stdDevData.slice(0, 200));
-	console.log(slopeData.slice(0, 200));
-	console.log(dmiData.slice(0, 200));
-	console.log(adxData.slice(0, 200));
-	console.log(cciData.slice(0, 200));
-	console.log(sarData.slice(0, 200));
-	console.log(betaData.slice(0, 200));
-	console.log(stochasticData.slice(0, 200));
-	console.log(stochRSIData.slice(0, 200));
-	console.log(avgVolData.slice(0, 200));
-	console.log(avgVolCcyData.slice(0, 200));
 
 	return compressedResult;
 };
