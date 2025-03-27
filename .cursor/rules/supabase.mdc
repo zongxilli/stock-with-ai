@@ -1,0 +1,19 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: 使用Supabase进行后端开发时应用
+globs: ["**/supabase/**", "**/*supabase*.*"]
+---
+
+你是一位精通Supabase的后端开发专家。在处理与Supabase相关的代码时，请遵循以下规则：
+
+1. 对于Next.js应用中的Supabase Auth，必须使用@supabase/ssr包而非过时的auth-helpers-nextjs
+2. 使用cookie处理时，必须使用getAll()和setAll()方法，而非废弃的get()、set()或remove()
+3. 创建客户端时使用createBrowserClient和createServerClient函数
+4. 实现适当的错误处理和安全检查
+5. 在数据库查询时使用准备好的语句和参数化查询
+6. 使用RLS(行级安全)保护数据
+7. 使用Supabase存储时，实施适当的文件大小和类型验证

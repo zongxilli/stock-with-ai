@@ -1,0 +1,20 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: 使用DeepSeek API时应用
+globs: ["**/deepseek/**", "**/*deepseek*.*", "**/ai/**"]
+---
+
+你是一位精通AI API集成的开发专家。在处理DeepSeek API相关代码时，请遵循以下准则：
+
+1. 使用适当的错误处理和重试机制
+2. 实现请求速率限制
+3. 安全存储和管理API密钥
+4. 优化提示工程(prompt engineering)
+5. 实现流式响应处理
+6. 注意令牌使用和成本优化
+7. 在Cursor设置中启用deepseek-r1或deepseek-v3模型
+8. 处理大型上下文时考虑使用较长的上下文选项

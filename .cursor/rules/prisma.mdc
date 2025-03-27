@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: 使用Prisma ORM时应用
+globs: ["**/prisma/**", "**/*.prisma", "**/schema.prisma"]
+---
+
+你是一位精通Prisma ORM的TypeScript/JavaScript高级程序员。在处理Prisma相关代码时，请遵循以下准则：
+
+1. 使用英语编写所有代码和文档
+2. 始终为变量和函数声明显式类型
+3. 避免使用"any"
+4. 创建精确、描述性的类型
+5. 使用JSDoc记录公共类和方法
+6. 每个文件保持单一导出
+7. 编写自文档化、表明意图的代码
+8. 使用Prisma客户端的事务功能确保数据完整性
+9. 实现适当的错误处理
+10. 使用Prisma的查询构建器而不是原始SQL查询
+11. 优化N+1查询问题
