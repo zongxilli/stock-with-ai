@@ -25,9 +25,11 @@ interface PriceTarget {
 // 更改AIAssistantData接口为更通用的结构，以适应动态JSON
 interface AIAssistantData {
 	[key: string]: any;
-	analysis?: string;
-	recommendations?: string[];
 	sentiment?: string;
+	summary?: string;
+	technicalOutlook?: any;
+	scenarios?: any;
+	actionPlan?: any;
 	sequentialThinking?: SequentialThinkingStep[];
 }
 
@@ -378,13 +380,13 @@ export default function AIAssistantDialog({
 				);
 			}
 
-			// 如果数组包含对象，检查是否有特定模式（如支撑/阻力位）
+			// 通用处理支撑位/阻力位/价格目标等带有price、price属性或level属性的对象数组
 			if (
 				content.every(
 					(item) =>
 						typeof item === 'object' &&
 						item !== null &&
-						'price' in item
+						('price' in item || 'level' in item)
 				)
 			) {
 				return (
@@ -396,9 +398,23 @@ export default function AIAssistantDialog({
 							>
 								<div className='flex items-center gap-2 mb-1'>
 									<span className='font-medium'>
-										{item.price}
+										{item.price || item.level}
 									</span>
 								</div>
+								{/* 处理多种可能的说明字段名 */}
+								{(item.significance ||
+									item.rationale ||
+									item.reason) && (
+									<div className='ml-2'>
+										<p className='text-xs text-muted-foreground'>
+											—{' '}
+											{item.significance ||
+												item.rationale ||
+												item.reason}
+										</p>
+									</div>
+								)}
+								{/* 处理原因数组 */}
 								{item.reasons &&
 									Array.isArray(item.reasons) && (
 										<div className='ml-2'>
@@ -416,13 +432,6 @@ export default function AIAssistantDialog({
 											</ul>
 										</div>
 									)}
-								{item.reason && (
-									<div className='ml-2'>
-										<p className='text-xs text-muted-foreground'>
-											— {item.reason}
-										</p>
-									</div>
-								)}
 							</div>
 						))}
 					</div>
@@ -448,65 +457,39 @@ export default function AIAssistantDialog({
 			// 检测对象模式和布局
 			const keys = Object.keys(content);
 
-			// 根据键名和内容结构选择布局
-
-			// 栅格布局 - 用于多个简单键值对（如indicators, patterns等）
+			// 检查是否应该使用网格布局（适用于键值对较多的对象）
 			const shouldUseGrid =
-				keys.length >= 3 &&
-				keys.every((key) => {
-					const value = content[key];
-					return (
-						typeof value === 'string' ||
-						typeof value === 'number' ||
-						typeof value === 'boolean'
-					);
-				});
-
-			// 用于支撑位/阻力位等特定结构
-			if (keys.includes('supports') && keys.includes('resistances')) {
-				return (
-					<div className='space-y-4'>
-						{content.supports &&
-							Array.isArray(content.supports) &&
-							content.supports.length > 0 && (
-								<div className='mb-4'>
-									<h5 className='text-sm font-medium mb-2'>
-										支撑位
-									</h5>
-									<div>
-										{renderContent(
-											content.supports,
-											depth + 1
-										)}
-									</div>
-								</div>
-							)}
-						{content.resistances &&
-							Array.isArray(content.resistances) &&
-							content.resistances.length > 0 && (
-								<div>
-									<h5 className='text-sm font-medium mb-2'>
-										阻力位
-									</h5>
-									<div>
-										{renderContent(
-											content.resistances,
-											depth + 1
-										)}
-									</div>
-								</div>
-							)}
-					</div>
+				keys.length > 2 &&
+				keys.every(
+					(key) =>
+						typeof content[key] !== 'object' ||
+						content[key] === null ||
+						(Array.isArray(content[key]) &&
+							content[key].length === 0)
 				);
-			}
 
 			// 如果是一个具有price属性的对象（单个支撑位/阻力位）
-			if ('price' in content) {
+			if ('price' in content || 'level' in content) {
 				return (
 					<div className='mb-3 p-2 border-l-2 border-muted pl-2'>
 						<div className='flex items-center gap-2 mb-1'>
-							<span className='font-medium'>{content.price}</span>
+							<span className='font-medium'>
+								{content.price || content.level}
+							</span>
 						</div>
+						{/* 处理多种可能的说明字段名 */}
+						{(content.significance ||
+							content.rationale ||
+							content.reason) && (
+							<div className='ml-2'>
+								<p className='text-xs text-muted-foreground'>
+									—{' '}
+									{content.significance ||
+										content.rationale ||
+										content.reason}
+								</p>
+							</div>
+						)}
 						{content.reasons && Array.isArray(content.reasons) && (
 							<div className='ml-2'>
 								<ul className='list-disc pl-4 space-y-1 text-xs text-muted-foreground'>
@@ -516,13 +499,6 @@ export default function AIAssistantDialog({
 										)
 									)}
 								</ul>
-							</div>
-						)}
-						{content.reason && (
-							<div className='ml-2'>
-								<p className='text-xs text-muted-foreground'>
-									— {content.reason}
-								</p>
 							</div>
 						)}
 					</div>
@@ -591,7 +567,53 @@ export default function AIAssistantDialog({
 
 	// 格式化键名，例如将camelCase转换为空格分隔的单词
 	const formatKeyName = (key: string): string => {
-		// 将camelCase转换为空格分隔的单词
+		// 中英文字段映射表
+		const keyTranslations: Record<string, string> = {
+			// 顶级字段翻译
+			sentiment: '整体情绪',
+			summary: '摘要分析',
+			technicalOutlook: '技术展望',
+			scenarios: '市场情景',
+			actionPlan: '行动计划',
+
+			// technicalOutlook 子字段翻译
+			currentTrend: '当前趋势',
+			volumePriceAnalysis: '量价分析',
+			keyLevels: '关键价位',
+			supports: '支撑位',
+			resistances: '阻力位',
+
+			// scenarios 子字段翻译
+			bullishScenario: '看涨情景',
+			bearishScenario: '看跌情景',
+			trigger: '触发条件',
+			tradingStrategy: '交易策略',
+			priceTargets: '价格目标',
+
+			// actionPlan 子字段翻译
+			immediateRecommendation: '即时建议',
+			riskManagement: '风险管理',
+
+			// specificActions 子字段翻译
+			entry: '入场点',
+			stopLoss: '止损点',
+			profitTargets: '获利目标',
+			positionManagement: '仓位管理',
+
+			// 常见属性翻译
+			price: '价格',
+			level: '水平',
+			significance: '重要性',
+			rationale: '理由',
+			reason: '原因',
+		};
+
+		// 先检查映射表中是否有对应的中文翻译
+		if (key in keyTranslations) {
+			return keyTranslations[key];
+		}
+
+		// 如果没有找到翻译，使用原始的格式化逻辑
 		return key
 			.replace(/([A-Z])/g, ' $1')
 			.replace(/^./, (str) => str.toUpperCase());
@@ -737,207 +759,51 @@ export default function AIAssistantDialog({
 										</div>
 									)}
 
-									{/* 然后显示主要分析内容 */}
-									{data.analysis && (
+									{/* 显示摘要 */}
+									{data.summary && (
 										<div className='mb-6 p-4 rounded-lg border'>
 											<h3 className='font-medium text-lg mb-2'>
 												Summary
 											</h3>
 											<p className='text-sm leading-relaxed'>
-												{data.analysis}
+												{data.summary}
 											</p>
 										</div>
 									)}
 
-									{/* 然后是推荐内容 */}
-									{data.recommendations &&
-										data.recommendations.length > 0 && (
-											<div className='mb-6 p-4 rounded-lg border'>
-												<h3 className='font-medium text-lg mb-2'>
-													Recommendations
-												</h3>
-												<ul className='list-disc pl-5 space-y-2 text-sm'>
-													{data.recommendations.map(
-														(
-															recommendation,
-															index
-														) => (
-															<li
-																key={index}
-																className='leading-relaxed'
-															>
-																{recommendation}
-															</li>
-														)
-													)}
-												</ul>
-											</div>
-										)}
-
-									{/* 价格目标单独展示 */}
-									{data.priceTargets && (
-										<div className='mb-6 p-4 rounded-lg border'>
-											<h3 className='font-medium text-lg mb-2'>
-												Price Targets
-											</h3>
-											<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-												{data.priceTargets
-													.shortTerm && (
-													<div className='p-3 rounded border bg-muted/50'>
-														<h4 className='font-medium text-sm mb-1'>
-															Short Term (3m)
-														</h4>
-														<p className='text-sm'>
-															{
-																data
-																	.priceTargets
-																	.shortTerm
-															}
-														</p>
-													</div>
-												)}
-												{data.priceTargets.midTerm && (
-													<div className='p-3 rounded border bg-muted/50'>
-														<h4 className='font-medium text-sm mb-1'>
-															Mid Term (6-12m)
-														</h4>
-														<p className='text-sm'>
-															{
-																data
-																	.priceTargets
-																	.midTerm
-															}
-														</p>
-													</div>
-												)}
-												{data.priceTargets.longTerm && (
-													<div className='p-3 rounded border bg-muted/50'>
-														<h4 className='font-medium text-sm mb-1'>
-															Long Term (1-3y)
-														</h4>
-														<p className='text-sm'>
-															{
-																data
-																	.priceTargets
-																	.longTerm
-															}
-														</p>
-													</div>
-												)}
-											</div>
-										</div>
-									)}
-
-									{/* 技术分析和基本面分析并排展示 */}
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
-										{data.technicalAnalysis && (
-											<div className='border p-4 rounded-lg'>
-												<h3 className='font-medium text-lg mb-3'>
-													Technical Analysis
-												</h3>
-												{renderContent(
-													data.technicalAnalysis
-												)}
-											</div>
-										)}
-
-										{data.fundamentalAnalysis && (
-											<div className='border p-4 rounded-lg'>
-												<h3 className='font-medium text-lg mb-3'>
-													Fundamental Analysis
-												</h3>
-												{renderContent(
-													data.fundamentalAnalysis
-												)}
-											</div>
-										)}
-									</div>
-
-									{/* 行业分析和公司概况并排展示 */}
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
-										{data.industryAnalysis && (
-											<div className='border p-4 rounded-lg'>
-												<h3 className='font-medium text-lg mb-3'>
-													Industry Analysis
-												</h3>
-												{renderContent(
-													data.industryAnalysis
-												)}
-											</div>
-										)}
-
-										{data.companyProfile && (
-											<div className='border p-4 rounded-lg'>
-												<h3 className='font-medium text-lg mb-3'>
-													Company Profile
-												</h3>
-												{renderContent(
-													data.companyProfile
-												)}
-											</div>
-										)}
-									</div>
-
-									{/* 催化剂、风险因素、宏观环境和内部活动统一为一组卡片 */}
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
-										{data.catalysts && (
-											<div className='border p-4 rounded-lg'>
-												<h3 className='font-medium text-lg mb-3'>
-													Catalysts
-												</h3>
-												{renderContent(data.catalysts)}
-											</div>
-										)}
-
-										{data.riskFactors && (
-											<div className='border p-4 rounded-lg'>
-												<h3 className='font-medium text-lg mb-3'>
-													Risk Factors
-												</h3>
-												{renderContent(
-													data.riskFactors
-												)}
-											</div>
-										)}
-									</div>
-
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
-										{data.macroEnvironment && (
-											<div className='border p-4 rounded-lg'>
-												<h3 className='font-medium text-lg mb-3'>
-													Macro Environment
-												</h3>
-												{renderContent(
-													data.macroEnvironment
-												)}
-											</div>
-										)}
-
-										{data.insiderActivity && (
-											<div className='border p-4 rounded-lg'>
-												<h3 className='font-medium text-lg mb-3'>
-													Insider Activity
-												</h3>
-												{renderContent(
-													data.insiderActivity
-												)}
-											</div>
-										)}
-									</div>
-
-									{/* 市场情绪单独一行 */}
-									{data.marketSentiment && (
+									{/* 技术展望部分 */}
+									{data.technicalOutlook && (
 										<div className='border p-4 rounded-lg mb-6'>
 											<h3 className='font-medium text-lg mb-3'>
-												Market Sentiment
+												Technical Outlook
 											</h3>
 											{renderContent(
-												data.marketSentiment
+												data.technicalOutlook
 											)}
 										</div>
 									)}
 
-									{/* 其他未明确处理的顶级属性 */}
+									{/* 情景分析部分 */}
+									{data.scenarios && (
+										<div className='border p-4 rounded-lg mb-6'>
+											<h3 className='font-medium text-lg mb-3'>
+												Scenarios
+											</h3>
+											{renderContent(data.scenarios)}
+										</div>
+									)}
+
+									{/* 行动计划部分 */}
+									{data.actionPlan && (
+										<div className='border p-4 rounded-lg mb-6'>
+											<h3 className='font-medium text-lg mb-3'>
+												Action Plan
+											</h3>
+											{renderContent(data.actionPlan)}
+										</div>
+									)}
+
+									{/* 动态渲染其他字段 */}
 									<div className='space-y-6'>
 										{Object.entries(
 											getMainContent() || {}
@@ -945,19 +811,12 @@ export default function AIAssistantDialog({
 											// 跳过已经单独显示的字段
 											if (
 												[
-													'analysis',
 													'sentiment',
-													'recommendations',
-													'technicalAnalysis',
-													'fundamentalAnalysis',
-													'industryAnalysis',
-													'companyProfile',
-													'catalysts',
-													'riskFactors',
-													'macroEnvironment',
-													'insiderActivity',
-													'marketSentiment',
-													'priceTargets',
+													'summary',
+													'technicalOutlook',
+													'scenarios',
+													'actionPlan',
+													'sequentialThinking',
 												].includes(key)
 											) {
 												return null;
