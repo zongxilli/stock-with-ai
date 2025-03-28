@@ -14,7 +14,7 @@ export const EMAPresets = {
 	// 常用组合配置
 	standard: [
 		{ period: 5, name: 'EMA5' }, // 5日均线
-		{ period: 10, name: 'EMA10' }, // 10日均线
+		// { period: 10, name: 'EMA10' }, // 10日均线
 		{ period: 20, name: 'EMA20' }, // 20日均线
 		{ period: 50, name: 'EMA50' }, // 50日均线
 		{ period: 200, name: 'EMA200' }, // 200日均线
@@ -41,10 +41,10 @@ export const SMAPresets = {
 	},
 	// 常用组合配置
 	standard: [
-		{ period: 5, name: 'SMA5' }, // 5日均线
-		{ period: 10, name: 'SMA10' }, // 10日均线
+		// { period: 5, name: 'SMA5' }, // 5日均线
+		// { period: 10, name: 'SMA10' }, // 10日均线
 		{ period: 20, name: 'SMA20' }, // 20日均线
-		{ period: 50, name: 'SMA50' }, // 50日均线
+		// { period: 50, name: 'SMA50' }, // 50日均线
 		{ period: 200, name: 'SMA200' }, // 200日均线
 	],
 	// 短期均线组合
@@ -80,9 +80,9 @@ export const RSIPresets = {
 		period: 14, // 最常用的RSI周期是14
 	},
 	standard: [
-		{ period: 6, name: 'RSI6' }, // 短期
+		// { period: 6, name: 'RSI6' }, // 短期
 		{ period: 14, name: 'RSI14' }, // 中期（最常用）
-		{ period: 21, name: 'RSI21' }, // 长期
+		// { period: 21, name: 'RSI21' }, // 长期
 	],
 	// 超买超卖阈值
 	thresholds: {
@@ -171,7 +171,7 @@ export const VolatilityPresets = {
 	standard: [
 		{ period: 10, name: 'Short-term Volatility (10)' },
 		{ period: 21, name: 'Medium-term Volatility (21)' },
-		{ period: 50, name: 'Long-term Volatility (50)' },
+		// { period: 50, name: 'Long-term Volatility (50)' },
 	],
 };
 
@@ -181,9 +181,9 @@ export const BollingerBandsPresets = {
 		period: 20, // 标准布林带通常使用20天周期
 	},
 	standard: [
-		{ period: 10, name: 'Short-term Bollinger (10)' },
+		// { period: 10, name: 'Short-term Bollinger (10)' },
 		{ period: 20, name: 'Standard Bollinger (20)' },
-		{ period: 50, name: 'Long-term Bollinger (50)' },
+		// { period: 50, name: 'Long-term Bollinger (50)' },
 	],
 };
 
@@ -337,8 +337,8 @@ export const AverageVolumePresets = {
 	standard: [
 		{ period: 5, name: '5-day Avg Volume' },
 		{ period: 20, name: '20-day Avg Volume' },
-		{ period: 50, name: '50-day Avg Volume' },
-		{ period: 200, name: '200-day Avg Volume' },
+		// { period: 50, name: '50-day Avg Volume' },
+		// { period: 200, name: '200-day Avg Volume' },
 	],
 };
 

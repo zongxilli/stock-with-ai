@@ -49,26 +49,26 @@ export const compressGetIndicatorDataResult = (
 	}
 	compressedResult += emaData + '\n\n';
 
-	//` 压缩wma
-	const { periods: wma_periods, data: wma_data } = result.wma;
-	let wmaData = `wma data for ${wma_periods.join(', ')} periods:\n`;
-	for (const period of wma_periods) {
-		wmaData += `wma period: ${period} with format: date|wma\n`;
+	// //` 压缩wma
+	// const { periods: wma_periods, data: wma_data } = result.wma;
+	// let wmaData = `wma data for ${wma_periods.join(', ')} periods:\n`;
+	// for (const period of wma_periods) {
+	// 	wmaData += `wma period: ${period} with format: date|wma\n`;
 
-		let periodWMAData = '';
-		if (wma_data[period] && Array.isArray(wma_data[period])) {
-			for (const item of wma_data[period]) {
-				if (item && item.date) {
-					const { date, wma } = item;
-					periodWMAData += `${compressDate(date)}|${wma}\n`;
-				}
-			}
-		} else {
-			periodWMAData += `no data available for period ${period}\n`;
-		}
-		wmaData += periodWMAData;
-	}
-	compressedResult += wmaData + '\n\n';
+	// 	let periodWMAData = '';
+	// 	if (wma_data[period] && Array.isArray(wma_data[period])) {
+	// 		for (const item of wma_data[period]) {
+	// 			if (item && item.date) {
+	// 				const { date, wma } = item;
+	// 				periodWMAData += `${compressDate(date)}|${wma}\n`;
+	// 			}
+	// 		}
+	// 	} else {
+	// 		periodWMAData += `no data available for period ${period}\n`;
+	// 	}
+	// 	wmaData += periodWMAData;
+	// }
+	// compressedResult += wmaData + '\n\n';
 
 	//` 压缩rsi
 	const { periods: rsi_periods, data: rsi_data } = result.rsi;
@@ -199,26 +199,26 @@ export const compressGetIndicatorDataResult = (
 	}
 	compressedResult += stdDevData + '\n\n';
 
-	//` 压缩slope
-	const { periods: slope_periods, data: slope_data } = result.slope;
-	let slopeData = `slope data for ${slope_periods.join(', ')} periods:\n`;
-	for (const period of slope_periods) {
-		slopeData += `slope period: ${period} with format: date|slope\n`;
+	// //` 压缩slope
+	// const { periods: slope_periods, data: slope_data } = result.slope;
+	// let slopeData = `slope data for ${slope_periods.join(', ')} periods:\n`;
+	// for (const period of slope_periods) {
+	// 	slopeData += `slope period: ${period} with format: date|slope\n`;
 
-		let periodSlopeData = '';
-		if (slope_data[period] && Array.isArray(slope_data[period])) {
-			for (const item of slope_data[period]) {
-				if (item && item.date) {
-					const { date, slope } = item;
-					periodSlopeData += `${compressDate(date)}|${slope}\n`;
-				}
-			}
-		} else {
-			periodSlopeData += `no data available for period ${period}\n`;
-		}
-		slopeData += periodSlopeData;
-	}
-	compressedResult += slopeData + '\n\n';
+	// 	let periodSlopeData = '';
+	// 	if (slope_data[period] && Array.isArray(slope_data[period])) {
+	// 		for (const item of slope_data[period]) {
+	// 			if (item && item.date) {
+	// 				const { date, slope } = item;
+	// 				periodSlopeData += `${compressDate(date)}|${slope}\n`;
+	// 			}
+	// 		}
+	// 	} else {
+	// 		periodSlopeData += `no data available for period ${period}\n`;
+	// 	}
+	// 	slopeData += periodSlopeData;
+	// }
+	// compressedResult += slopeData + '\n\n';
 
 	//` 压缩dmi
 	const { periods: dmi_periods, data: dmi_data } = result.dmi;
@@ -283,51 +283,51 @@ export const compressGetIndicatorDataResult = (
 	}
 	compressedResult += cciData + '\n\n';
 
-	//` 压缩sar
-	const { configs: sar_configs, data: sar_data } = result.sar;
-	let sarData = 'parabolic sar data\n';
+	// //` 压缩sar
+	// const { configs: sar_configs, data: sar_data } = result.sar;
+	// let sarData = 'parabolic sar data\n';
 
-	for (const { acceleration, maximum } of sar_configs) {
-		const dataKey = `${acceleration}_${maximum}`;
-		sarData += `acceleration: ${acceleration}, maximum: ${maximum} with format: date|sar\n`;
+	// for (const { acceleration, maximum } of sar_configs) {
+	// 	const dataKey = `${acceleration}_${maximum}`;
+	// 	sarData += `acceleration: ${acceleration}, maximum: ${maximum} with format: date|sar\n`;
 
-		let periodSARData = '';
-		if (sar_data[dataKey] && Array.isArray(sar_data[dataKey])) {
-			for (const item of sar_data[dataKey]) {
-				if (item && item.date) {
-					const { date, sar } = item;
-					periodSARData += `${compressDate(date)}|${sar}\n`;
-				}
-			}
-		} else {
-			periodSARData += `no data available for configuration ${dataKey}\n`;
-		}
-		sarData += periodSARData;
-	}
-	compressedResult += sarData + '\n\n';
+	// 	let periodSARData = '';
+	// 	if (sar_data[dataKey] && Array.isArray(sar_data[dataKey])) {
+	// 		for (const item of sar_data[dataKey]) {
+	// 			if (item && item.date) {
+	// 				const { date, sar } = item;
+	// 				periodSARData += `${compressDate(date)}|${sar}\n`;
+	// 			}
+	// 		}
+	// 	} else {
+	// 		periodSARData += `no data available for configuration ${dataKey}\n`;
+	// 	}
+	// 	sarData += periodSARData;
+	// }
+	// compressedResult += sarData + '\n\n';
 
-	//` 压缩beta
-	const { configs: beta_configs, data: beta_data } = result.beta;
-	let betaData = 'beta data\n';
+	// //` 压缩beta
+	// const { configs: beta_configs, data: beta_data } = result.beta;
+	// let betaData = 'beta data\n';
 
-	for (const { period, code2 } of beta_configs) {
-		const dataKey = `${period}_${code2}`;
-		betaData += `period: ${period}, code2: ${code2} with format: date|beta\n`;
+	// for (const { period, code2 } of beta_configs) {
+	// 	const dataKey = `${period}_${code2}`;
+	// 	betaData += `period: ${period}, code2: ${code2} with format: date|beta\n`;
 
-		let periodBetaData = '';
-		if (beta_data[dataKey] && Array.isArray(beta_data[dataKey])) {
-			for (const item of beta_data[dataKey]) {
-				if (item && item.date) {
-					const { date, beta } = item;
-					periodBetaData += `${compressDate(date)}|${beta}\n`;
-				}
-			}
-		} else {
-			periodBetaData += `no data available for configuration ${dataKey}\n`;
-		}
-		betaData += periodBetaData;
-	}
-	compressedResult += betaData + '\n\n';
+	// 	let periodBetaData = '';
+	// 	if (beta_data[dataKey] && Array.isArray(beta_data[dataKey])) {
+	// 		for (const item of beta_data[dataKey]) {
+	// 			if (item && item.date) {
+	// 				const { date, beta } = item;
+	// 				periodBetaData += `${compressDate(date)}|${beta}\n`;
+	// 			}
+	// 		}
+	// 	} else {
+	// 		periodBetaData += `no data available for configuration ${dataKey}\n`;
+	// 	}
+	// 	betaData += periodBetaData;
+	// }
+	// compressedResult += betaData + '\n\n';
 
 	//` 压缩stochastic
 	const { configs: stochastic_configs, data: stochastic_data } =
@@ -455,6 +455,22 @@ export const compressGetIndicatorDataResult = (
 	// 	console.error('Error processing split adjusted data:', error);
 	// 	compressedResult += 'Error processing split adjusted data\n';
 	// }
+
+	console.log('smaData.length', smaData.length);
+	console.log('emaData.length', emaData.length);
+	console.log('rsiData.length', rsiData.length);
+	console.log('macdData.length', macdData.length);
+	console.log('bbData.length', bbData.length);
+	console.log('atrData.length', atrData.length);
+	console.log('volatilityData.length', volatilityData.length);
+	console.log('stdDevData.length', stdDevData.length);
+	console.log('dmiData.length', dmiData.length);
+	console.log('adxData.length', adxData.length);
+	console.log('cciData.length', cciData.length);
+	console.log('stochasticData.length', stochasticData.length);
+	console.log('stochRSIData.length', stochRSIData.length);
+	console.log('avgVolData.length', avgVolData.length);
+	console.log('avgVolCcyData.length', avgVolCcyData.length);
 
 	return compressedResult;
 };
