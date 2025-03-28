@@ -1,249 +1,239 @@
-const JSON_CN = {
-	// 总体分析概述
-	analysis: '考虑基本面、技术面、宏观环境和行业定位的整体分析总结',
+const JSON_EN = {
+	// Independent sentiment indicator
+	sentiment: 'POSITIVE, NEUTRAL, or NEGATIVE',
 
-	// 公司概况
-	companyProfile: {
-		businessModel: '核心业务模式和主要产品/服务概述',
-		industry: '行业分类和细分市场定位',
-		globalPresence: '全球业务分布和关键市场',
-		keyCompetitiveAdvantages: '核心竞争优势和护城河分析',
-	},
+	// Comprehensive summary paragraph - single field to encourage depth
+	summary:
+		'Provide a comprehensive analysis (at least 300 words) of the company and its stock. Cover relevant business aspects, key technical patterns, current market position, volume analysis, and overall technical outlook. Include specific price levels, major support/resistance zones, and explain what recent price action and indicators suggest about future movement and why.',
 
-	// 技术分析部分
-	technicalAnalysis: {
-		priceTrend: '价格趋势分析，包括最近趋势、关键突破点、支撑位和阻力位',
+	// Technical analysis with cause-effect relationships
+	technicalOutlook: {
+		currentTrend:
+			'Detailed explanation of the current price trend including direction, strength, and duration. Analyze what technical indicators confirm this trend and any warning signs of potential reversal. Explain WHY the price is behaving this way based on technical evidence.',
+
+		volumePriceAnalysis:
+			'In-depth analysis of volume and price relationship. Identify significant volume patterns, divergences, or anomalies and explain what they reveal about the strength of price movements. Discuss how institutional money flow is likely influencing the stock based on volume patterns.',
+
 		keyLevels: {
 			supports: [
 				{
 					price: 0,
-					reasons: ['支撑位原因1', '支撑位原因2', '支撑位原因3'],
+					significance:
+						'Detailed explanation of why this is a critical support level (historical bounces, volume profile, moving averages, round number psychology, etc.) and what specific price action would confirm a breakdown',
 				},
 				{
 					price: 0,
-					reasons: ['支撑位原因1', '支撑位原因2', '支撑位原因3'],
+					significance:
+						'Detailed explanation of why this is a critical support level and what specific price action would confirm a breakdown',
 				},
 				{
 					price: 0,
-					reasons: ['支撑位原因1', '支撑位原因2', '支撑位原因3'],
+					significance:
+						'Detailed explanation of why this is a critical support level and what specific price action would confirm a breakdown',
 				},
 			],
 			resistances: [
 				{
 					price: 0,
-					reasons: ['阻力位原因1', '阻力位原因2', '阻力位原因3'],
+					significance:
+						'Detailed explanation of why this is a critical resistance level (historical rejections, institutional selling, trendlines, Fibonacci levels, etc.) and what specific price action would confirm a breakout',
 				},
 				{
 					price: 0,
-					reasons: ['阻力位原因1', '阻力位原因2', '阻力位原因3'],
+					significance:
+						'Detailed explanation of why this is a critical resistance level and what specific price action would confirm a breakout',
 				},
 				{
 					price: 0,
-					reasons: ['阻力位原因1', '阻力位原因2', '阻力位原因3'],
+					significance:
+						'Detailed explanation of why this is a critical resistance level and what specific price action would confirm a breakout',
 				},
 			],
 		},
-		indicators: {
-			rsi: '相对强弱指标分析，包括超买/超卖状态和背离情况',
-			macd: 'MACD指标分析，金叉死叉和趋势确认',
-			movingAverages: '均线分析，包括关键均线的支撑阻力作用',
-			bollingerBands: '布林带分析，包括带宽、压缩和通道突破',
-			atr: '平均真实波幅分析，波动率及止损设置建议',
-			adx: '平均方向指数分析，趋势强度及持续性',
-			cci: '顺势指标分析，超买超卖及反转信号',
-			stochastic: '随机指标分析，动量和超买超卖条件',
-			sar: '抛物线转向指标分析，趋势方向和反转点',
-			dmi: '方向运动指标分析，多空力量对比',
-			volatility: '波动率分析，市场波动性评估及风险度量',
-			stochasticRSI: 'RSI随机指标分析，RSI值的波动性和反转信号',
+	},
+
+	// Detailed trading scenarios with cause-effect logic
+	scenarios: {
+		bullishScenario: {
+			trigger:
+				'Detailed description of precise market conditions that would confirm a bullish outlook. Include specific price levels, volume requirements, indicator readings, or pattern completions that would trigger this scenario.',
+
+			tradingStrategy:
+				'Comprehensive step-by-step trading plan if this scenario unfolds. Include EXACTLY when to enter, where to place stops, how to manage the position as it develops, and specific exit strategies. Clearly explain WHY each action is recommended based on technical principles.',
 		},
-		volume: {
-			trend: '成交量趋势分析，与价格趋势的匹配度',
-			anomalies: '异常成交量信号及其可能原因',
-			averageVolume: '不同时间框架的平均成交量对比',
-			obv: '能量潮指标(OBV)分析，累积/分配情况',
-			priceVolumeRelationship: '价量关系分析，成交量和价格变动的相互验证',
-		},
-		patterns: {
-			candlestick: '蜡烛图形态识别，如锤子、吞没、星线等',
-			chart: '图表形态识别，如头肩顶/底、双顶/双底、三角形等',
-			harmonic: '调和形态识别，如蝴蝶、蝙蝠、螃蟹等',
-			fibonacci: '斐波那契回调和延伸水平分析',
-			gapAnalysis: '跳空缺口分析及其含义',
-			priceTargets: '基于形态和指标的价格目标预测',
-		},
-		marketBreadth: {
-			advanceDecline: '上涨/下跌股票比例及市场广度指标',
-			sectorPerformance: '相关行业板块表现对个股影响',
-			marketIndex: '大盘指数对个股的影响分析',
+
+		bearishScenario: {
+			trigger:
+				'Detailed description of precise market conditions that would confirm a bearish outlook. Include specific price levels, volume requirements, indicator readings, or pattern completions that would trigger this scenario.',
+
+			priceTargets: [
+				{
+					price: 0,
+					rationale:
+						'Technical justification for this target and estimated timeframe',
+				},
+			],
+
+			tradingStrategy:
+				'Comprehensive step-by-step trading plan if this scenario unfolds. Include EXACTLY when to enter, where to place stops, how to manage the position as it develops, and specific exit strategies. Clearly explain WHY each action is recommended based on technical principles.',
 		},
 	},
 
-	// 基本面分析
-	fundamentalAnalysis: {
-		financials:
-			'关键财务指标分析，包括收入、利润、利润率、现金流等，重点关注趋势',
-		valuation: '估值指标分析，如PE、PB、PS等，与行业平均值和历史水平比较',
-		growth: '公司增长潜力和可持续性评估，包括有机增长和并购前景',
-		balance: '公司资产、负债和财务健康状况评估，包括债务结构和偿付能力',
-		cashFlow: '现金流质量分析，包括经营现金流、自由现金流和资本配置策略',
-		dividendPolicy: '股息政策分析，包括可持续性和增长前景',
+	// Specific action plan
+	actionPlan: {
+		immediateRecommendation:
+			'Clear, decisive directive on what action to take right now based on current price and indicators. Specify exact entry price (or price range), stop loss level with percentage risk, and multiple profit targets with technical justification for each. If no immediate action is warranted, provide specific price trigger points that would warrant action (e.g., "Buy if price breaks above $X with volume exceeding Y shares" or "Sell if price drops below $Z with RSI under 30").',
+
+		riskManagement:
+			'Detailed risk control strategy including ideal position sizing relative to account (specific percentage), maximum risk per trade (specific percentage), and exact criteria for adjusting position. Include precise instructions for trailing stops (e.g., "Move stop to breakeven after price reaches $X", "Trail stop below the 20-day moving average once price exceeds $Y"). Provide specific scenarios for when to add to the position and when to exit regardless of profit/loss.',
 	},
-
-	// 行业分析
-	industryAnalysis: {
-		position:
-			'公司在行业中的市场份额和竞争优势，相对于主要竞争对手的优势和劣势',
-		trends: '整体行业发展趋势、创新方向和颠覆风险',
-		competitors: '主要竞争对手分析和相对表现，行业整合趋势',
-		cycle: '行业周期的当前阶段和展望',
-	},
-
-	// 内部活动
-	insiderActivity: {
-		insiderTrading: '内部交易分析',
-		institutionalHoldings: '机构持股趋势分析',
-		shortInterest: '空头兴趣分析',
-		buybacksAndDilution: '股票回购和稀释评估',
-	},
-
-	// 宏观环境
-	macroEnvironment: {
-		economicFactors: '影响公司的宏观经济因素',
-		policyChanges: '相关政策变化及潜在影响',
-		geopolitical: '地缘政治风险评估',
-	},
-
-	// 风险因素
-	riskFactors: {
-		market: '与整体市场相关的风险因素',
-		industry: '与行业相关的特定风险',
-		company: '与公司本身相关的特定风险',
-		regulatory: '可能影响公司的监管变化或政策风险',
-	},
-
-	// 催化剂
-	catalysts: {
-		nearTerm: '未来3-6个月可能影响股价的关键事件',
-		longTerm: '影响长期价值的战略因素',
-	},
-
-	// 市场情绪
-	marketSentiment: {
-		analystConsensus: '分析师意见摘要',
-		retailSentiment: '散户投资者情绪评估',
-		newsFlow: '近期新闻报道基调和影响',
-	},
-
-	// 投资建议
-	recommendations: [
-		'具体投资建议1（包括入场点和止损策略）',
-		'具体投资建议2',
-		'具体投资建议3',
-		'具体投资建议4',
-	],
-
-	// 价格目标
-	priceTargets: {
-		shortTerm: '3个月价格预测及依据，包括潜在波动范围',
-		midTerm: '6-12个月价格预测及依据',
-		longTerm: '1-3年价格预测及依据',
-	},
-
-	// 整体投资情绪，必须是以下三种之一：POSITIVE、NEUTRAL、NEGATIVE
-	sentiment: '整体投资情绪，必须是以下三种之一：POSITIVE、NEUTRAL、NEGATIVE',
 };
 
-const JSON_EN = {
-	analysis:
-		'Overall analysis summary, considering fundamentals, technicals, macroeconomic environment, and industry positioning',
-	companyProfile: {
-		businessModel:
-			'Core business model and main products/services overview',
-		industry: 'Industry classification and segment positioning',
-		globalPresence: 'Global operations distribution and key markets',
-		keyCompetitiveAdvantages:
-			'Core competitive advantages and moat analysis',
+// Chinese version
+const JSON_CN = {
+	// 独立的情绪指标
+	sentiment: 'POSITIVE, NEUTRAL, 或 NEGATIVE',
+
+	// 全面的摘要段落 - 单一字段以鼓励深度
+	summary:
+		'提供对公司及其股票的全面分析（至少300字）。涵盖相关业务方面、关键技术形态、当前市场位置、成交量分析和整体技术前景。包括具体价格水平、主要支撑/阻力区域，并解释最近的价格行为和指标对未来走势的暗示及原因。',
+
+	// 技术分析与因果关系
+	technicalOutlook: {
+		currentTrend:
+			'详细解释当前价格趋势，包括方向、强度和持续时间。分析哪些技术指标确认这一趋势以及任何潜在反转的警告信号。基于技术证据解释价格为何会这样表现。',
+
+		volumePriceAnalysis:
+			'对成交量和价格关系的深入分析。识别重要的成交量模式、背离或异常，并解释它们揭示了什么关于价格走势的强度。讨论机构资金流如何基于成交量模式可能影响股票。',
+
+		keyLevels: {
+			supports: [
+				{
+					price: 0,
+					significance:
+						'详细解释为什么这是关键支撑位（历史反弹、成交量分布、移动均线、整数心理位等）以及什么具体价格行为会确认突破',
+				},
+				{
+					price: 0,
+					significance:
+						'详细解释为什么这是关键支撑位以及什么具体价格行为会确认突破',
+				},
+				{
+					price: 0,
+					significance:
+						'详细解释为什么这是关键支撑位以及什么具体价格行为会确认突破',
+				},
+			],
+			resistances: [
+				{
+					price: 0,
+					significance:
+						'详细解释为什么这是关键阻力位（历史拒绝、机构抛售、趋势线、斐波那契水平等）以及什么具体价格行为会确认突破',
+				},
+				{
+					price: 0,
+					significance:
+						'详细解释为什么这是关键阻力位以及什么具体价格行为会确认突破',
+				},
+				{
+					price: 0,
+					significance:
+						'详细解释为什么这是关键阻力位以及什么具体价格行为会确认突破',
+				},
+			],
+		},
 	},
-	technicalAnalysis: {
-		priceTrend:
-			'Price trend analysis, including recent trends, key breakout points, support and resistance levels',
-		technicalIndicators:
-			'Analysis of key technical indicators such as RSI, MACD, moving averages, including overbought/oversold conditions',
-		volume: 'Volume analysis and its implications, including any abnormal volume signals',
-		patterns:
-			'Identification of important technical patterns such as head and shoulders, double bottoms, etc., and their price targets',
+
+	// 具有因果逻辑的详细交易情景
+	scenarios: {
+		bullishScenario: {
+			trigger:
+				'详细描述会确认看涨前景的精确市场条件。包括会触发这种情景的特定价格水平、成交量要求、指标读数或形态完成。',
+
+			specificActions: {
+				entry: '指定精确的入场价格或价格范围，并提供详细理由。包括所需的任何成交量或指标确认。如果给出范围，解释激进与保守入场的条件。',
+
+				stopLoss:
+					'提供精确的初始止损价格和风险百分比。基于技术因素解释为什么这个特定水平是合适的（例如，在支撑位下方，在摆动低点下方，在移动平均线下方）。',
+
+				profitTargets: [
+					{
+						level: '第一个获利目标价格',
+						rationale: '这个水平的技术依据以及退出多少百分比的仓位',
+					},
+					{
+						level: '第二个获利目标价格',
+						rationale: '这个水平的技术依据以及退出多少百分比的仓位',
+					},
+					{
+						level: '最终获利目标价格',
+						rationale: '这个水平的技术依据以及何时退出剩余仓位',
+					},
+				],
+
+				positionManagement:
+					'管理交易发展的详细指示。包括跟踪止损的特定价格水平（例如，"当价格达到X时将止损移至保本位置"，"在价格超过Z后，在每个新的更高低点下方Y点设置跟踪止损"）。准确解释何时调整仓位大小及原因。',
+			},
+		},
+
+		bearishScenario: {
+			trigger:
+				'详细描述会确认看跌前景的精确市场条件。包括会触发这种情景的特定价格水平、成交量要求、指标读数或形态完成。',
+
+			specificActions: {
+				entry: '指定精确的入场价格或价格范围，并提供详细理由。包括所需的任何成交量或指标确认。如果给出范围，解释激进与保守入场的条件。',
+
+				stopLoss:
+					'提供精确的初始止损价格和风险百分比。基于技术因素解释为什么这个特定水平是合适的（例如，在阻力位上方，在摆动高点上方，在移动平均线上方）。',
+
+				profitTargets: [
+					{
+						level: '第一个获利目标价格',
+						rationale: '这个水平的技术依据以及退出多少百分比的仓位',
+					},
+					{
+						level: '第二个获利目标价格',
+						rationale: '这个水平的技术依据以及退出多少百分比的仓位',
+					},
+					{
+						level: '最终获利目标价格',
+						rationale: '这个水平的技术依据以及何时退出剩余仓位',
+					},
+				],
+
+				positionManagement:
+					'管理交易发展的详细指示。包括跟踪止损的特定价格水平（例如，"当价格达到X时将止损移至保本位置"，"在价格跌破Z后，在每个新的更低高点上方Y点设置跟踪止损"）。准确解释何时调整仓位大小及原因。',
+			},
+		},
 	},
-	fundamentalAnalysis: {
-		financials:
-			'Analysis of key financial metrics including revenue, profit, margins, cash flow, etc., with emphasis on trends',
-		valuation:
-			'Analysis of valuation metrics such as PE, PB, PS, etc., compared to industry averages and historical levels',
-		growth: 'Assessment of company growth potential and sustainability, including organic growth and acquisition prospects',
-		balance:
-			'Assessment of company assets, liabilities, and financial health, including debt structure and solvency',
-		cashFlow:
-			'Cash flow quality analysis, including operating cash flow, free cash flow and capital allocation strategy',
-		dividendPolicy:
-			'Dividend policy analysis, including sustainability and growth prospects',
+
+	// 具体行动计划
+	actionPlan: {
+		immediateRecommendation:
+			'基于当前价格和指标，对现在应采取什么行动的明确、果断的指示。指定确切的入场价格（或价格范围）、止损水平及其风险百分比，以及多个获利目标，并为每个提供技术依据。如果不建议立即行动，提供会触发行动的具体价格点（例如，"如果价格在成交量超过Y股的情况下突破$X则买入"或"如果价格在RSI低于30的情况下跌破$Z则卖出"）。',
+
+		riskManagement:
+			'详细的风险控制策略，包括相对于账户的理想仓位大小（具体百分比）、每笔交易的最大风险（具体百分比），以及调整仓位的确切标准。包括跟踪止损的精确指示（例如，"当价格达到$X后将止损移至保本位置"，"一旦价格超过$Y，在20日移动平均线下方设置跟踪止损"）。提供何时增加仓位和何时无论盈亏都退出的具体情景。',
 	},
-	industryAnalysis: {
-		position:
-			"Company's market share and competitive advantages in the industry, strengths and weaknesses relative to major competitors",
-		trends: 'Overall industry development trends, innovation directions and disruption risks',
-		competitors:
-			'Analysis of main competitors and relative performance, industry consolidation trends',
-		cycle: 'Current stage of the industry cycle and outlook',
-	},
-	insiderActivity: {
-		insiderTrading: 'Insider transactions analysis',
-		institutionalHoldings: 'Institutional ownership trend analysis',
-		shortInterest: 'Short interest analysis',
-		buybacksAndDilution: 'Share repurchases and dilution assessment',
-	},
-	macroEnvironment: {
-		economicFactors: 'Macroeconomic factors affecting the company',
-		policyChanges: 'Relevant policy changes and potential impacts',
-		geopolitical: 'Geopolitical risk assessment',
-	},
-	riskFactors: {
-		market: 'Risk factors related to the overall market',
-		industry: 'Specific risks related to the industry',
-		company: 'Specific risks related to the company itself',
-		regulatory:
-			'Regulatory changes or policy risks that may affect the company',
-	},
-	catalysts: {
-		nearTerm:
-			'Key events that could impact stock price in the next 3-6 months',
-		longTerm: 'Strategic factors affecting long-term value',
-	},
-	marketSentiment: {
-		analystConsensus: 'Summary of analyst opinions',
-		retailSentiment: 'Retail investor sentiment assessment',
-		newsFlow: 'Recent news coverage tone and impact',
-	},
-	recommendations: [
-		'Specific investment recommendation 1 (including entry points and stop-loss strategy)',
-		'Specific investment recommendation 2',
-		'Specific investment recommendation 3',
-		'Specific investment recommendation 4',
-	],
-	priceTargets: {
-		shortTerm:
-			'3-month price forecast and rationale, including potential volatility range',
-		midTerm: '6-12 month price forecast and rationale',
-		longTerm: '1-3 year price forecast and rationale',
-	},
-	sentiment:
-		'Overall investment sentiment, must be one of the following: POSITIVE, NEUTRAL, NEGATIVE',
 };
 
 export const getJsonResponsePrompt = (language: 'EN' | 'CN') => {
 	const requestPrompt =
 		language === 'EN'
-			? 'Based on the above data, please conduct a thorough analysis and return your findings in the following JSON format:'
-			: '基于以上数据，请进行全面分析，并返回以下JSON格式的分析结果：';
+			? `Based on the provided market data, conduct a comprehensive technical analysis of this stock. Focus on providing a detailed summary that explains both the company background and current technical position. Analyze the trend and volume-price relationship in depth, identifying at least three crucial support and resistance levels. Explain precisely WHY each level is significant based on historical price action, volume profile, technical indicators or other factors.
+
+Most importantly, develop detailed bullish and bearish scenarios with clear cause-effect reasoning (if X occurs, then Y will likely follow) and specific trading instructions for each case. Rather than providing general price targets, give exact entry points, stop loss levels, and multiple profit-taking levels with specific reasoning for each. Your analysis should include concrete price levels where actions should be taken.
+
+Be thorough in your explanations - I want to understand exactly WHY you've reached each conclusion based on technical evidence and what specific actions I should take at different price points. Don't just tell me what might happen - tell me exactly what to do when it happens and why.
+
+Return your analysis in the following JSON format:`
+			: `基于提供的市场数据，对该股票进行全面的技术分析。重点提供详细摘要，解释公司背景和当前技术位置。深入分析趋势和量价关系，识别至少三个关键支撑位和阻力位。准确解释每个水平基于历史价格行为、成交量分布、技术指标或其他因素为何重要。
+
+最重要的是，制定详细的看涨和看跌情景，包含清晰的因果推理（如果发生X，那么Y很可能会跟随）以及每种情况下的具体交易指示。不要提供一般的价格目标，而是给出确切的入场点、止损水平和多个获利水平，并为每个提供具体理由。您的分析应包括应采取行动的具体价格水平。
+
+在解释中要彻底 - 我想准确理解您基于技术证据为何得出每个结论，以及在不同价格点我应采取哪些具体行动。不要只告诉我可能会发生什么 - 告诉我当它发生时我应该确切做什么以及为什么。
+
+请以以下JSON格式返回您的分析：`;
 
 	const jsonResponsePrompt = language === 'CN' ? JSON_CN : JSON_EN;
 
