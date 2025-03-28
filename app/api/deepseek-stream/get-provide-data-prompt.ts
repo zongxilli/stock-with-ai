@@ -5,6 +5,10 @@ export const getProvideDataPrompt = (
 	technicalDataString: string,
 	historicalDataString: string
 ) => {
+	console.log('stockDataString', stockDataString.length);
+	console.log('technicalDataString', technicalDataString.length);
+	console.log('historicalDataString', historicalDataString.length);
+
 	return language === 'CN'
 		? `
 请对股票代码 ${symbol} 进行全面分析，并以JSON格式返回以下结构的数据：

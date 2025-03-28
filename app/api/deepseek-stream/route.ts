@@ -74,6 +74,9 @@ export async function POST(req: NextRequest) {
 					${getJsonResponsePrompt(language)}
           `;
 
+					// console  log 出 prompt 的 长度
+					console.log('Prompt length:', userPrompt.length);
+
 					// 调用DeepSeek API启用流式传输
 					const response = await fetch(DEEPSEEK_API_URL, {
 						method: 'POST',
