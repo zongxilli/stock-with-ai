@@ -119,7 +119,7 @@ export default function VolatileStocks() {
 			<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
 				{stocks.map((stock) => (
 					<Link
-						href={`/stock/${stock.symbol}`}
+						href={`/stock/${stock.symbol}?code=${stock.symbol}&exchange=US&range=1y`}
 						key={stock.symbol}
 						className='w-full'
 					>
