@@ -224,7 +224,7 @@ export default function AccountPage() {
 					<Button
 						type='button'
 						variant='outline'
-						onClick={() => router.push('/protected')}
+						onClick={() => router.push('/')}
 					>
 						Back
 					</Button>
