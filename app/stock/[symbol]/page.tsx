@@ -11,6 +11,7 @@ import RangeSelector from './components/rangeSelector';
 import StatusIndicator from './components/status-indicator';
 import StockDetails from './components/stock-details';
 import StockHeader from './components/stock-header';
+import StockNews from './components/stock-news';
 
 import { getHistoricalData } from '@/app/actions/eodhd/get-historical-data';
 import { getHistoricalData1MonthFull } from '@/app/actions/eodhd/get-historical-data-1-month-full';
@@ -599,8 +600,19 @@ export default function StockPage() {
 				onRefresh={handleRefresh}
 			/>
 
-			{/* 添加股票详情网格 */}
-			{realTimeData && <StockDetails {...realTimeData} />}
+			{/* 股票详情 */}
+			{realTimeData && (
+				<div className='gap-4 mb-4'>
+					<StockDetails {...realTimeData} />
+				</div>
+			)}
+
+			{/* 股票新闻 */}
+			{realTimeData && (
+				<div className='gap-4 mb-4'>
+					<StockNews code={code || ''} exchange={exchange || ''} />
+				</div>
+			)}
 
 			{/* <Button
 				onClick={async () => {
