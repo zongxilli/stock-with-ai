@@ -2,6 +2,7 @@ import {
 	HistoricalDataPoint,
 	HistoricalDataMinimal,
 } from '../get-historical-data';
+import { NewsDataPoint } from '../get-news-data';
 
 /**
  * 压缩日期格式：从 "YYYY-MM-DD" 转换为 "YYMMDD"（6位数字）
@@ -103,4 +104,30 @@ export function decompressHistoricalData(
 			} as HistoricalDataPoint;
 		}
 	});
+}
+
+/**
+ * 压缩新闻数据为字符串格式
+ * @param data 新闻数据数组
+ * @param symbol 股票代码
+ * @param limit 限制返回的新闻条数，默认为10
+ * @returns 压缩后的新闻数据字符串
+ */
+export function compressNewsData(
+	data: NewsDataPoint[],
+	symbol: string,
+	limit: number = 10
+): string {
+	// 只获取最近的n条新闻
+	const limitedData = data.slice(0, limit);
+	
+	const startMessage = `latest ${limit} news for: ${symbol}\n\n`;
+	
+	// 只保留日期、标题和内容
+	return startMessage + limitedData.map(newsItem => {
+		// 压缩日期格式
+		const compressedDate = compressDate(newsItem.date);
+		// 格式化为 日期|标题|内容
+		return `${compressedDate}|${newsItem.title}|${newsItem.content}`;
+	}).join('\n');
 }

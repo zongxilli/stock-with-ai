@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, JSX, Fragment } from 'react';
 import { Loader2 } from 'lucide-react';
 
 import { getCompressedHistoricalDataForAnalysis } from '@/app/actions/eodhd/get-compressed-historical-data-for-analysis';
+import { getCompressedNewsDataForAnalysis } from '@/app/actions/eodhd/get-compressed-news-data-for-analysis';
 import { getCompressedTechnicalIndicatorsDataForAnalysis } from '@/app/actions/eodhd/get-compressed-technical-indicators-data-for-analysis';
 import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
 import JsonFormatter from '@/components/custom/json-formatter';
@@ -113,7 +114,7 @@ export default function AIAssistantDialog({
 				setStreamData(null);
 				setStreamError(null);
 
-				// Get comprehensive stock data first
+				// 获取所有类型的分析数据
 				const comprehensiveData =
 					await getComprehensiveStockData(symbol);
 
@@ -130,17 +131,23 @@ export default function AIAssistantDialog({
 					await getCompressedTechnicalIndicatorsDataForAnalysis(
 						code,
 						exchange,
-						'6mo' // 为了token不超额，暂时只获取6个月数据
+						'6mo'
 					);
 
-				console.log(technicalIndicatorsData);
-
+				// 获取历史数据
 				const historicalData =
 					await getCompressedHistoricalDataForAnalysis(
 						code,
 						exchange,
 						'1y'
 					);
+
+				// 获取最近的新闻数据
+				const newsData = await getCompressedNewsDataForAnalysis(
+					code,
+					exchange,
+					5 // 默认获取最近的5条新闻
+				);
 
 				console.log(historicalData);
 
@@ -159,6 +166,7 @@ export default function AIAssistantDialog({
 						comprehensiveData,
 						technicalIndicatorsData,
 						historicalData,
+						newsData, // 添加新闻数据
 					}),
 					signal, // 添加abort signal以支持中止请求
 				});

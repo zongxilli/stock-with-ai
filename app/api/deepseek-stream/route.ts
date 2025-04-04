@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
 			comprehensiveData, // 接收全面的股票数据
 			technicalIndicatorsData, // 接收技术指标数据
 			historicalData, // 接收历史数据
+			newsData, // 接收新闻数据
 		} = await req.json();
 
 		if (!symbol) {
@@ -67,10 +68,15 @@ export async function POST(req: NextRequest) {
 						? JSON.stringify(historicalData, null, 2)
 						: 'No historical data available';
 
+					// 准备新闻数据字符串
+					const newsDataString = newsData
+						? JSON.stringify(newsData, null, 2)
+						: 'No news data available';
+
 					// 设置用户提示
 					const userPrompt = `
 					${getSystemPrompt(language)}
-					${getProvideDataPrompt(language, symbol, stockDataString, technicalDataString, historicalDataString)}
+					${getProvideDataPrompt(language, symbol, stockDataString, technicalDataString, historicalDataString, newsDataString)}
 					${getJsonResponsePrompt(language)}
           `;
 
