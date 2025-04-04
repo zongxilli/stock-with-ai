@@ -174,11 +174,7 @@ export async function getTechnicalIndicators(
 		};
 
 		// 获取SMA的所有配置数据
-		const defaultSmaConfig = TechnicalIndicatorPresets.sma.default;
-		const allSmaConfigs = [
-			{ period: defaultSmaConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.sma.standard,
-		];
+		const allSmaConfigs = TechnicalIndicatorPresets.sma.standard;
 		// 去重
 		const uniqueSmaConfigs = allSmaConfigs.filter(
 			(config, index, self) =>
@@ -204,11 +200,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取EMA的所有配置数据
-		const defaultEmaConfig = TechnicalIndicatorPresets.ema.default;
-		const allEmaConfigs = [
-			{ period: defaultEmaConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.ema.standard,
-		];
+		const allEmaConfigs = TechnicalIndicatorPresets.ema.standard;
 		// 去重
 		const uniqueEmaConfigs = allEmaConfigs.filter(
 			(config, index, self) =>
@@ -234,11 +226,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取WMA的所有配置数据
-		const defaultWmaConfig = TechnicalIndicatorPresets.wma.default;
-		const allWmaConfigs = [
-			{ period: defaultWmaConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.wma.standard,
-		];
+		const allWmaConfigs = TechnicalIndicatorPresets.wma.standard;
 		// 去重
 		const uniqueWmaConfigs = allWmaConfigs.filter(
 			(config, index, self) =>
@@ -264,11 +252,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取RSI的所有配置数据
-		const defaultRsiConfig = TechnicalIndicatorPresets.rsi.default;
-		const allRsiConfigs = [
-			{ period: defaultRsiConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.rsi.standard,
-		];
+		const allRsiConfigs = TechnicalIndicatorPresets.rsi.standard;
 		// 去重
 		const uniqueRsiConfigs = allRsiConfigs.filter(
 			(config, index, self) =>
@@ -294,16 +278,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取MACD的所有配置数据
-		const defaultMacdConfig = TechnicalIndicatorPresets.macd.default;
-		const allMacdConfigs = [
-			{
-				fastPeriod: defaultMacdConfig.fastPeriod,
-				slowPeriod: defaultMacdConfig.slowPeriod,
-				signalPeriod: defaultMacdConfig.signalPeriod,
-				name: 'Default',
-			},
-			...TechnicalIndicatorPresets.macd.standard,
-		];
+		const allMacdConfigs = TechnicalIndicatorPresets.macd.standard;
 		// 去重
 		const uniqueMacdConfigs = allMacdConfigs.filter(
 			(config, index, self) =>
@@ -345,12 +320,8 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取Bollinger Bands的所有配置数据
-		const defaultBollingerConfig =
-			TechnicalIndicatorPresets.bollingerBands.default;
-		const allBollingerConfigs = [
-			{ period: defaultBollingerConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.bollingerBands.standard,
-		];
+		const allBollingerConfigs =
+			TechnicalIndicatorPresets.bollingerBands.standard;
 		// 去重
 		const uniqueBollingerConfigs = allBollingerConfigs.filter(
 			(config, index, self) =>
@@ -378,11 +349,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取ATR的所有配置数据
-		const defaultAtrConfig = TechnicalIndicatorPresets.atr.default;
-		const allAtrConfigs = [
-			{ period: defaultAtrConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.atr.standard,
-		];
+		const allAtrConfigs = TechnicalIndicatorPresets.atr.standard;
 		// 去重
 		const uniqueAtrConfigs = allAtrConfigs.filter(
 			(config, index, self) =>
@@ -408,12 +375,8 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取Volatility的所有配置数据
-		const defaultVolatilityConfig =
-			TechnicalIndicatorPresets.volatility.default;
-		const allVolatilityConfigs = [
-			{ period: defaultVolatilityConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.volatility.standard,
-		];
+		const allVolatilityConfigs =
+			TechnicalIndicatorPresets.volatility.standard;
 		// 去重
 		const uniqueVolatilityConfigs = allVolatilityConfigs.filter(
 			(config, index, self) =>
@@ -441,11 +404,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取StdDev的所有配置数据
-		const defaultStdDevConfig = TechnicalIndicatorPresets.stdDev.default;
-		const allStdDevConfigs = [
-			{ period: defaultStdDevConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.stdDev.standard,
-		];
+		const allStdDevConfigs = TechnicalIndicatorPresets.stdDev.standard;
 		// 去重
 		const uniqueStdDevConfigs = allStdDevConfigs.filter(
 			(config, index, self) =>
@@ -473,11 +432,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取Slope的所有配置数据
-		const defaultSlopeConfig = TechnicalIndicatorPresets.slope.default;
-		const allSlopeConfigs = [
-			{ period: defaultSlopeConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.slope.standard,
-		];
+		const allSlopeConfigs = TechnicalIndicatorPresets.slope.standard;
 		// 去重
 		const uniqueSlopeConfigs = allSlopeConfigs.filter(
 			(config, index, self) =>
@@ -505,11 +460,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取DMI的所有配置数据
-		const defaultDmiConfig = TechnicalIndicatorPresets.dmi.default;
-		const allDmiConfigs = [
-			{ period: defaultDmiConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.dmi.standard,
-		];
+		const allDmiConfigs = TechnicalIndicatorPresets.dmi.standard;
 		// 去重
 		const uniqueDmiConfigs = allDmiConfigs.filter(
 			(config, index, self) =>
@@ -535,11 +486,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取ADX的所有配置数据
-		const defaultAdxConfig = TechnicalIndicatorPresets.adx.default;
-		const allAdxConfigs = [
-			{ period: defaultAdxConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.adx.standard,
-		];
+		const allAdxConfigs = TechnicalIndicatorPresets.adx.standard;
 		// 去重
 		const uniqueAdxConfigs = allAdxConfigs.filter(
 			(config, index, self) =>
@@ -565,11 +512,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取CCI的所有配置数据
-		const defaultCciConfig = TechnicalIndicatorPresets.cci.default;
-		const allCciConfigs = [
-			{ period: defaultCciConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.cci.standard,
-		];
+		const allCciConfigs = TechnicalIndicatorPresets.cci.standard;
 		// 去重
 		const uniqueCciConfigs = allCciConfigs.filter(
 			(config, index, self) =>
@@ -595,24 +538,44 @@ export async function getTechnicalIndicators(
 		);
 
 		// 处理SAR指标
-		const defaultSarConfig = TechnicalIndicatorPresets.sar.default;
-		result.sar.configs = [
-			{
-				acceleration: defaultSarConfig.acceleration,
-				maximum: defaultSarConfig.maximum,
-			},
-		];
+		const allSarConfigs = TechnicalIndicatorPresets.sar.standard;
+		// 去重
+		const uniqueSarConfigs = allSarConfigs.filter(
+			(config, index, self) =>
+				self.findIndex(
+					(c) =>
+						c.acceleration === config.acceleration &&
+						c.maximum === config.maximum
+				) === index
+		);
+		result.sar.configs = uniqueSarConfigs.map((config) => ({
+			acceleration: config.acceleration,
+			maximum: config.maximum,
+		}));
 
 		try {
 			const sarData = await getSAR({
 				...baseParams,
-				...defaultSarConfig,
+				...uniqueSarConfigs[0],
 			});
-			const configKey = `${defaultSarConfig.acceleration}_${defaultSarConfig.maximum}`;
+			const configKey = `${uniqueSarConfigs[0].acceleration}_${uniqueSarConfigs[0].maximum}`;
 			result.sar.data[configKey] = sarData;
 		} catch (err) {
 			console.error('获取SAR数据失败:', err);
-			const configKey = `${defaultSarConfig.acceleration}_${defaultSarConfig.maximum}`;
+			const configKey = `${uniqueSarConfigs[0].acceleration}_${uniqueSarConfigs[0].maximum}`;
+			result.sar.data[configKey] = [];
+		}
+
+		try {
+			const sarData = await getSAR({
+				...baseParams,
+				...uniqueSarConfigs[0],
+			});
+			const configKey = `${uniqueSarConfigs[0].acceleration}_${uniqueSarConfigs[0].maximum}`;
+			result.sar.data[configKey] = sarData;
+		} catch (err) {
+			console.error('获取SAR数据失败:', err);
+			const configKey = `${uniqueSarConfigs[0].acceleration}_${uniqueSarConfigs[0].maximum}`;
 			result.sar.data[configKey] = [];
 		}
 
@@ -629,12 +592,8 @@ export async function getTechnicalIndicators(
 		}
 
 		// 获取Average Volume的所有配置数据
-		const defaultAvgVolConfig =
-			TechnicalIndicatorPresets.averageVolume.default;
-		const allAvgVolConfigs = [
-			{ period: defaultAvgVolConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.averageVolume.standard,
-		];
+		const allAvgVolConfigs =
+			TechnicalIndicatorPresets.averageVolume.standard;
 		// 去重
 		const uniqueAvgVolConfigs = allAvgVolConfigs.filter(
 			(config, index, self) =>
@@ -665,12 +624,8 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取Average Volume by Price的所有配置数据
-		const defaultAvgVolCcyConfig =
-			TechnicalIndicatorPresets.averageVolumeByPrice.default;
-		const allAvgVolCcyConfigs = [
-			{ period: defaultAvgVolCcyConfig.period, name: 'Default' },
-			...TechnicalIndicatorPresets.averageVolumeByPrice.standard,
-		];
+		const allAvgVolCcyConfigs =
+			TechnicalIndicatorPresets.averageVolumeByPrice.standard;
 		// 去重
 		const uniqueAvgVolCcyConfigs = allAvgVolCcyConfigs.filter(
 			(config, index, self) =>
@@ -701,15 +656,7 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取Beta的所有配置数据
-		const defaultBetaConfig = TechnicalIndicatorPresets.beta.default;
-		const allBetaConfigs = [
-			{
-				period: defaultBetaConfig.period,
-				code2: defaultBetaConfig.code2,
-				name: 'Default',
-			},
-			...TechnicalIndicatorPresets.beta.standard,
-		];
+		const allBetaConfigs = TechnicalIndicatorPresets.beta.standard;
 		// 去重
 		const uniqueBetaConfigs = allBetaConfigs.filter(
 			(config, index, self) =>
@@ -747,17 +694,8 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取Stochastic的所有配置数据
-		const defaultStochasticConfig =
-			TechnicalIndicatorPresets.stochastic.default;
-		const allStochasticConfigs = [
-			{
-				fastKPeriod: defaultStochasticConfig.fastKPeriod,
-				slowKPeriod: defaultStochasticConfig.slowKPeriod,
-				slowDPeriod: defaultStochasticConfig.slowDPeriod,
-				name: 'Default',
-			},
-			...TechnicalIndicatorPresets.stochastic.standard,
-		];
+		const allStochasticConfigs =
+			TechnicalIndicatorPresets.stochastic.standard;
 		// 去重
 		const uniqueStochasticConfigs = allStochasticConfigs.filter(
 			(config, index, self) =>
@@ -799,16 +737,8 @@ export async function getTechnicalIndicators(
 		);
 
 		// 获取StochasticRSI的所有配置数据
-		const defaultStochasticRSIConfig =
-			TechnicalIndicatorPresets.stochasticRSI.default;
-		const allStochasticRSIConfigs = [
-			{
-				fastKPeriod: defaultStochasticRSIConfig.fastKPeriod,
-				fastDPeriod: defaultStochasticRSIConfig.fastDPeriod,
-				name: 'Default',
-			},
-			...TechnicalIndicatorPresets.stochasticRSI.standard,
-		];
+		const allStochasticRSIConfigs =
+			TechnicalIndicatorPresets.stochasticRSI.standard;
 		// 去重
 		const uniqueStochasticRSIConfigs = allStochasticRSIConfigs.filter(
 			(config, index, self) =>
