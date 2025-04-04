@@ -131,7 +131,7 @@ export default function AIAssistantDialog({
 					await getCompressedTechnicalIndicatorsDataForAnalysis(
 						code,
 						exchange,
-						'6mo'
+						'1y'
 					);
 
 				// 获取历史数据
