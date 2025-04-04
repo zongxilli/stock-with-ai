@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
 			comprehensiveData, // 接收全面的股票数据
 			technicalIndicatorsData, // 接收技术指标数据
 			historicalData, // 接收历史数据
+			mainIndexesHistoricalData, // 接收主要指数历史数据
 			newsData, // 接收新闻数据
 		} = await req.json();
 
@@ -65,8 +66,13 @@ export async function POST(req: NextRequest) {
 
 					// 准备历史数据字符串
 					const historicalDataString = historicalData
-						? JSON.stringify(historicalData, null, 2)
+						? historicalData
 						: 'No historical data available';
+
+					// 准备主要指数历史数据字符串
+					const mainIndexesHistoricalDataString = mainIndexesHistoricalData
+						? mainIndexesHistoricalData
+						: 'No main indexes historical data available';
 
 					// 准备新闻数据字符串
 					const newsDataString = newsData
@@ -76,7 +82,15 @@ export async function POST(req: NextRequest) {
 					// 设置用户提示
 					const userPrompt = `
 					${getSystemPrompt(language)}
-					${getProvideDataPrompt(language, symbol, stockDataString, technicalDataString, historicalDataString, newsDataString)}
+					${getProvideDataPrompt(
+						language, 
+						symbol, 
+						stockDataString, 
+						technicalDataString, 
+						historicalDataString, 
+						mainIndexesHistoricalDataString,
+						newsDataString
+					)}
 					${getJsonResponsePrompt(language)}
           `;
 

@@ -4,11 +4,16 @@ export const getProvideDataPrompt = (
 	stockDataString: string,
 	technicalDataString: string,
 	historicalDataString: string,
+	mainIndexesHistoricalDataString: string,
 	newsDataString: string
 ) => {
 	console.log('stockDataString', stockDataString.length);
 	console.log('technicalDataString', technicalDataString.length);
 	console.log('historicalDataString', historicalDataString.length);
+	console.log(
+		'mainIndexesHistoricalDataString',
+		mainIndexesHistoricalDataString.length
+	);
 	console.log('newsDataString', newsDataString.length);
 
 	return language === 'CN'
@@ -24,6 +29,9 @@ ${technicalDataString}
 以下是该股票的历史数据，请在分析中充分利用这些数据：
 ${historicalDataString}
 
+以下是主要市场指数的历史数据，请在分析中结合大盘指数：
+${mainIndexesHistoricalDataString}
+
 以下是该股票的最近10条新闻数据，请在分析中充分利用这些数据：
 ${newsDataString}
   `
@@ -38,6 +46,9 @@ ${technicalDataString}
 
 Here is the historical data for this stock. Please use this data extensively in your analysis:
 ${historicalDataString}
+
+Here is the historical data for major market indexes. Please use this data extensively in your analysis:
+${mainIndexesHistoricalDataString}
 
 Here is the latest 10 news for this stock. Please use this data extensively in your analysis:
 ${newsDataString}

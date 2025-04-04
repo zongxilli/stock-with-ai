@@ -62,6 +62,62 @@ export function compressHistoricalData(
 }
 
 /**
+ * 压缩多个股票历史数据数组为字符串行协议格式，按日期合并多个股票的数据
+ * @param data 多个历史数据点数组
+ * @param minimal 是否为简化数据格式（此参数保留但不再使用）
+ * @param symbols 股票代码数组，例如 ["AAPL.US", "MSFT.US"]
+ * @returns 压缩后的字符串，每行包含一个日期和所有股票的复权收盘价
+ */
+export function compressMultipleHistoricalData(
+	data: (HistoricalDataPoint | HistoricalDataMinimal)[][],
+	minimal: boolean,
+	symbols: string[]
+): string {
+	// 创建一个日期到所有股票数据的映射
+	const dateMap: Map<string, number[]> = new Map();
+
+	// 处理每个股票的数据，按日期组织
+	for (let i = 0; i < data.length; i++) {
+		const stockData = data[i];
+
+		// 遍历当前股票的每个数据点
+		for (const point of stockData) {
+			const date = point.date;
+			const adjustedClose = point.adjusted_close;
+
+			// 如果日期不存在于Map中，初始化一个新数组，长度等于symbols.length，填充null
+			if (!dateMap.has(date)) {
+				dateMap.set(date, Array(symbols.length).fill(null));
+			}
+
+			// 在相应位置设置当前股票的调整后收盘价
+			const prices = dateMap.get(date)!;
+			prices[i] = adjustedClose;
+		}
+	}
+
+	// 按日期排序
+	const sortedDates = Array.from(dateMap.keys()).sort();
+
+	// 构建开始信息，列出所有股票代码
+	const startMessage = `historical data with format: [date]|${symbols.map((s) => `[${s}]`).join('|')} for main indexes\n\n`;
+
+	// 构建每一行数据：日期|股票1价格|股票2价格|...
+	let compressedData = startMessage;
+
+	for (const date of sortedDates) {
+		const prices = dateMap.get(date)!;
+		// 将日期转换为压缩格式
+		const compressedDate = compressDate(date);
+		// 构建行: 日期|价格1|价格2|...
+		const line = [compressedDate, ...prices].join('|');
+		compressedData += line + '\n';
+	}
+
+	return compressedData;
+}
+
+/**
  * 解压缩字符串行协议格式为历史数据数组
  * @param compressedData 压缩后的字符串数据
  * @param isMinimal 是否为简化数据格式
@@ -120,14 +176,19 @@ export function compressNewsData(
 ): string {
 	// 只获取最近的n条新闻
 	const limitedData = data.slice(0, limit);
-	
+
 	const startMessage = `latest ${limit} news for: ${symbol}\n\n`;
-	
+
 	// 只保留日期、标题和内容
-	return startMessage + limitedData.map(newsItem => {
-		// 压缩日期格式
-		const compressedDate = compressDate(newsItem.date);
-		// 格式化为 日期|标题|内容
-		return `${compressedDate}|${newsItem.title}|${newsItem.content}`;
-	}).join('\n');
+	return (
+		startMessage +
+		limitedData
+			.map((newsItem) => {
+				// 压缩日期格式
+				const compressedDate = compressDate(newsItem.date);
+				// 格式化为 日期|标题|内容
+				return `${compressedDate}|${newsItem.title}|${newsItem.content}`;
+			})
+			.join('\n')
+	);
 }

@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, JSX, Fragment } from 'react';
 import { Loader2 } from 'lucide-react';
 
 import { getCompressedHistoricalDataForAnalysis } from '@/app/actions/eodhd/get-compressed-historical-data-for-analysis';
+import { getCompressedMainIndexesHistoricalDataForAnalysis } from '@/app/actions/eodhd/get-compressed-main-indexes-historical-data-for-analysis';
 import { getCompressedNewsDataForAnalysis } from '@/app/actions/eodhd/get-compressed-news-data-for-analysis';
 import { getCompressedTechnicalIndicatorsDataForAnalysis } from '@/app/actions/eodhd/get-compressed-technical-indicators-data-for-analysis';
 import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
@@ -142,6 +143,13 @@ export default function AIAssistantDialog({
 						'1y'
 					);
 
+				// 获取主要指数历史数据
+				const mainIndexesHistoricalData =
+					await getCompressedMainIndexesHistoricalDataForAnalysis(
+						exchange,
+						'1y'
+					);
+
 				// 获取最近的新闻数据
 				const newsData = await getCompressedNewsDataForAnalysis(
 					code,
@@ -150,6 +158,7 @@ export default function AIAssistantDialog({
 				);
 
 				console.log(historicalData);
+				console.log(mainIndexesHistoricalData);
 
 				// Add loading state feedback
 				console.log(`Fetching analysis for ${symbol}...`);
@@ -166,6 +175,7 @@ export default function AIAssistantDialog({
 						comprehensiveData,
 						technicalIndicatorsData,
 						historicalData,
+						mainIndexesHistoricalData, // 添加主要指数数据
 						newsData, // 添加新闻数据
 					}),
 					signal, // 添加abort signal以支持中止请求
