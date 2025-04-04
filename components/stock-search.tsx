@@ -6,7 +6,6 @@ import { Search, X, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { searchStock } from '@/app/actions/eodhd/search-stock';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -154,15 +153,15 @@ export function StockSearch() {
 
 	return (
 		<div className='w-full min-w-0 relative' ref={dropdownRef}>
-			<form
-				onSubmit={handleSubmit}
-				className='w-full flex items-center space-x-2'
-			>
+			<form onSubmit={handleSubmit} className='w-full flex items-center'>
 				<div className='relative w-full'>
+					<div className='absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground'>
+						<Search className='h-4 w-4' />
+					</div>
 					<Input
 						ref={inputRef}
 						type='text'
-						placeholder='Enter stock symbol (e.g. AAPL)'
+						placeholder='Search for symbols or companies'
 						value={symbol}
 						onChange={(e) => setSymbol(e.target.value)}
 						onFocus={() => {
@@ -170,7 +169,7 @@ export function StockSearch() {
 								setIsDropdownOpen(true);
 							}
 						}}
-						className='flex-1 pr-10'
+						className='flex-1 pl-10 pr-10 rounded-full h-10 bg-secondary/80 border-0 focus-visible:ring-1 focus-visible:ring-offset-0'
 					/>
 					{symbol && (
 						<button
@@ -181,15 +180,12 @@ export function StockSearch() {
 							<X className='h-4 w-4' />
 						</button>
 					)}
-				</div>
-				<Button type='submit' size='sm'>
-					{isLoading ? (
-						<Loader2 className='h-4 w-4 animate-spin mr-2' />
-					) : (
-						<Search className='h-4 w-4 mr-2' />
+					{isLoading && !symbol && (
+						<div className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground'>
+							<Loader2 className='h-4 w-4 animate-spin' />
+						</div>
 					)}
-					Search
-				</Button>
+				</div>
 			</form>
 
 			{/* 搜索结果下拉菜单 */}
@@ -213,7 +209,7 @@ export function StockSearch() {
 												result.symbol}
 										</div>
 									</div>
-									<div className='text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground divide-solid border-2 border-indigo-700'>
+									<div className='text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground'>
 										{result.type}
 									</div>
 								</div>
