@@ -194,7 +194,7 @@ export function StockSearch() {
 					<ul>
 						{searchResults.map((result) => (
 							<li
-								key={result.ISIN ?? result.symbol}
+								key={`${result.symbol}-${result.exchange}-${result.type}`}
 								className='px-4 py-2 hover:bg-muted cursor-pointer border-b last:border-0'
 								onClick={() => handleSelectResult(result)}
 							>
