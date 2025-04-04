@@ -51,32 +51,48 @@ export async function getStockNewsData(
 	try {
 		// Use the search endpoint which includes news results
 		const result = await yahooFinance.search(symbol, {
-			newsCount: limit,  // Request the specified number of news items
-			quotesCount: 1,    // We're only interested in news, so minimize quotes
+			newsCount: limit, // Request the specified number of news items
+			quotesCount: 1, // We're only interested in news, so minimize quotes
 		});
 
 		// Extract and transform the news data
 		const newsData: NewsDataPoint[] = result.news.map((item: any) => {
 			// Get best thumbnail image if available
 			let imageUrl: string | undefined;
-			if (item.thumbnail && item.thumbnail.resolutions && item.thumbnail.resolutions.length > 0) {
+			if (
+				item.thumbnail &&
+				item.thumbnail.resolutions &&
+				item.thumbnail.resolutions.length > 0
+			) {
 				// Sort by width to get the largest image
-				const sortedImages = [...item.thumbnail.resolutions].sort((a, b) => b.width - a.width);
+				const sortedImages = [...item.thumbnail.resolutions].sort(
+					(a, b) => b.width - a.width
+				);
 				imageUrl = sortedImages[0].url;
 			}
 
-			const formatYahooDate = (timestamp: number): string => {
+			// 处理 Yahoo Finance 的时间戳
+			const formatYahooDate = (timestamp: string): string => {
 				try {
-					// 检查时间戳类型和大小
-					if (!timestamp) return new Date().toISOString();
-					
-					// 如果时间戳超过正常范围，使用当前时间
-					if (timestamp > 4000000000 || timestamp < 0) {
-						return new Date().toISOString();
+					// Yahoo Finance 返回的时间戳已经是完整的 ISO 8601 格式
+					const date = new Date(timestamp);
+
+					// 确保时间戳在合理范围内
+					const now = new Date();
+					const maxTimestamp = now.getTime() + 24 * 60 * 60 * 1000; // 当前时间之后24小时
+					const minTimestamp =
+						now.getTime() - 30 * 24 * 60 * 60 * 1000; // 当前时间之前30天
+
+					const dateTimestamp = date.getTime();
+					if (
+						dateTimestamp > maxTimestamp ||
+						dateTimestamp < minTimestamp
+					) {
+						console.error('时间戳超出合理范围:', timestamp);
+						return now.toISOString();
 					}
-					
-					// 正常处理 - Yahoo通常使用秒级时间戳
-					return new Date(timestamp * 1000).toISOString();
+
+					return date.toISOString();
 				} catch (e) {
 					console.error('日期解析错误:', e);
 					return new Date().toISOString();
@@ -95,12 +111,19 @@ export async function getStockNewsData(
 			};
 		});
 
-		// Cache the results for future requests (15 minutes)
-		await setCache(cacheKey, newsData, 60 * 15);
+			// 按时间降序排序（最新的新闻在最前面）
+			newsData.sort((a, b) => {
+				const dateA = new Date(a.date).getTime();
+				const dateB = new Date(b.date).getTime();
+				return dateB - dateA; // 降序排序
+			});
 
-		return newsData;
-	} catch (error) {
-		console.error('Error fetching Yahoo Finance news data:', error);
-		return [];
+			// Cache the sorted results for future requests (15 minutes)
+			await setCache(cacheKey, newsData, 60 * 15);
+
+			return newsData;
+		} catch (error) {
+			console.error('Error fetching Yahoo Finance news data:', error);
+			return [];
+		}
 	}
-}

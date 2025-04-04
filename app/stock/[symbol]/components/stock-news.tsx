@@ -39,7 +39,7 @@ export default function StockNews({ symbol }: StockNewsProps) {
 		}
 	}, [symbol]);
 
-	// 计算相对时间（如：1小时前，2天前等）
+	// 计算相对时间（如：1 hour ago, 2 days ago等）
 	const getRelativeTimeString = (dateString: string) => {
 		try {
 			const date = new Date(dateString);
@@ -55,19 +55,19 @@ export default function StockNews({ symbol }: StockNewsProps) {
 			// 根据时间差决定显示格式
 			if (diffDay > 30) {
 				// 超过30天显示具体日期
-				return new Intl.DateTimeFormat('zh-CN', {
+				return new Intl.DateTimeFormat('en-US', {
 					year: 'numeric',
 					month: 'short',
 					day: 'numeric',
 				}).format(date);
 			} else if (diffDay > 0) {
-				return `${diffDay} 天前`;
+				return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
 			} else if (diffHour > 0) {
-				return `${diffHour} 小时前`;
+				return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
 			} else if (diffMin > 0) {
-				return `${diffMin} 分钟前`;
+				return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
 			} else {
-				return '刚刚';
+				return 'Just now';
 			}
 		} catch (error) {
 			console.error('日期解析错误:', error);
