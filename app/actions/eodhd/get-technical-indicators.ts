@@ -107,26 +107,26 @@ interface SplitAdjustedResult {
 
 // 完整的指标结果接口
 export interface TechnicalIndicatorResult {
-	sma: IndicatorWithPeriods<any>;
-	ema: IndicatorWithPeriods<any>;
-	wma: IndicatorWithPeriods<any>;
-	rsi: IndicatorWithPeriods<any>;
-	macd: MACDResult;
-	bollingerBands: BollingerBandsResult;
-	atr: IndicatorWithPeriods<any>;
-	volatility: IndicatorWithPeriods<any>;
-	stdDev: IndicatorWithPeriods<any>;
-	slope: IndicatorWithPeriods<any>;
-	dmi: IndicatorWithPeriods<any>;
-	adx: IndicatorWithPeriods<any>;
-	cci: IndicatorWithPeriods<any>;
-	sar: SARResult;
-	beta: BetaResult;
-	stochastic: StochasticResult;
-	stochasticRSI: StochasticRSIResult;
-	averageVolume: IndicatorWithPeriods<any>;
-	averageVolumeByPrice: IndicatorWithPeriods<any>;
-	splitAdjustedData: SplitAdjustedResult;
+	sma: IndicatorWithPeriods<any> | undefined;
+	ema: IndicatorWithPeriods<any> | undefined;
+	wma: IndicatorWithPeriods<any> | undefined;
+	rsi: IndicatorWithPeriods<any> | undefined;
+	macd: MACDResult | undefined;
+	bollingerBands: BollingerBandsResult | undefined;
+	atr: IndicatorWithPeriods<any> | undefined;
+	volatility: IndicatorWithPeriods<any> | undefined;
+	stdDev: IndicatorWithPeriods<any> | undefined;
+	slope: IndicatorWithPeriods<any> | undefined;
+	dmi: IndicatorWithPeriods<any> | undefined;
+	adx: IndicatorWithPeriods<any> | undefined;
+	cci: IndicatorWithPeriods<any> | undefined;
+	sar: SARResult | undefined;
+	beta: BetaResult | undefined;
+	stochastic: StochasticResult | undefined;
+	stochasticRSI: StochasticRSIResult | undefined;
+	averageVolume: IndicatorWithPeriods<any> | undefined;
+	averageVolumeByPrice: IndicatorWithPeriods<any> | undefined;
+	splitAdjustedData: SplitAdjustedResult | undefined;
 }
 
 /**
@@ -152,30 +152,71 @@ export async function getTechnicalIndicators(
 	try {
 		// 初始化结果对象
 		const result: TechnicalIndicatorResult = {
-			sma: { periods: [], data: {} },
-			ema: { periods: [], data: {} },
-			wma: { periods: [], data: {} },
-			rsi: { periods: [], data: {} },
-			macd: { configs: [], data: {} },
-			bollingerBands: { periods: [], data: {} },
-			atr: { periods: [], data: {} },
-			volatility: { periods: [], data: {} },
-			stdDev: { periods: [], data: {} },
-			slope: { periods: [], data: {} },
-			dmi: { periods: [], data: {} },
-			adx: { periods: [], data: {} },
-			cci: { periods: [], data: {} },
-			sar: { configs: [], data: {} },
-			beta: { configs: [], data: {} },
-			stochastic: { configs: [], data: {} },
-			stochasticRSI: { configs: [], data: {} },
-			averageVolume: { periods: [], data: {} },
-			averageVolumeByPrice: { periods: [], data: {} },
-			splitAdjustedData: { periods: ['d', 'w', 'm'], data: {} },
+			sma: TechnicalIndicatorPreferences.sma
+				? { periods: [], data: {} }
+				: undefined,
+			ema: TechnicalIndicatorPreferences.ema
+				? { periods: [], data: {} }
+				: undefined,
+			wma: TechnicalIndicatorPreferences.wma
+				? { periods: [], data: {} }
+				: undefined,
+			rsi: TechnicalIndicatorPreferences.rsi
+				? { periods: [], data: {} }
+				: undefined,
+			macd: TechnicalIndicatorPreferences.macd
+				? { configs: [], data: {} }
+				: undefined,
+			bollingerBands: TechnicalIndicatorPreferences.bollingerBands
+				? { periods: [], data: {} }
+				: undefined,
+			atr: TechnicalIndicatorPreferences.atr
+				? { periods: [], data: {} }
+				: undefined,
+			volatility: TechnicalIndicatorPreferences.volatility
+				? { periods: [], data: {} }
+				: undefined,
+			stdDev: TechnicalIndicatorPreferences.stdDev
+				? { periods: [], data: {} }
+				: undefined,
+			slope: TechnicalIndicatorPreferences.slope
+				? { periods: [], data: {} }
+				: undefined,
+			dmi: TechnicalIndicatorPreferences.dmi
+				? { periods: [], data: {} }
+				: undefined,
+			adx: TechnicalIndicatorPreferences.adx
+				? { periods: [], data: {} }
+				: undefined,
+			cci: TechnicalIndicatorPreferences.cci
+				? { periods: [], data: {} }
+				: undefined,
+			sar: TechnicalIndicatorPreferences.sar
+				? { configs: [], data: {} }
+				: undefined,
+			beta: TechnicalIndicatorPreferences.beta
+				? { configs: [], data: {} }
+				: undefined,
+			stochastic: TechnicalIndicatorPreferences.stochastic
+				? { configs: [], data: {} }
+				: undefined,
+			stochasticRSI: TechnicalIndicatorPreferences.stochasticRSI
+				? { configs: [], data: {} }
+				: undefined,
+			averageVolume: TechnicalIndicatorPreferences.averageVolume
+				? { periods: [], data: {} }
+				: undefined,
+			averageVolumeByPrice:
+				TechnicalIndicatorPreferences.averageVolumeByPrice
+					? { periods: [], data: {} }
+					: undefined,
+			splitAdjustedData: TechnicalIndicatorPreferences.splitAdjusted
+				? { periods: ['d', 'w', 'm'], data: {} }
+				: undefined,
 		};
 
-		if (TechnicalIndicatorPreferences.sma) {
-			// 获取SMA的所有配置数据
+		// 获取SMA的所有配置数据
+		if (result.sma) {
 			const allSmaConfigs = TechnicalIndicatorPresets.sma.standard;
 			// 去重
 			const uniqueSmaConfigs = allSmaConfigs.filter(
@@ -195,17 +236,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.sma.data[config.period] = data;
+						result.sma!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取SMA(${config.period})失败:`, err);
-						result.sma.data[config.period] = [];
+						result.sma!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.ema) {
-			// 获取EMA的所有配置数据
+		// 获取EMA的所有配置数据
+		if (result.ema) {
 			const allEmaConfigs = TechnicalIndicatorPresets.ema.standard;
 			// 去重
 			const uniqueEmaConfigs = allEmaConfigs.filter(
@@ -225,17 +266,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.ema.data[config.period] = data;
+						result.ema!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取EMA(${config.period})失败:`, err);
-						result.ema.data[config.period] = [];
+						result.ema!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.wma) {
-			// 获取WMA的所有配置数据
+		// 获取WMA的所有配置数据
+		if (result.wma) {
 			const allWmaConfigs = TechnicalIndicatorPresets.wma.standard;
 			// 去重
 			const uniqueWmaConfigs = allWmaConfigs.filter(
@@ -255,17 +296,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.wma.data[config.period] = data;
+						result.wma!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取WMA(${config.period})失败:`, err);
-						result.wma.data[config.period] = [];
+						result.wma!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.rsi) {
-			// 获取RSI的所有配置数据
+		// 获取RSI的所有配置数据
+		if (result.rsi) {
 			const allRsiConfigs = TechnicalIndicatorPresets.rsi.standard;
 			// 去重
 			const uniqueRsiConfigs = allRsiConfigs.filter(
@@ -285,17 +326,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.rsi.data[config.period] = data;
+						result.rsi!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取RSI(${config.period})失败:`, err);
-						result.rsi.data[config.period] = [];
+						result.rsi!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.macd) {
-			// 获取MACD的所有配置数据
+		// 获取MACD的所有配置数据
+		if (result.macd) {
 			const allMacdConfigs = TechnicalIndicatorPresets.macd.standard;
 			// 去重
 			const uniqueMacdConfigs = allMacdConfigs.filter(
@@ -325,21 +366,21 @@ export async function getTechnicalIndicators(
 							signalPeriod: config.signalPeriod,
 						});
 						const configKey = `${config.fastPeriod}_${config.slowPeriod}_${config.signalPeriod}`;
-						result.macd.data[configKey] = data;
+						result.macd!.data[configKey] = data;
 					} catch (err) {
 						console.error(
 							`获取MACD(${config.fastPeriod},${config.slowPeriod},${config.signalPeriod})失败:`,
 							err
 						);
 						const configKey = `${config.fastPeriod}_${config.slowPeriod}_${config.signalPeriod}`;
-						result.macd.data[configKey] = [];
+						result.macd!.data[configKey] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.bollingerBands) {
-			// 获取Bollinger Bands的所有配置数据
+		// 获取Bollinger Bands的所有配置数据
+		if (result.bollingerBands) {
 			const allBollingerConfigs =
 				TechnicalIndicatorPresets.bollingerBands.standard;
 			// 去重
@@ -360,17 +401,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.bollingerBands.data[config.period] = data;
+						result.bollingerBands!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取布林带(${config.period})失败:`, err);
-						result.bollingerBands.data[config.period] = [];
+						result.bollingerBands!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.atr) {
-			// 获取ATR的所有配置数据
+		// 获取ATR的所有配置数据
+		if (result.atr) {
 			const allAtrConfigs = TechnicalIndicatorPresets.atr.standard;
 			// 去重
 			const uniqueAtrConfigs = allAtrConfigs.filter(
@@ -390,17 +431,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.atr.data[config.period] = data;
+						result.atr!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取ATR(${config.period})失败:`, err);
-						result.atr.data[config.period] = [];
+						result.atr!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.volatility) {
-			// 获取Volatility的所有配置数据
+		// 获取Volatility的所有配置数据
+		if (result.volatility) {
 			const allVolatilityConfigs =
 				TechnicalIndicatorPresets.volatility.standard;
 			// 去重
@@ -421,20 +462,20 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.volatility.data[config.period] = data;
+						result.volatility!.data[config.period] = data;
 					} catch (err) {
 						console.error(
 							`获取Volatility(${config.period})失败:`,
 							err
 						);
-						result.volatility.data[config.period] = [];
+						result.volatility!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.stdDev) {
-			// 获取StdDev的所有配置数据
+		// 获取StdDev的所有配置数据
+		if (result.stdDev) {
 			const allStdDevConfigs = TechnicalIndicatorPresets.stdDev.standard;
 			// 去重
 			const uniqueStdDevConfigs = allStdDevConfigs.filter(
@@ -454,17 +495,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.stdDev.data[config.period] = data;
+						result.stdDev!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取StdDev(${config.period})失败:`, err);
-						result.stdDev.data[config.period] = [];
+						result.stdDev!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.slope) {
-			// 获取Slope的所有配置数据
+		// 获取Slope的所有配置数据
+		if (result.slope) {
 			const allSlopeConfigs = TechnicalIndicatorPresets.slope.standard;
 			// 去重
 			const uniqueSlopeConfigs = allSlopeConfigs.filter(
@@ -484,17 +525,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.slope.data[config.period] = data;
+						result.slope!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取Slope(${config.period})失败:`, err);
-						result.slope.data[config.period] = [];
+						result.slope!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.dmi) {
-			// 获取DMI的所有配置数据
+		// 获取DMI的所有配置数据
+		if (result.dmi) {
 			const allDmiConfigs = TechnicalIndicatorPresets.dmi.standard;
 			// 去重
 			const uniqueDmiConfigs = allDmiConfigs.filter(
@@ -514,17 +555,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.dmi.data[config.period] = data;
+						result.dmi!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取DMI(${config.period})失败:`, err);
-						result.dmi.data[config.period] = [];
+						result.dmi!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.adx) {
-			// 获取ADX的所有配置数据
+		// 获取ADX的所有配置数据
+		if (result.adx) {
 			const allAdxConfigs = TechnicalIndicatorPresets.adx.standard;
 			// 去重
 			const uniqueAdxConfigs = allAdxConfigs.filter(
@@ -544,17 +585,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.adx.data[config.period] = data;
+						result.adx!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取ADX(${config.period})失败:`, err);
-						result.adx.data[config.period] = [];
+						result.adx!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.cci) {
-			// 获取CCI的所有配置数据
+		// 获取CCI的所有配置数据
+		if (result.cci) {
 			const allCciConfigs = TechnicalIndicatorPresets.cci.standard;
 			// 去重
 			const uniqueCciConfigs = allCciConfigs.filter(
@@ -574,17 +615,17 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.cci.data[config.period] = data;
+						result.cci!.data[config.period] = data;
 					} catch (err) {
 						console.error(`获取CCI(${config.period})失败:`, err);
-						result.cci.data[config.period] = [];
+						result.cci!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.sar) {
-			// 处理SAR指标
+		// 处理SAR指标
+		if (result.sar) {
 			const allSarConfigs = TechnicalIndicatorPresets.sar.standard;
 			// 去重
 			const uniqueSarConfigs = allSarConfigs.filter(
@@ -628,51 +669,55 @@ export async function getTechnicalIndicators(
 		}
 
 		// 获取拆分调整数据
-		try {
-			const splitAdjustedData = await getSplitAdjustedData({
-				...baseParams,
-				aggPeriod: 'd',
-			});
-			result.splitAdjustedData.data['d'] = splitAdjustedData;
-		} catch (err) {
-			console.error('获取拆分调整数据失败:', err);
-			result.splitAdjustedData.data['d'] = [];
+		if (result.splitAdjustedData) {
+			try {
+				const splitAdjustedData = await getSplitAdjustedData({
+					...baseParams,
+					aggPeriod: 'd',
+				});
+				result.splitAdjustedData.data['d'] = splitAdjustedData;
+			} catch (err) {
+				console.error('获取拆分调整数据失败:', err);
+				result.splitAdjustedData.data['d'] = [];
+			}
 		}
 
 		// 获取Average Volume的所有配置数据
-		const allAvgVolConfigs =
-			TechnicalIndicatorPresets.averageVolume.standard;
-		// 去重
-		const uniqueAvgVolConfigs = allAvgVolConfigs.filter(
-			(config, index, self) =>
-				self.findIndex((c) => c.period === config.period) === index
-		);
+		if (result.averageVolume) {
+			const allAvgVolConfigs =
+				TechnicalIndicatorPresets.averageVolume.standard;
+			// 去重
+			const uniqueAvgVolConfigs = allAvgVolConfigs.filter(
+				(config, index, self) =>
+					self.findIndex((c) => c.period === config.period) === index
+			);
 
-		// 设置可用的周期配置
-		result.averageVolume.periods = uniqueAvgVolConfigs.map(
-			(config) => config.period
-		);
+			// 设置可用的周期配置
+			result.averageVolume!.periods = uniqueAvgVolConfigs.map(
+				(config) => config.period
+			);
 
-		await Promise.all(
-			uniqueAvgVolConfigs.map(async (config) => {
-				try {
-					const data = await getAverageVolume({
-						...baseParams,
-						period: config.period,
-					});
-					result.averageVolume.data[config.period] = data;
-				} catch (err) {
-					console.error(
-						`获取Average Volume(${config.period})失败:`,
-						err
-					);
-					result.averageVolume.data[config.period] = [];
-				}
-			})
-		);
+			await Promise.all(
+				uniqueAvgVolConfigs.map(async (config) => {
+					try {
+						const data = await getAverageVolume({
+							...baseParams,
+							period: config.period,
+						});
+						result.averageVolume!.data[config.period] = data;
+					} catch (err) {
+						console.error(
+							`获取Average Volume(${config.period})失败:`,
+							err
+						);
+						result.averageVolume!.data[config.period] = [];
+					}
+				})
+			);
+		}
 
-		if (TechnicalIndicatorPreferences.averageVolumeByPrice) {
-			// 获取Average Volume by Price的所有配置数据
+		// 获取Average Volume by Price的所有配置数据
+		if (result.averageVolumeByPrice) {
 			const allAvgVolCcyConfigs =
 				TechnicalIndicatorPresets.averageVolumeByPrice.standard;
 			// 去重
@@ -682,7 +727,7 @@ export async function getTechnicalIndicators(
 			);
 
 			// 设置可用的周期配置
-			result.averageVolumeByPrice.periods = uniqueAvgVolCcyConfigs.map(
+			result.averageVolumeByPrice!.periods = uniqueAvgVolCcyConfigs.map(
 				(config) => config.period
 			);
 
@@ -693,20 +738,20 @@ export async function getTechnicalIndicators(
 							...baseParams,
 							period: config.period,
 						});
-						result.averageVolumeByPrice.data[config.period] = data;
+						result.averageVolumeByPrice!.data[config.period] = data;
 					} catch (err) {
 						console.error(
 							`获取Average Volume by Price(${config.period})失败:`,
 							err
 						);
-						result.averageVolumeByPrice.data[config.period] = [];
+						result.averageVolumeByPrice!.data[config.period] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.beta) {
-			// 获取Beta的所有配置数据
+		// 获取Beta的所有配置数据
+		if (result.averageVolumeByPrice) {
 			const allBetaConfigs = TechnicalIndicatorPresets.beta.standard;
 			// 去重
 			const uniqueBetaConfigs = allBetaConfigs.filter(
@@ -719,7 +764,7 @@ export async function getTechnicalIndicators(
 			);
 
 			// 设置可用的配置
-			result.beta.configs = uniqueBetaConfigs.map((config) => ({
+			result.beta!.configs = uniqueBetaConfigs.map((config) => ({
 				period: config.period,
 				code2: config.code2,
 			}));
@@ -733,21 +778,21 @@ export async function getTechnicalIndicators(
 							code2: config.code2,
 						});
 						const configKey = `${config.period}_${config.code2}`;
-						result.beta.data[configKey] = data;
+						result.beta!.data[configKey] = data;
 					} catch (err) {
 						console.error(
 							`获取Beta(${config.period},${config.code2})失败:`,
 							err
 						);
 						const configKey = `${config.period}_${config.code2}`;
-						result.beta.data[configKey] = [];
+						result.beta!.data[configKey] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.stochastic) {
-			// 获取Stochastic的所有配置数据
+		// 获取Stochastic的所有配置数据
+		if (result.stochastic) {
 			const allStochasticConfigs =
 				TechnicalIndicatorPresets.stochastic.standard;
 			// 去重
@@ -780,21 +825,21 @@ export async function getTechnicalIndicators(
 							slowDPeriod: config.slowDPeriod,
 						});
 						const configKey = `${config.fastKPeriod}_${config.slowKPeriod}_${config.slowDPeriod}`;
-						result.stochastic.data[configKey] = data;
+						result.stochastic!.data[configKey] = data;
 					} catch (err) {
 						console.error(
 							`获取Stochastic(${config.fastKPeriod},${config.slowKPeriod},${config.slowDPeriod})失败:`,
 							err
 						);
 						const configKey = `${config.fastKPeriod}_${config.slowKPeriod}_${config.slowDPeriod}`;
-						result.stochastic.data[configKey] = [];
+						result.stochastic!.data[configKey] = [];
 					}
 				})
 			);
 		}
 
-		if (TechnicalIndicatorPreferences.stochasticRSI) {
-			// 获取StochasticRSI的所有配置数据
+		// 获取StochasticRSI的所有配置数据
+		if (result.stochasticRSI) {
 			const allStochasticRSIConfigs =
 				TechnicalIndicatorPresets.stochasticRSI.standard;
 			// 去重
@@ -824,14 +869,14 @@ export async function getTechnicalIndicators(
 							fastDPeriod: config.fastDPeriod,
 						});
 						const configKey = `${config.fastKPeriod}_${config.fastDPeriod}`;
-						result.stochasticRSI.data[configKey] = data;
+						result.stochasticRSI!.data[configKey] = data;
 					} catch (err) {
 						console.error(
 							`获取StochasticRSI(${config.fastKPeriod},${config.fastDPeriod})失败:`,
 							err
 						);
 						const configKey = `${config.fastKPeriod}_${config.fastDPeriod}`;
-						result.stochasticRSI.data[configKey] = [];
+						result.stochasticRSI!.data[configKey] = [];
 					}
 				})
 			);

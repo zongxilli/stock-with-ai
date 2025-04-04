@@ -16,7 +16,7 @@ export const EMAPresets = {
 	},
 	// 常用组合配置
 	standard: [
-		{ period: 5, name: 'EMA5' }, // 5日均线
+		// { period: 5, name: 'EMA5' }, // 5日均线
 		// { period: 10, name: 'EMA10' }, // 10日均线
 		{ period: 20, name: 'EMA20' }, // 20日均线
 		{ period: 50, name: 'EMA50' }, // 50日均线
@@ -196,9 +196,9 @@ export const ATRPresets = {
 		period: 14,
 	},
 	standard: [
-		{ period: 7, name: 'Short-term ATR (7)' },
+		// { period: 7, name: 'Short-term ATR (7)' },
 		{ period: 14, name: 'Standard ATR (14)' },
-		{ period: 21, name: 'Long-term ATR (21)' },
+		// { period: 21, name: 'Long-term ATR (21)' },
 	],
 };
 
@@ -208,7 +208,7 @@ export const DMIPresets = {
 		period: 14,
 	},
 	standard: [
-		{ period: 7, name: 'Short-term DMI (7)' },
+		// { period: 7, name: 'Short-term DMI (7)' },
 		{ period: 14, name: 'Standard DMI (14)' },
 	],
 };
@@ -221,9 +221,9 @@ export const ADXPresets = {
 	standard: [{ period: 14, name: 'Standard ADX (14)' }],
 	// 趋势强度阈值
 	thresholds: {
-		weak: 20, // 弱趋势
-		strong: 25, // 强趋势
-		veryStrong: 50, // 非常强的趋势
+		weak: 25, // 弱趋势
+		strong: 40, // 强趋势
+		veryStrong: 60, // 非常强的趋势
 	},
 };
 
@@ -315,8 +315,8 @@ export const StdDevPresets = {
 	},
 	standard: [
 		{ period: 20, name: 'Short-term StdDev (20)' },
-		{ period: 50, name: 'Medium-term StdDev (50)' },
-		{ period: 100, name: 'Long-term StdDev (100)' },
+		// { period: 50, name: 'Medium-term StdDev (50)' },
+		// { period: 100, name: 'Long-term StdDev (100)' },
 	],
 };
 
