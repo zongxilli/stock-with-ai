@@ -13,13 +13,9 @@ import StockDetails from './components/stock-details';
 import StockHeader from './components/stock-header';
 import StockNews from './components/stock-news';
 
-import { getHistoricalData } from '@/app/actions/eodhd/get-historical-data';
-import { getHistoricalData1MonthFull } from '@/app/actions/eodhd/get-historical-data-1-month-full';
-import { compressHistoricalData } from '@/app/actions/eodhd/utils/compress';
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
 import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
 import { searchStock } from '@/app/actions/yahoo/search-stock';
-import { Button } from '@/components/ui/button';
 import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
 import { usePrevious } from '@/hooks/use-previous';
 
@@ -610,7 +606,7 @@ export default function StockPage() {
 			{/* 股票新闻 */}
 			{realTimeData && (
 				<div className='gap-4 mb-4'>
-					<StockNews code={code || ''} exchange={exchange || ''} />
+					<StockNews symbol={stockSymbol} />
 				</div>
 			)}
 
