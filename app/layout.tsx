@@ -46,9 +46,9 @@ export function Footer() {
 	);
 }
 
-export function Body(children: React.ReactNode) {
+export function Body({ children }: { children: React.ReactNode }) {
 	return (
-		<div className='container p-4 md:p-6 lg:p-8 flex-col justify-center items-center mt-16 mb-4'>
+		<div className='container p-4 md:p-6 lg:p-8 flex-grow'>
 			{children}
 		</div>
 	);
@@ -80,7 +80,7 @@ export default function RootLayout({
 			className={geistSans.className}
 			suppressHydrationWarning
 		>
-			<body className='bg-background text-foreground overflow-y-auto'>
+			<body className='bg-background text-foreground overflow-y-auto min-h-screen flex flex-col'>
 				<ThemeProvider
 					attribute='class'
 					defaultTheme='system'
@@ -88,9 +88,11 @@ export default function RootLayout({
 					disableTransitionOnChange
 				>
 					<ErrorBoundary>
-						<main>
+						<main className='flex flex-col min-h-screen'>
 							<Navbar />
-							{Body(children)}
+							<div className='flex-grow flex flex-col pt-16'>
+								<Body children={children} />
+							</div>
 							<Footer />
 						</main>
 					</ErrorBoundary>
