@@ -6,14 +6,8 @@ import { BillingTab } from './components/billing-tab';
 import { GeneralTab } from './components/general-tab';
 import { PreferenceTab } from './components/preference-tab';
 import { SidebarNav } from './components/sidebar-nav';
+import { Tab } from './types';
 
-type Tab = 'general' | 'preference' | 'billing';
-
-const tabs: { value: Tab; label: string; disabled: boolean }[] = [
-	{ value: 'general', label: 'General', disabled: false },
-	{ value: 'preference', label: 'Preference', disabled: false },
-	{ value: 'billing', label: 'Billing', disabled: true },
-];
 
 export default function AccountPage() {
 	const [currentTab, setCurrentTab] = useState<Tab>('general');
@@ -42,7 +36,6 @@ export default function AccountPage() {
 						currentTab={currentTab}
 						setCurrentTab={setCurrentTab}
 						className='sticky top-8'
-						tabs={tabs}
 					/>
 				</aside>
 				<div className='flex-1 md:max-w-2xl'>{renderCurrentTab()}</div>

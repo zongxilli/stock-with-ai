@@ -1,18 +1,16 @@
 'use client';
 
-import { Tab } from '../page';
+import { Tab, tabs } from '../types';
 
 import { cn } from '@/lib/utils';
 
 interface SidebarNavProps {
-	tabs: { value: Tab; label: string; disabled: boolean }[];
 	className?: string;
 	currentTab: Tab;
 	setCurrentTab: (tab: Tab) => void;
 }
 
 export function SidebarNav({
-	tabs,
 	currentTab,
 	setCurrentTab,
 	className,
