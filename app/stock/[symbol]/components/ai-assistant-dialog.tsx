@@ -388,6 +388,7 @@ export default function AIAssistantDialog({
 	const [streamError, setStreamError] = useState<string | null>(null);
 	const abortControllerRef = useRef<AbortController | null>(null);
 	const isAbortedRef = useRef<boolean>(false);
+	const isCheckedCacheRef = useRef<boolean>(false);
 
 	// 使用流式数据或初始数据
 	const data = streamData || initialData;
@@ -535,6 +536,25 @@ export default function AIAssistantDialog({
 			resetStreamState();
 		};
 	}, []); // 去掉isOpen依赖，确保只在组件实际卸载时执行清理
+
+	// 首次打开时检查Redis缓存
+	useEffect(() => {
+		// 只在首次打开对话框且没有初始数据时检查缓存
+		if (isOpen && !initialData && !streamData && !isCheckedCacheRef.current) {
+			isCheckedCacheRef.current = true;
+			
+			const checkCache = async () => {
+				// 检查缓存中是否有数据
+				const cachedData = await checkCacheData(symbol, code, exchange);
+				if (cachedData) {
+					console.log('使用Redis缓存的AI分析数据');
+					setStreamData(cachedData);
+				}
+			};
+			
+			checkCache();
+		}
+	}, [isOpen, initialData, streamData, symbol, code, exchange]);
 
 	if (!isOpen)
 		return (
