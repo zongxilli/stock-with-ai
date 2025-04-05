@@ -1,18 +1,21 @@
-import { User } from '@prisma/client';
+import { UserWithTypedPreference } from '../prisma-extensions';
 
 import { prisma } from '@/lib/prisma';
 
+
 export const userService = {
-	async getUserById(id: string): Promise<User | null> {
+	async getUserById(id: string): Promise<UserWithTypedPreference | null> {
 		try {
 			if (!prisma) {
 				console.error('Prisma client is not initialized');
 				return null;
 			}
 
-			return await prisma.user.findUnique({
+			const user = await prisma.user.findUnique({
 				where: { id },
 			});
+
+			return user as unknown as UserWithTypedPreference;
 		} catch (error) {
 			console.error('Error fetching user by ID:', error);
 			return null;
@@ -20,16 +23,20 @@ export const userService = {
 	},
 
 	// 通过电子邮件获取用户
-	async getUserByEmail(email: string): Promise<User | null> {
+	async getUserByEmail(
+		email: string
+	): Promise<UserWithTypedPreference | null> {
 		try {
 			if (!prisma) {
 				console.error('Prisma client is not initialized');
 				return null;
 			}
 
-			return await prisma.user.findUnique({
+			const user = await prisma.user.findUnique({
 				where: { email },
 			});
+
+			return user as unknown as UserWithTypedPreference;
 		} catch (error) {
 			console.error('Error fetching user by email:', error);
 			return null;
@@ -44,17 +51,19 @@ export const userService = {
 			fullName?: string;
 			bio?: string;
 		}
-	): Promise<User | null> {
+	): Promise<UserWithTypedPreference | null> {
 		try {
 			if (!prisma) {
 				console.error('Prisma client is not initialized');
 				return null;
 			}
 
-			return await prisma.user.update({
+			const user = await prisma.user.update({
 				where: { id },
 				data,
 			});
+
+			return user as unknown as UserWithTypedPreference;
 		} catch (error) {
 			console.error('Error updating user:', error);
 			return null;

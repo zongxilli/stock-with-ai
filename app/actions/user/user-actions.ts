@@ -82,17 +82,15 @@ export async function updateUserProfile(formData: FormData) {
 // 获取用户公开资料（如果需要查看其他用户的资料）
 export async function getUserPublicProfile(userId: string) {
 	try {
-		if (!userId) {
-			return { success: false, message: 'User ID is required' };
-		}
-
 		const profile = await userService.getUserById(userId);
 
 		if (!profile) {
-			return { success: false, message: 'User not found' };
+			return {
+				success: false,
+				error: '用户不存在',
+			};
 		}
 
-		// 只返回公开信息
 		return {
 			success: true,
 			profile: {
@@ -105,7 +103,7 @@ export async function getUserPublicProfile(userId: string) {
 		console.error('Error fetching user public profile:', error);
 		return {
 			success: false,
-			message: `Error fetching profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			error: `Error fetching profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
 		};
 	}
 }
