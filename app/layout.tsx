@@ -7,6 +7,7 @@ import ErrorBoundary from '@/components/error/error-boundary';
 import HeaderAuth from '@/components/header-auth';
 import { StockSearch } from '@/components/stock-search';
 import { ThemeSwitcher } from '@/components/theme-switcher';
+import { QueryProvider } from '@/providers/query-provider';
 import { hasEnvVars } from '@/utils/supabase/check-env-vars';
 
 import './globals.css';
@@ -88,13 +89,15 @@ export default function RootLayout({
 					disableTransitionOnChange
 				>
 					<ErrorBoundary>
-						<main className='flex flex-col min-h-screen'>
-							<Navbar />
-							<div className='flex-grow flex flex-col pt-16'>
-								<Body children={children} />
-							</div>
-							<Footer />
-						</main>
+						<QueryProvider>
+							<main className='flex flex-col min-h-screen'>
+								<Navbar />
+								<div className='flex-grow flex flex-col pt-16'>
+									<Body children={children} />
+								</div>
+								<Footer />
+							</main>
+						</QueryProvider>
 					</ErrorBoundary>
 				</ThemeProvider>
 			</body>

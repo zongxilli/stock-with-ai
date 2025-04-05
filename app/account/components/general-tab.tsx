@@ -1,155 +1,66 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-import { isEqual } from 'lodash';
-import { useRouter } from 'next/navigation';
-
-import {
-  getCurrentUserProfile,
-  updateUserProfile,
-} from '@/app/actions/user/user-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useProfile } from '@/hooks/use-profile';
 
+/**
+ * 用户账户的通用标签页组件
+ */
 export function GeneralTab() {
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [formData, setFormData] = useState<{
-    username: string;
-    fullName: string;
-    bio: string;
-  }>({
-    username: '',
-    fullName: '',
-    bio: '',
-  });
-  const [initialFormData, setInitialFormData] = useState<{
-    username: string;
-    fullName: string;
-    bio: string;
-  }>({
-    username: '',
-    fullName: '',
-    bio: '',
-  });
-  const [isFormChanged, setIsFormChanged] = useState(false);
-  const router = useRouter();
-  const { toast } = useToast();
+  const {
+    profile,
+    formData,
+    isLoading,
+    isUpdating,
+    isFormChanged,
+    error,
+    handleChange,
+    handleSubmit,
+  } = useProfile();
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const data = await getCurrentUserProfile();
-        if (!data) {
-          // 未登录或出错
-          router.push('/sign-in');
-          return;
-        }
-        setProfile(data);
-
-        // 初始化表单数据
-        const initialData = {
-          username: data.username || '',
-          fullName: data.fullName || '',
-          bio: data.bio || '',
-        };
-        setFormData(initialData);
-        setInitialFormData(initialData);
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load profile data',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, [router, toast]);
-
-  // 检查表单是否变更
-  useEffect(() => {
-    setIsFormChanged(!isEqual(formData, initialFormData));
-  }, [formData, initialFormData]);
-
-  // 处理表单字段变更
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const submitFormData = new FormData(e.currentTarget);
-
-      const result = await updateUserProfile(submitFormData);
-
-      if (result.success) {
-        toast({
-          title: 'Success',
-          description: 'Your profile has been updated.',
-        });
-        // 重新加载个人资料
-        const updatedProfile = await getCurrentUserProfile();
-        setProfile(updatedProfile);
-
-        // 更新初始表单数据，使其与当前表单数据一致
-        const newInitialData = {
-          username: updatedProfile?.username || '',
-          fullName: updatedProfile?.fullName || '',
-          bio: updatedProfile?.bio || '',
-        };
-        setFormData(newInitialData);
-        setInitialFormData(newInitialData);
-        setIsFormChanged(false);
-      } else {
-        toast({
-          title: 'Error',
-          description: result.message || 'Failed to update profile',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update profile',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  // 处理加载状态 - 使用 Skeleton 组件
+  if (isLoading) {
     return (
-      <div className='flex items-center justify-center min-h-[60vh]'>
-        <div className='animate-pulse'>Loading profile data...</div>
+      <div className="space-y-6">
+        <div className="text-xl font-semibold">
+          <Skeleton className="h-8 w-36" />
+        </div>
+        <div className='space-y-6'>
+          <div className='space-y-2'>
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+          <div className='space-y-2'>
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className='space-y-2'>
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className='space-y-2'>
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+          <div className='flex justify-end'>
+            <Skeleton className="h-10 w-28" />
+          </div>
+        </div>
       </div>
     );
   }
 
-  // 确保 profile 存在
-  if (!profile) {
+  // 处理错误状态
+  if (error || !profile) {
     return (
       <div>
         <div className='p-4 border rounded-md bg-destructive/10 text-destructive'>
-          Error loading profile data. Please try refreshing the page.
+          Error loading profile data. Please refresh the page and try again.
         </div>
         <Button
           className='mt-4'
@@ -163,7 +74,7 @@ export function GeneralTab() {
 
   return (
     <div className="space-y-6">
-      <div className="text-xl font-semibold">Your Profile</div>
+      <div className="text-xl font-semibold">Profile</div>
       <form onSubmit={handleSubmit} className='space-y-6'>
         {/* Email */}
         <div className='space-y-2'>
@@ -188,6 +99,7 @@ export function GeneralTab() {
             value={formData.username}
             onChange={handleChange}
             placeholder='Choose a username'
+            disabled={isUpdating}
           />
         </div>
 
@@ -200,6 +112,7 @@ export function GeneralTab() {
             value={formData.fullName}
             onChange={handleChange}
             placeholder='Your full name'
+            disabled={isUpdating}
           />
         </div>
 
@@ -213,12 +126,16 @@ export function GeneralTab() {
             onChange={handleChange}
             placeholder='Tell us about yourself'
             rows={4}
+            disabled={isUpdating}
           />
         </div>
 
         <div className='flex gap-4 justify-end'>
-          <Button type='submit' disabled={loading || !isFormChanged}>
-            {loading ? 'Saving...' : 'Save Profile'}
+          <Button 
+            type='submit' 
+            disabled={isUpdating || !isFormChanged}
+          >
+            {isUpdating ? 'Saving...' : 'Save Profile'}
           </Button>
         </div>
       </form>
