@@ -48,6 +48,323 @@ interface AIAssistantDialogProps {
 	exchange: string;
 }
 
+// 用于处理服务器发送事件(SSE)消息的接口定义
+interface SSEMessage {
+	type: 'thinking' | 'content' | 'status' | 'complete' | 'error';
+	content: string | any;
+}
+
+// 用于收集分析所需的所有数据的接口
+interface StockAnalysisData {
+	symbol: string;
+	language: string;
+	comprehensiveData: any;
+	technicalIndicatorsData: any;
+	historicalData: any;
+	mainIndexesHistoricalData: any;
+	newsData: any;
+}
+
+/**
+ * 检查Redis缓存中是否有可用的AI分析数据
+ * @param symbol 股票代码
+ * @param code 公司代码
+ * @param exchange 交易所
+ * @returns 缓存的数据或null
+ */
+const checkCacheData = async (
+	symbol: string,
+	code: string,
+	exchange: string
+): Promise<AIAssistantData | null> => {
+	try {
+		const cachedData = await getAIAssistantCache(symbol, code, exchange);
+		if (cachedData) {
+			console.log('使用Redis缓存的AI分析数据');
+			return cachedData;
+		}
+		return null;
+	} catch (error) {
+		console.error('检查缓存数据时出错:', error);
+		return null;
+	}
+};
+
+/**
+ * 收集所有需要的股票分析数据
+ * @param symbol 股票代码
+ * @param code 公司代码
+ * @param exchange 交易所
+ * @returns 收集的数据对象或错误
+ */
+const collectStockData = async (
+	symbol: string,
+	code: string,
+	exchange: string
+): Promise<{ data: StockAnalysisData | null; error: string | null }> => {
+	try {
+		// 获取综合数据
+		const comprehensiveData = await getComprehensiveStockData(symbol);
+
+		// 检查是否有错误
+		if (comprehensiveData && 'error' in comprehensiveData) {
+			return { data: null, error: comprehensiveData.error };
+		}
+
+		// 获取技术指标数据
+		const technicalIndicatorsData =
+			await getCompressedTechnicalIndicatorsDataForAnalysis(
+				code,
+				exchange,
+				'1y'
+			);
+
+		// 获取历史数据
+		const historicalData = await getCompressedHistoricalDataForAnalysis(
+			code,
+			exchange,
+			'1y'
+		);
+
+		// 获取主要指数历史数据
+		const mainIndexesHistoricalData =
+			await getCompressedMainIndexesHistoricalDataForAnalysis(
+				exchange,
+				'1y'
+			);
+
+		// 获取最近的新闻数据
+		const newsData = await getCompressedNewsDataForAnalysis(
+			code,
+			exchange,
+			5 // 默认获取最近的5条新闻
+		);
+
+		return {
+			data: {
+				symbol,
+				language: 'CN',
+				comprehensiveData,
+				technicalIndicatorsData,
+				historicalData,
+				mainIndexesHistoricalData,
+				newsData,
+			},
+			error: null,
+		};
+	} catch (error) {
+		console.error('收集股票数据时出错:', error);
+		const errorMessage =
+			error instanceof Error ? error.message : '未知错误';
+		return { data: null, error: errorMessage };
+	}
+};
+
+/**
+ * 处理单条SSE消息
+ * @param dataStr 消息字符串
+ * @param callbacks 状态更新回调函数集合
+ * @param symbol 股票代码
+ * @param code 公司代码
+ * @param exchange 交易所
+ * @returns 是否完成流处理
+ */
+const processSSEMessage = async (
+	dataStr: string,
+	callbacks: {
+		setThinking: (fn: (prev: string) => string) => void;
+		setThinkingContent: (fn: (prev: string) => string) => void;
+		setThinkingStatus: (fn: (prev: string) => string) => void;
+		setStreamData: (data: AIAssistantData) => void;
+		setStreamError: (error: string | null) => void;
+		setIsStreaming: (isStreaming: boolean) => void;
+		setActiveTab: (tab: string) => void;
+	},
+	symbol: string,
+	code: string,
+	exchange: string
+): Promise<boolean> => {
+	try {
+		// 解析JSON数据
+		console.log('Received SSE data:', dataStr.slice(0, 50) + '...');
+		const data: SSEMessage = JSON.parse(dataStr);
+
+		// 根据消息类型处理
+		switch (data.type) {
+			case 'thinking':
+				callbacks.setThinking((prev) => prev + data.content);
+				break;
+			case 'content':
+				// 添加内容消息到思考过程中
+				callbacks.setThinkingContent((prev) => prev + data.content);
+				console.log('Content chunk received');
+				break;
+			case 'status':
+				// 状态更新
+				console.log('Status update:', data.content);
+				callbacks.setThinkingStatus(
+					(prev) => prev + `\n\n${data.content}\n\n`
+				);
+				break;
+			case 'complete':
+				// 收到完整数据
+				console.log('Received complete data');
+				
+				if (typeof data.content === 'object') {
+					// 确保最小必要字段存在
+					const processedData = {
+						...data.content,
+						analysis: data.content.analysis || 'No analysis available',
+						recommendations: Array.isArray(data.content.recommendations)
+							? data.content.recommendations
+							: [],
+						sentiment: data.content.sentiment || 'neutral',
+					};
+
+					// 将完整数据存入Redis缓存，设置5分钟过期时间
+					await setAIAssistantCache(
+						symbol,
+						code,
+						exchange,
+						processedData,
+						300
+					); // 300秒 = 5分钟
+					console.log('AI分析数据已缓存到Redis，有效期5分钟');
+
+					callbacks.setStreamData(processedData);
+					callbacks.setIsStreaming(false);
+					callbacks.setActiveTab('analysis');
+					return true; // 流处理完成
+				} else {
+					console.error('Unexpected complete data format:', data);
+					callbacks.setStreamError('Received unexpected data format');
+					callbacks.setIsStreaming(false);
+				}
+				break;
+			case 'error':
+				console.error('Stream error:', data.content);
+				callbacks.setStreamError(data.content);
+				callbacks.setThinkingContent(
+					(prev) => prev + `\n\n[Error] ${data.content}\n\n`
+				);
+				break;
+		}
+	} catch (error) {
+		console.error('Error parsing SSE message:', error);
+		// 解析单条消息出错不应该终止整个流
+	}
+	return false; // 流处理未完成
+};
+
+/**
+ * 处理流式数据
+ * @param response Fetch响应对象
+ * @param callbacks 状态更新回调函数集合
+ * @param symbol 股票代码
+ * @param code 公司代码
+ * @param exchange 交易所
+ */
+const processStream = async (
+	response: Response,
+	callbacks: {
+		setThinking: (fn: (prev: string) => string) => void;
+		setThinkingContent: (fn: (prev: string) => string) => void;
+		setThinkingStatus: (fn: (prev: string) => string) => void;
+		setStreamData: (data: AIAssistantData) => void;
+		setStreamError: (error: string | null) => void;
+		setIsStreaming: (isStreaming: boolean) => void;
+		setActiveTab: (tab: string) => void;
+	},
+	symbol: string,
+	code: string,
+	exchange: string
+) => {
+	const reader = response.body?.getReader();
+	if (!reader) {
+		throw new Error('Failed to get response reader');
+	}
+
+	const decoder = new TextDecoder();
+	let buffer = '';
+
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+
+			// 添加到缓冲区并处理完整消息
+			buffer += decoder.decode(value, { stream: true });
+
+			// 处理完整的SSE消息（以双换行分隔）
+			const lines = buffer.split('\n\n');
+			buffer = lines.pop() || '';
+
+			for (const line of lines) {
+				// 跳过非数据行
+				if (!line.startsWith('data:')) continue;
+
+				// 处理消息数据
+				const dataStr = line.slice(5).trim();
+				const isComplete = await processSSEMessage(
+					dataStr,
+					callbacks,
+					symbol,
+					code,
+					exchange
+				);
+				
+				// 如果流处理完成，退出循环
+				if (isComplete) return;
+			}
+		}
+	} catch (error) {
+		throw error; // 向上传递错误，由调用者处理
+	}
+};
+
+/**
+ * 请求并处理AI分析流数据
+ * @param stockData 股票分析数据
+ * @param signal AbortController信号
+ * @param callbacks 状态更新回调函数集合
+ * @param symbol 股票代码
+ * @param code 公司代码
+ * @param exchange 交易所
+ */
+const requestStreamAnalysis = async (
+	stockData: StockAnalysisData,
+	signal: AbortSignal,
+	callbacks: {
+		setThinking: (fn: (prev: string) => string) => void;
+		setThinkingContent: (fn: (prev: string) => string) => void;
+		setThinkingStatus: (fn: (prev: string) => string) => void;
+		setStreamData: (data: AIAssistantData) => void;
+		setStreamError: (error: string | null) => void;
+		setIsStreaming: (isStreaming: boolean) => void;
+		setActiveTab: (tab: string) => void;
+	},
+	symbol: string,
+	code: string,
+	exchange: string
+) => {
+	// 调用流式API端点
+	const response = await fetch('/api/deepseek-stream', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(stockData),
+		signal, // 添加abort signal以支持中止请求
+	});
+
+	if (!response.ok) {
+		throw new Error(`API error: ${response.status}`);
+	}
+
+	// 处理流数据
+	await processStream(response, callbacks, symbol, code, exchange);
+};
+
 export default function AIAssistantDialog({
 	isOpen,
 	onClose,
@@ -68,11 +385,11 @@ export default function AIAssistantDialog({
 	const abortControllerRef = useRef<AbortController | null>(null);
 	const isAbortedRef = useRef<boolean>(false);
 
-	// Use either streamed data or initial data
+	// 使用流式数据或初始数据
 	const data = streamData || initialData;
 	const isLoading = isStreaming || initialIsLoading;
 
-	// Handle escape key to close dialog
+	// 处理Escape键关闭对话框
 	useEffect(() => {
 		const handleEscapeKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape' && isOpen) {
@@ -86,7 +403,7 @@ export default function AIAssistantDialog({
 		};
 	}, [isOpen, onClose]);
 
-	// Disable body scroll when dialog is open
+	// 当对话框打开时禁用body滚动
 	useEffect(() => {
 		if (isOpen) {
 			document.body.style.overflow = 'hidden';
@@ -98,265 +415,115 @@ export default function AIAssistantDialog({
 		};
 	}, [isOpen]);
 
-	// Stream data from DeepSeek API if useStream is true
+	// 重置流状态
+	const resetStreamState = () => {
+		setIsStreaming(false);
+		setThinking('');
+		setThinkingContent('');
+		setThinkingStatus('');
+	};
+
+	// 流式API主函数
+	const fetchAndProcessStreamData = async (
+		abortController: AbortController
+	) => {
+		try {
+			// 初始化状态
+			setIsStreaming(true);
+			setThinking('');
+			setStreamData(null);
+			setStreamError(null);
+
+			// 检查缓存
+			const cachedData = await checkCacheData(symbol, code, exchange);
+			if (cachedData) {
+				setStreamData(cachedData);
+				setIsStreaming(false);
+				return;
+			}
+
+			// 收集股票数据
+			const { data: stockData, error } = await collectStockData(
+				symbol,
+				code,
+				exchange
+			);
+
+			if (error) {
+				setStreamError(`Error: ${error}`);
+				setIsStreaming(false);
+				return;
+			}
+
+			if (!stockData) {
+				setStreamError('无法获取股票数据');
+				setIsStreaming(false);
+				return;
+			}
+
+			// 回调函数集合
+			const callbacks = {
+				setThinking,
+				setThinkingContent,
+				setThinkingStatus,
+				setStreamData,
+				setStreamError,
+				setIsStreaming,
+				setActiveTab,
+			};
+
+			// 请求并处理流式分析数据
+			await requestStreamAnalysis(
+				stockData,
+				abortController.signal,
+				callbacks,
+				symbol,
+				code,
+				exchange
+			);
+		} catch (error: unknown) {
+			// 处理AbortError，用户主动中止的情况
+			if (error instanceof Error && error.name === 'AbortError') {
+				console.log('Stream request aborted by user');
+				isAbortedRef.current = true;
+				resetStreamState();
+			} else {
+				// 处理其他错误
+				console.error('Streaming error:', error);
+				const errorMessage =
+					error instanceof Error ? error.message : 'Unknown error';
+				setStreamError(errorMessage);
+				setIsStreaming(false);
+			}
+		}
+	};
+
+	// 从DeepSeek API获取流式数据（如果useStream为true）
 	useEffect(() => {
 		if (!isOpen || !useStream || initialData) return;
 
 		// 创建AbortController用于中止fetch请求
 		const abortController = new AbortController();
 		abortControllerRef.current = abortController;
-		const signal = abortController.signal;
-		// 跟踪请求是否已被中止
 		isAbortedRef.current = false;
 
-		const fetchStreamData = async () => {
-			try {
-				setIsStreaming(true);
-				setThinking('');
-				setStreamData(null);
-				setStreamError(null);
+		// 执行流式数据获取
+		fetchAndProcessStreamData(abortController);
 
-				// 检查Redis缓存（使用服务器操作）
-				const cachedData = await getAIAssistantCache(
-					symbol,
-					code,
-					exchange
-				);
-				if (cachedData) {
-					console.log('使用Redis缓存的AI分析数据');
-					setStreamData(cachedData);
-					setIsStreaming(false);
-					return;
-				}
-
-				// 获取所有类型的分析数据
-				const comprehensiveData =
-					await getComprehensiveStockData(symbol);
-
-				// 检查是否有错误
-				if (comprehensiveData && 'error' in comprehensiveData) {
-					const errorMsg = comprehensiveData.error;
-					setStreamError(`Error: ${errorMsg}`);
-					setIsStreaming(false);
-					return;
-				}
-
-				// 获取技术指标数据
-				const technicalIndicatorsData =
-					await getCompressedTechnicalIndicatorsDataForAnalysis(
-						code,
-						exchange,
-						'1y'
-					);
-
-				// 获取历史数据
-				const historicalData =
-					await getCompressedHistoricalDataForAnalysis(
-						code,
-						exchange,
-						'1y'
-					);
-
-				// 获取主要指数历史数据
-				const mainIndexesHistoricalData =
-					await getCompressedMainIndexesHistoricalDataForAnalysis(
-						exchange,
-						'1y'
-					);
-
-				// 获取最近的新闻数据
-				const newsData = await getCompressedNewsDataForAnalysis(
-					code,
-					exchange,
-					5 // 默认获取最近的5条新闻
-				);
-
-				console.log(historicalData);
-				console.log(mainIndexesHistoricalData);
-
-				// Add loading state feedback
-				console.log(`Fetching analysis for ${symbol}...`);
-
-				// Call the streaming API endpoint
-				const response = await fetch('/api/deepseek-stream', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						symbol,
-						language: 'CN',
-						comprehensiveData,
-						technicalIndicatorsData,
-						historicalData,
-						mainIndexesHistoricalData, // 添加主要指数数据
-						newsData, // 添加新闻数据
-					}),
-					signal, // 添加abort signal以支持中止请求
-				});
-
-				if (!response.ok) {
-					throw new Error(`API error: ${response.status}`);
-				}
-
-				// Process the stream
-				const reader = response.body?.getReader();
-				if (!reader) {
-					throw new Error('Failed to get response reader');
-				}
-
-				const decoder = new TextDecoder();
-				let buffer = '';
-
-				while (true) {
-					const { done, value } = await reader.read();
-					if (done) break;
-
-					// Add to buffer and process complete messages
-					buffer += decoder.decode(value, { stream: true });
-
-					// Process complete SSE messages (split by double newline)
-					const lines = buffer.split('\n\n');
-					buffer = lines.pop() || '';
-
-					for (const line of lines) {
-						// Skip non-data lines
-						if (!line.startsWith('data:')) continue;
-
-						try {
-							// Parse the JSON data
-							const dataStr = line.slice(5).trim();
-							console.log(
-								'Received SSE data:',
-								dataStr.slice(0, 50) + '...'
-							);
-
-							const data = JSON.parse(dataStr);
-
-							// Handle different message types
-							if (data.type === 'thinking') {
-								setThinking((prev) => prev + data.content);
-							} else if (data.type === 'content') {
-								// Add content messages to thinking process without label
-								// to maintain the natural flow of thought
-								setThinkingContent(
-									(prev) => prev + data.content
-								);
-								// Just log this for debugging, content accumulates on server
-								console.log('Content chunk received');
-							} else if (data.type === 'status') {
-								// Status updates for better UX
-								console.log('Status update:', data.content);
-								// Add status updates to thinking process display with a label
-								setThinkingStatus(
-									(prev) => prev + `\n\n${data.content}\n\n`
-								);
-							} else if (data.type === 'complete') {
-								console.log('Received complete data');
-								console.log(thinkingContent);
-								// setThinkingContent('');
-								// Validate that we have minimum required fields
-								if (typeof data.content === 'object') {
-									// Ensure minimum properties exist
-									const processedData = {
-										...data.content,
-										analysis:
-											data.content.analysis ||
-											'No analysis available',
-										recommendations: Array.isArray(
-											data.content.recommendations
-										)
-											? data.content.recommendations
-											: [],
-										sentiment:
-											data.content.sentiment || 'neutral',
-									};
-
-									// 将完整数据存入Redis缓存，设置5分钟过期时间（使用服务器操作）
-									await setAIAssistantCache(
-										symbol,
-										code,
-										exchange,
-										processedData,
-										300
-									); // 300秒 = 5分钟
-									console.log(
-										'AI分析数据已缓存到Redis，有效期5分钟'
-									);
-
-									setStreamData(processedData);
-									// 设置streaming状态为false，确保UI切换到数据展示模式
-									setIsStreaming(false);
-
-									// 确保activeTab设置为'analysis'
-									setActiveTab('analysis');
-								} else {
-									console.error(
-										'Unexpected complete data format:',
-										data
-									);
-									setStreamError(
-										'Received unexpected data format'
-									);
-									setIsStreaming(false);
-								}
-							} else if (data.type === 'error') {
-								console.error('Stream error:', data.content);
-								setStreamError(data.content);
-								// Add error messages to thinking process display
-								setThinkingContent(
-									(prev) =>
-										prev + `\n\n[Error] ${data.content}\n\n`
-								);
-							}
-						} catch (error) {
-							console.error('Error parsing SSE message:', error);
-							// Don't fail the whole stream for one parsing error
-						}
-					}
-				}
-			} catch (error: unknown) {
-				// 处理AbortError，用户主动中止的情况
-				if (error instanceof Error && error.name === 'AbortError') {
-					console.log('Stream request aborted by user');
-					isAbortedRef.current = true;
-					// 即使是用户中止，也需要重置状态，防止重新打开时出现问题
-					setIsStreaming(false);
-					setThinking('');
-					setThinkingContent('');
-					setThinkingStatus('');
-				} else {
-					// 仅在组件仍然挂载时更新错误状态
-					console.error('Streaming error:', error);
-					const errorMessage =
-						error instanceof Error
-							? error.message
-							: 'Unknown error';
-					setStreamError(errorMessage);
-					setIsStreaming(false);
-				}
-			}
-		};
-
-		fetchStreamData();
-
-		// 清理函数现在只在组件卸载时中止请求，而不是在对话框关闭时
+		// 清理函数
 		return () => {
 			// 只在组件完全卸载时中止请求
 			if (abortControllerRef.current && !isAbortedRef.current) {
 				abortControllerRef.current.abort();
 				console.log('组件卸载：中止DeepSeek API流连接以节省token使用');
 			}
-
-			// 无论如何，重置状态以便下次打开时状态干净
-			setIsStreaming(false);
-			setThinking('');
-			setThinkingContent('');
-			setThinkingStatus('');
+			
+			// 重置状态
+			resetStreamState();
 		};
-	}, [isOpen, useStream, symbol, initialData, code, exchange]); // 移除activeTab依赖
+	}, [isOpen, useStream, symbol, initialData, code, exchange]);
 
-	// 处理对话框关闭（不再中止API请求，只关闭对话框）
+	// 处理对话框关闭
 	const handleClose = () => {
 		// 调用onClose回调关闭对话框
 		onClose();
