@@ -27,6 +27,8 @@
 		"@sentry/nextjs": "9",
 		"@supabase/ssr": "latest",
 		"@supabase/supabase-js": "latest",
+		"@tanstack/react-query": "^5.71.10",
+		"@tanstack/react-query-devtools": "^5.71.10",
 		"@vercel/edge": "^1.2.1",
 		"@vercel/edge-config": "^1.4.0",
 		"autoprefixer": "10.4.20",
