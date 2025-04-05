@@ -9,6 +9,7 @@ import { getCompressedMainIndexesHistoricalDataForAnalysis } from '@/app/actions
 import { getCompressedNewsDataForAnalysis } from '@/app/actions/eodhd/get-compressed-news-data-for-analysis';
 import { getCompressedTechnicalIndicatorsDataForAnalysis } from '@/app/actions/eodhd/get-compressed-technical-indicators-data-for-analysis';
 import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
+import { getAIAssistantCache, setAIAssistantCache } from '@/app/actions/redis/ai-assistant-cache';
 import JsonFormatter from '@/components/custom/json-formatter';
 import EnhancedTextFormatter from '@/components/custom/text-formatter-enhanced';
 
@@ -63,6 +64,8 @@ export default function AIAssistantDialog({
 	const [thinkingStatus, setThinkingStatus] = useState('');
 	const [isStreaming, setIsStreaming] = useState(false);
 	const [streamError, setStreamError] = useState<string | null>(null);
+	const abortControllerRef = useRef<AbortController | null>(null);
+	const isAbortedRef = useRef<boolean>(false);
 
 	// Reference for thinking process containers
 	const thinkingContainerRef = useRef<HTMLDivElement>(null);
@@ -104,9 +107,10 @@ export default function AIAssistantDialog({
 
 		// 创建AbortController用于中止fetch请求
 		const abortController = new AbortController();
+		abortControllerRef.current = abortController;
 		const signal = abortController.signal;
 		// 跟踪请求是否已被中止
-		let isAborted = false;
+		isAbortedRef.current = false;
 
 		const fetchStreamData = async () => {
 			try {
@@ -114,6 +118,15 @@ export default function AIAssistantDialog({
 				setThinking('');
 				setStreamData(null);
 				setStreamError(null);
+
+				// 检查Redis缓存（使用服务器操作）
+				const cachedData = await getAIAssistantCache(symbol, code, exchange);
+				if (cachedData) {
+					console.log('使用Redis缓存的AI分析数据');
+					setStreamData(cachedData);
+					setIsStreaming(false);
+					return;
+				}
 
 				// 获取所有类型的分析数据
 				const comprehensiveData =
@@ -257,6 +270,11 @@ export default function AIAssistantDialog({
 										sentiment:
 											data.content.sentiment || 'neutral',
 									};
+									
+									// 将完整数据存入Redis缓存，设置5分钟过期时间（使用服务器操作）
+									await setAIAssistantCache(symbol, code, exchange, processedData, 300); // 300秒 = 5分钟
+									console.log('AI分析数据已缓存到Redis，有效期5分钟');
+									
 									setStreamData(processedData);
 									// 设置streaming状态为false，确保UI切换到数据展示模式
 									setIsStreaming(false);
@@ -292,7 +310,7 @@ export default function AIAssistantDialog({
 				// 处理AbortError，用户主动中止的情况
 				if (error instanceof Error && error.name === 'AbortError') {
 					console.log('Stream request aborted by user');
-					isAborted = true;
+					isAbortedRef.current = true;
 					// 即使是用户中止，也需要重置状态，防止重新打开时出现问题
 					setIsStreaming(false);
 					setThinking('');
@@ -313,14 +331,13 @@ export default function AIAssistantDialog({
 
 		fetchStreamData();
 
-		// 清理函数，当组件卸载或依赖项变化时调用
+		// 清理函数现在只在组件卸载时中止请求，而不是在对话框关闭时
 		return () => {
-			// 始终尝试中止请求，让AbortController自己决定是否需要处理
-			// 这样可以避免闭包陷阱
-			if (!isAborted) {
-				abortController.abort();
+			// 只在组件完全卸载时中止请求
+			if (abortControllerRef.current && !isAbortedRef.current) {
+				abortControllerRef.current.abort();
 				console.log(
-					'Aborting DeepSeek API stream connection to save token usage'
+					'组件卸载：中止DeepSeek API流连接以节省token使用'
 				);
 			}
 
@@ -331,6 +348,12 @@ export default function AIAssistantDialog({
 			setThinkingStatus('');
 		};
 	}, [isOpen, useStream, symbol, initialData, code, exchange]); // 移除activeTab依赖
+
+	// 处理对话框关闭（不再中止API请求，只关闭对话框）
+	const handleClose = () => {
+		// 调用onClose回调关闭对话框
+		onClose();
+	};
 
 	// Auto-scroll thinking containers when content changes
 	useEffect(() => {
@@ -666,7 +689,7 @@ export default function AIAssistantDialog({
 						AI Analysis for {symbol}
 					</h2>
 					<button
-						onClick={onClose}
+						onClick={handleClose}
 						className='text-muted-foreground hover:text-foreground'
 					>
 						✕
