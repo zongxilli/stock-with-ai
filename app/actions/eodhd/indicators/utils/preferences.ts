@@ -18,5 +18,5 @@ export const TechnicalIndicatorDefaultPreferences = {
 	stochasticRSI: false,
 	averageVolume: false,
 	averageVolumeByPrice: false,
-	splitAdjusted: true,
+	splitAdjusted: false,
 };
