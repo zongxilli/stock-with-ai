@@ -7,6 +7,7 @@ import ErrorBoundary from '@/components/error/error-boundary';
 import HeaderAuth from '@/components/header-auth';
 import { StockSearch } from '@/components/stock-search';
 import { ThemeSwitcher } from '@/components/theme-switcher';
+import { Toaster } from '@/components/ui/toaster';
 import { QueryProvider } from '@/providers/query-provider';
 import { hasEnvVars } from '@/utils/supabase/check-env-vars';
 
@@ -97,6 +98,7 @@ export default function RootLayout({
 								</div>
 								<Footer />
 							</main>
+							<Toaster />
 						</QueryProvider>
 					</ErrorBoundary>
 				</ThemeProvider>

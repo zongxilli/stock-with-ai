@@ -39,8 +39,8 @@ export function PreferenceTab() {
 		} catch (error) {
 			console.error('获取用户偏好出错:', error);
 			toast({
-				title: '错误',
-				description: '获取用户偏好失败',
+				title: 'Error',
+				description: 'Failed to load user preferences',
 				variant: 'destructive',
 			});
 		} finally {
@@ -64,14 +64,14 @@ export function PreferenceTab() {
 				prev ? { ...prev, theme: newTheme } : null
 			);
 			toast({
-				title: '成功',
-				description: '主题更新成功',
+				title: 'Success',
+				description: 'Theme updated successfully',
 			});
 		} catch (error) {
 			console.error('更新主题出错:', error);
 			toast({
-				title: '错误',
-				description: '更新主题失败',
+				title: 'Error',
+				description: 'Failed to update theme',
 				variant: 'destructive',
 			});
 		} finally {
@@ -90,14 +90,14 @@ export function PreferenceTab() {
 				prev ? { ...prev, language: newLanguage } : null
 			);
 			toast({
-				title: '成功',
-				description: '语言更新成功',
+				title: 'Success',
+				description: 'Language updated successfully',
 			});
 		} catch (error) {
 			console.error('更新语言出错:', error);
 			toast({
-				title: '错误',
-				description: '更新语言失败',
+				title: 'Error',
+				description: 'Failed to update language',
 				variant: 'destructive',
 			});
 		} finally {
@@ -138,14 +138,14 @@ export function PreferenceTab() {
 			);
 
 			toast({
-				title: '成功',
-				description: '技术指标偏好更新成功',
+				title: 'Success',
+				description: 'Technical indicator preferences updated successfully',
 			});
 		} catch (error) {
 			console.error('更新技术指标偏好出错:', error);
 			toast({
-				title: '错误',
-				description: '更新技术指标偏好失败',
+				title: 'Error',
+				description: 'Failed to update technical indicator preferences',
 				variant: 'destructive',
 			});
 		} finally {
@@ -156,86 +156,86 @@ export function PreferenceTab() {
 	// 定义技术指标组
 	const technicalIndicatorGroups = [
 		{
-			title: '移动平均线',
+			title: 'Moving Averages',
 			indicators: [
-				{ key: 'sma' as const, name: '简单移动平均线 (SMA)' },
-				{ key: 'ema' as const, name: '指数移动平均线 (EMA)' },
-				{ key: 'wma' as const, name: '加权移动平均线 (WMA)' },
+				{ key: 'sma' as const, name: 'Simple Moving Average (SMA)' },
+				{ key: 'ema' as const, name: 'Exponential Moving Average (EMA)' },
+				{ key: 'wma' as const, name: 'Weighted Moving Average (WMA)' },
 			],
 		},
 		{
-			title: '震荡指标',
+			title: 'Oscillators',
 			indicators: [
-				{ key: 'rsi' as const, name: '相对强弱指数 (RSI)' },
-				{ key: 'macd' as const, name: '移动平均收敛/发散 (MACD)' },
-				{ key: 'stochastic' as const, name: '随机指标 (Stochastic)' },
+				{ key: 'rsi' as const, name: 'Relative Strength Index (RSI)' },
+				{ key: 'macd' as const, name: 'Moving Average Convergence Divergence (MACD)' },
+				{ key: 'stochastic' as const, name: 'Stochastic Oscillator' },
 				{
 					key: 'stochasticRSI' as const,
-					name: '随机相对强弱指数 (Stochastic RSI)',
+					name: 'Stochastic RSI',
 				},
-				{ key: 'cci' as const, name: '顺势指标 (CCI)' },
+				{ key: 'cci' as const, name: 'Commodity Channel Index (CCI)' },
 			],
 		},
 		{
-			title: '波动性指标',
+			title: 'Volatility Indicators',
 			indicators: [
 				{
 					key: 'bollingerBands' as const,
-					name: '布林带 (Bollinger Bands)',
+					name: 'Bollinger Bands',
 				},
-				{ key: 'atr' as const, name: '真实波幅 (ATR)' },
-				{ key: 'volatility' as const, name: '波动率 (Volatility)' },
-				{ key: 'stdDev' as const, name: '标准差 (Standard Deviation)' },
+				{ key: 'atr' as const, name: 'Average True Range (ATR)' },
+				{ key: 'volatility' as const, name: 'Volatility' },
+				{ key: 'stdDev' as const, name: 'Standard Deviation' },
 			],
 		},
 		{
-			title: '趋势指标',
+			title: 'Trend Indicators',
 			indicators: [
-				{ key: 'dmi' as const, name: '方向运动指标 (DMI)' },
-				{ key: 'adx' as const, name: '平均方向指数 (ADX)' },
-				{ key: 'sar' as const, name: '抛物线指标 (SAR)' },
-				{ key: 'slope' as const, name: '斜率指标 (Slope)' },
+				{ key: 'dmi' as const, name: 'Directional Movement Index (DMI)' },
+				{ key: 'adx' as const, name: 'Average Directional Index (ADX)' },
+				{ key: 'sar' as const, name: 'Parabolic SAR' },
+				{ key: 'slope' as const, name: 'Slope' },
 			],
 		},
 		{
-			title: '其他指标',
+			title: 'Other Indicators',
 			indicators: [
-				{ key: 'beta' as const, name: '贝塔系数 (Beta)' },
+				{ key: 'beta' as const, name: 'Beta' },
 				{
 					key: 'averageVolume' as const,
-					name: '平均成交量 (Avg Volume)',
+					name: 'Average Volume',
 				},
 				{
 					key: 'averageVolumeByPrice' as const,
-					name: '价格加权平均成交量 (Avg Volume by Price)',
+					name: 'Price-weighted Average Volume',
 				},
 				{
 					key: 'splitAdjusted' as const,
-					name: '股票拆分调整数据 (Split Adjusted)',
+					name: 'Split Adjusted Data',
 				},
 			],
 		},
 	];
 
 	if (loading) {
-		return <div className='flex justify-center py-10'>加载中...</div>;
+		return <div className='flex justify-center py-10'>Loading...</div>;
 	}
 
 	return (
 		<div className='space-y-6'>
-			<div className='text-xl font-semibold'>偏好设置</div>
+			<div className='text-xl font-semibold'>Preferences</div>
 
 			{/* 基本设置 */}
 			<Card>
 				<CardContent className='pt-6'>
-					<h3 className='text-lg font-medium mb-4'>基本设置</h3>
+					<h3 className='text-lg font-medium mb-4'>Basic Settings</h3>
 
 					<div className='space-y-4'>
 						<div className='flex items-center justify-between'>
 							<div className='space-y-0.5'>
-								<Label htmlFor='dark-mode'>深色模式</Label>
+								<Label htmlFor='dark-mode'>Dark Mode</Label>
 								<p className='text-sm text-muted-foreground'>
-									在亮色和深色模式之间切换
+									Toggle between light and dark modes
 								</p>
 							</div>
 							<Switch
@@ -250,9 +250,9 @@ export function PreferenceTab() {
 
 						<div className='flex items-center justify-between'>
 							<div className='space-y-0.5'>
-								<Label htmlFor='language'>语言</Label>
+								<Label htmlFor='language'>Language</Label>
 								<p className='text-sm text-muted-foreground'>
-									设置界面显示语言
+									Set interface display language
 								</p>
 							</div>
 							<Select
@@ -261,10 +261,10 @@ export function PreferenceTab() {
 								disabled={saving}
 							>
 								<SelectTrigger className='w-[100px]'>
-									<SelectValue placeholder='选择语言' />
+									<SelectValue placeholder='Select language' />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value='CN'>中文</SelectItem>
+									<SelectItem value='CN'>Chinese</SelectItem>
 									<SelectItem value='EN'>English</SelectItem>
 								</SelectContent>
 							</Select>
@@ -276,9 +276,9 @@ export function PreferenceTab() {
 			{/* 技术指标设置 */}
 			<Card>
 				<CardContent className='pt-6'>
-					<h3 className='text-lg font-medium mb-4'>技术指标偏好</h3>
+					<h3 className='text-lg font-medium mb-4'>Technical Indicator Preferences</h3>
 					<p className='text-sm text-muted-foreground mb-6'>
-						选择您想在分析中显示的技术指标。启用的指标将在股票详情页面中显示。
+						Select which technical indicators you want to display in your analysis. Enabled indicators will be shown on the stock detail page.
 					</p>
 
 					<div className='space-y-6'>
