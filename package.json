@@ -3,7 +3,7 @@
 	"scripts": {
 		"dev": "next dev --turbopack",
 		"dev:non-turbopack": "next dev",
-		"build": "next build",
+		"build": "prisma generate && next build",
 		"start": "next start",
 		"seed": "node prisma/seeds/seed.js",
 		"lint": "eslint . --ext .js,.jsx,.ts,.tsx",
