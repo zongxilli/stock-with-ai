@@ -555,7 +555,7 @@ export default function AIAssistantDialog({
 	return (
 		<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
 			<div
-				className='bg-background rounded-lg shadow-lg p-6 w-full max-w-[60rem] max-h-[80vh] overflow-y-auto'
+				className='bg-background rounded-lg shadow-lg p-6 w-full max-w-[60rem] max-h-[80vh] flex flex-col'
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className='flex justify-between items-center mb-4'>
@@ -571,7 +571,7 @@ export default function AIAssistantDialog({
 				</div>
 
 				{isLoading ? (
-					<div className='flex flex-col items-center justify-center'>
+					<div className='flex flex-col items-center justify-center py-10'>
 						{!thinking && (
 							<>
 								<Loader2 className='h-10 w-10 animate-spin text-primary mb-4' />
@@ -600,8 +600,8 @@ export default function AIAssistantDialog({
 						Error: {streamError}
 					</div>
 				) : data ? (
-					<div className='space-y-4'>
-						{/* 简化为只有两个标签页 */}
+					<div className='flex flex-col flex-grow h-full min-h-0'>
+						{/* 标签页导航 */}
 						<div className='flex border-b'>
 							<button
 								className={`px-4 py-2 font-medium text-sm ${
@@ -627,8 +627,8 @@ export default function AIAssistantDialog({
 							)}
 						</div>
 
-						{/* 标签页内容 */}
-						<div className='pt-2'>
+						{/* 标签页内容区域 - 使用flex-grow和overflow-y-auto实现内部滚动 */}
+						<div className='pt-2 flex-grow overflow-y-auto'>
 							{activeTab === 'analysis' && (
 								<AIAnalysisResult data={data} />
 							)}
