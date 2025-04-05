@@ -7,9 +7,9 @@ import { GeneralTab } from './components/general-tab';
 import { PreferenceTab } from './components/preference-tab';
 import { SidebarNav } from './components/sidebar-nav';
 
-export type Tab = 'general' | 'preference' | 'billing';
+type Tab = 'general' | 'preference' | 'billing';
 
-export const tabs: { value: Tab; label: string; disabled: boolean }[] = [
+const tabs: { value: Tab; label: string; disabled: boolean }[] = [
 	{ value: 'general', label: 'General', disabled: false },
 	{ value: 'preference', label: 'Preference', disabled: false },
 	{ value: 'billing', label: 'Billing', disabled: true },
