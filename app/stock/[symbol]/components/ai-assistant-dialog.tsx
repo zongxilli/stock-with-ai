@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, JSX, Fragment } from 'react';
+import { useEffect, useState, useRef, JSX } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
