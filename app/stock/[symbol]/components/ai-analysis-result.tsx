@@ -1,6 +1,6 @@
 'use client';
 
-import { JSX } from 'react';
+import { JSX, useRef, useCallback, useEffect } from 'react';
 
 import JsonFormatter from '@/components/custom/json-formatter';
 import EnhancedTextFormatter from '@/components/custom/text-formatter-enhanced';
@@ -158,6 +158,69 @@ export function AIThinkingProcess({ thinking, thinkingContent }: { thinking: str
             />
           ) : (
             'No thinking process available.'
+          )}
+          {thinkingContent && (
+            <JsonFormatter
+              data={thinkingContent}
+              initiallyExpanded
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 加载状态下的思考过程组件 - 展示 AI 在思考过程中的状态
+ */
+export function AIThinkingProcessLoading({ 
+  thinking, 
+  thinkingContent, 
+  thinkingStatus 
+}: { 
+  thinking: string; 
+  thinkingContent: string; 
+  thinkingStatus: string;
+}) {
+  // 添加引用，用于访问滚动容器
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // 自动滚动到底部的函数
+  const scrollToBottom = useCallback(() => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    // 检查用户是否已经在底部或接近底部
+    // 这里定义"接近底部"为距离底部不超过100像素
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+    
+    // 只有当用户接近底部时，才自动滚动
+    if (isNearBottom) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, []);
+  
+  // 监听内容变化，在内容更新时自动滚动
+  useEffect(() => {
+    scrollToBottom();
+  }, [thinking, thinkingContent, scrollToBottom]);
+
+  return (
+    <div className="mt-6 w-full">
+      <div className="p-3 rounded-lg bg-muted border border-border">
+        <p className="text-sm text-muted-foreground mb-1">
+          {thinkingStatus}
+        </p>
+        <div
+          ref={containerRef}
+          className="font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[50vh] text-foreground"
+        >
+          {thinking && (
+            <EnhancedTextFormatter
+              text={thinking}
+              mode="preserve-all"
+            />
           )}
           {thinkingContent && (
             <JsonFormatter

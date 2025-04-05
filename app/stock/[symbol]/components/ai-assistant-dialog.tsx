@@ -4,7 +4,11 @@ import { useEffect, useState, useRef } from 'react';
 
 import { Loader2 } from 'lucide-react';
 
-import { AIAnalysisResult, AIThinkingProcess } from './ai-analysis-result';
+import {
+	AIAnalysisResult,
+	AIThinkingProcess,
+	AIThinkingProcessLoading,
+} from './ai-analysis-result';
 
 import { getCompressedHistoricalDataForAnalysis } from '@/app/actions/eodhd/get-compressed-historical-data-for-analysis';
 import { getCompressedMainIndexesHistoricalDataForAnalysis } from '@/app/actions/eodhd/get-compressed-main-indexes-historical-data-for-analysis';
@@ -15,8 +19,6 @@ import {
 	setAIAssistantCache,
 } from '@/app/actions/redis/ai-assistant-cache';
 import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
-import JsonFormatter from '@/components/custom/json-formatter';
-import EnhancedTextFormatter from '@/components/custom/text-formatter-enhanced';
 
 interface SequentialThinkingStep {
 	step: number;
@@ -65,10 +67,6 @@ export default function AIAssistantDialog({
 	const [streamError, setStreamError] = useState<string | null>(null);
 	const abortControllerRef = useRef<AbortController | null>(null);
 	const isAbortedRef = useRef<boolean>(false);
-
-	// Reference for thinking process containers
-	const thinkingContainerRef = useRef<HTMLDivElement>(null);
-	const thinkingTabContainerRef = useRef<HTMLDivElement>(null);
 
 	// Use either streamed data or initial data
 	const data = streamData || initialData;
@@ -364,18 +362,6 @@ export default function AIAssistantDialog({
 		onClose();
 	};
 
-	// Auto-scroll thinking containers when content changes
-	useEffect(() => {
-		if ((thinking || thinkingContent) && thinkingContainerRef.current) {
-			thinkingContainerRef.current.scrollTop =
-				thinkingContainerRef.current.scrollHeight;
-		}
-		if ((thinking || thinkingContent) && thinkingTabContainerRef.current) {
-			thinkingTabContainerRef.current.scrollTop =
-				thinkingTabContainerRef.current.scrollHeight;
-		}
-	}, [thinking, thinkingContent]);
-
 	if (!isOpen) return null;
 
 	return (
@@ -414,30 +400,11 @@ export default function AIAssistantDialog({
 
 						{/* Display thinking process during streaming */}
 						{thinking && (
-							<div className='mt-6 w-full'>
-								<div className='p-3 rounded-lg bg-muted border border-border'>
-									<p className='text-sm text-muted-foreground mb-1'>
-										{thinkingStatus}
-									</p>
-									<div
-										ref={thinkingContainerRef}
-										className='font-mono text-sm whitespace-pre-wrap overflow-y-auto max-h-[50vh] text-foreground'
-									>
-										{thinking && (
-											<EnhancedTextFormatter
-												text={thinking}
-												mode='preserve-all'
-											/>
-										)}
-										{thinkingContent && (
-											<JsonFormatter
-												data={thinkingContent}
-												initiallyExpanded
-											/>
-										)}
-									</div>
-								</div>
-							</div>
+							<AIThinkingProcessLoading
+								thinking={thinking}
+								thinkingContent={thinkingContent}
+								thinkingStatus={thinkingStatus}
+							/>
 						)}
 					</div>
 				) : streamError ? (
