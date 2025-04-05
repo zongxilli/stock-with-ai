@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { userService } from '@/prisma/services/user-service';
+import { UserPreference } from '@/prisma/types/user-types';
 import { createClient } from '@/utils/supabase/server';
 
 // 获取当前用户资料
@@ -75,6 +76,65 @@ export async function updateUserProfile(formData: FormData) {
 		return {
 			success: false,
 			message: `Error updating profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
+		};
+	}
+}
+
+// 更新用户偏好设置
+export async function updateUserPreference(preference: Partial<UserPreference>) {
+	try {
+		const supabase = await createClient();
+
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
+
+		if (!user) {
+			return { success: false, message: '未登录' };
+		}
+
+		// 获取当前用户
+		const currentUser = await userService.getUserById(user.id);
+		
+		if (!currentUser) {
+			return { success: false, message: '用户资料未找到' };
+		}
+
+		// 合并现有偏好与新偏好
+		const updatedPreference = {
+			...currentUser.preference,
+			...preference,
+		};
+		
+		// 如果更新了技术指标偏好，确保合并而不是替换
+		if (preference.technicalIndicators && currentUser.preference.technicalIndicators) {
+			updatedPreference.technicalIndicators = {
+				...currentUser.preference.technicalIndicators,
+				...preference.technicalIndicators
+			};
+		}
+
+		// 更新用户偏好
+		const updatedUser = await userService.updateUser(user.id, {
+			preference: updatedPreference,
+		});
+
+		if (!updatedUser) {
+			return {
+				success: false,
+				message: '更新偏好设置失败',
+			};
+		}
+
+		// 重新验证个人资料页面
+		revalidatePath('/account');
+
+		return { success: true, message: '偏好设置已更新' };
+	} catch (error) {
+		console.error('Error updating user preference:', error);
+		return {
+			success: false,
+			message: `更新偏好设置出错: ${error instanceof Error ? error.message : '未知错误'}`,
 		};
 	}
 }

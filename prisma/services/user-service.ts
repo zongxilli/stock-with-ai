@@ -1,4 +1,5 @@
 import { UserWithTypedPreference } from '../prisma-extensions';
+import { UserPreference } from '../types/user-types';
 
 import { prisma } from '@/lib/prisma';
 
@@ -50,6 +51,7 @@ export const userService = {
 			username?: string;
 			fullName?: string;
 			bio?: string;
+			preference?: UserPreference;
 		}
 	): Promise<UserWithTypedPreference | null> {
 		try {
