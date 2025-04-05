@@ -1,4 +1,4 @@
-export const TechnicalIndicatorPreferences = {
+export const TechnicalIndicatorDefaultPreferences = {
 	ema: true,
 	sma: true,
 	wma: false,

@@ -27,7 +27,7 @@ import {
 	getStochasticRSI,
 	StochasticRSIDataPoint,
 } from './indicators/stochrsi';
-import { TechnicalIndicatorPreferences } from './indicators/utils/preferences';
+import { TechnicalIndicatorDefaultPreferences } from './indicators/utils/preferences';
 import { TechnicalIndicatorPresets } from './indicators/utils/presets';
 import { getVolatility } from './indicators/volatility';
 import { getWMA } from './indicators/wma';
@@ -152,67 +152,68 @@ export async function getTechnicalIndicators(
 	try {
 		// 初始化结果对象
 		const result: TechnicalIndicatorResult = {
-			sma: TechnicalIndicatorPreferences.sma
+			sma: TechnicalIndicatorDefaultPreferences.sma
 				? { periods: [], data: {} }
 				: undefined,
-			ema: TechnicalIndicatorPreferences.ema
+			ema: TechnicalIndicatorDefaultPreferences.ema
 				? { periods: [], data: {} }
 				: undefined,
-			wma: TechnicalIndicatorPreferences.wma
+			wma: TechnicalIndicatorDefaultPreferences.wma
 				? { periods: [], data: {} }
 				: undefined,
-			rsi: TechnicalIndicatorPreferences.rsi
+			rsi: TechnicalIndicatorDefaultPreferences.rsi
 				? { periods: [], data: {} }
 				: undefined,
-			macd: TechnicalIndicatorPreferences.macd
+			macd: TechnicalIndicatorDefaultPreferences.macd
 				? { configs: [], data: {} }
 				: undefined,
-			bollingerBands: TechnicalIndicatorPreferences.bollingerBands
+			bollingerBands: TechnicalIndicatorDefaultPreferences.bollingerBands
 				? { periods: [], data: {} }
 				: undefined,
-			atr: TechnicalIndicatorPreferences.atr
+			atr: TechnicalIndicatorDefaultPreferences.atr
 				? { periods: [], data: {} }
 				: undefined,
-			volatility: TechnicalIndicatorPreferences.volatility
+			volatility: TechnicalIndicatorDefaultPreferences.volatility
 				? { periods: [], data: {} }
 				: undefined,
-			stdDev: TechnicalIndicatorPreferences.stdDev
+			stdDev: TechnicalIndicatorDefaultPreferences.stdDev
 				? { periods: [], data: {} }
 				: undefined,
-			slope: TechnicalIndicatorPreferences.slope
+			slope: TechnicalIndicatorDefaultPreferences.slope
 				? { periods: [], data: {} }
 				: undefined,
-			dmi: TechnicalIndicatorPreferences.dmi
+			dmi: TechnicalIndicatorDefaultPreferences.dmi
 				? { periods: [], data: {} }
 				: undefined,
-			adx: TechnicalIndicatorPreferences.adx
+			adx: TechnicalIndicatorDefaultPreferences.adx
 				? { periods: [], data: {} }
 				: undefined,
-			cci: TechnicalIndicatorPreferences.cci
+			cci: TechnicalIndicatorDefaultPreferences.cci
 				? { periods: [], data: {} }
 				: undefined,
-			sar: TechnicalIndicatorPreferences.sar
+			sar: TechnicalIndicatorDefaultPreferences.sar
 				? { configs: [], data: {} }
 				: undefined,
-			beta: TechnicalIndicatorPreferences.beta
+			beta: TechnicalIndicatorDefaultPreferences.beta
 				? { configs: [], data: {} }
 				: undefined,
-			stochastic: TechnicalIndicatorPreferences.stochastic
+			stochastic: TechnicalIndicatorDefaultPreferences.stochastic
 				? { configs: [], data: {} }
 				: undefined,
-			stochasticRSI: TechnicalIndicatorPreferences.stochasticRSI
+			stochasticRSI: TechnicalIndicatorDefaultPreferences.stochasticRSI
 				? { configs: [], data: {} }
 				: undefined,
-			averageVolume: TechnicalIndicatorPreferences.averageVolume
+			averageVolume: TechnicalIndicatorDefaultPreferences.averageVolume
 				? { periods: [], data: {} }
 				: undefined,
 			averageVolumeByPrice:
-				TechnicalIndicatorPreferences.averageVolumeByPrice
+				TechnicalIndicatorDefaultPreferences.averageVolumeByPrice
 					? { periods: [], data: {} }
 					: undefined,
-			splitAdjustedData: TechnicalIndicatorPreferences.splitAdjusted
-				? { periods: ['d', 'w', 'm'], data: {} }
-				: undefined,
+			splitAdjustedData:
+				TechnicalIndicatorDefaultPreferences.splitAdjusted
+					? { periods: ['d', 'w', 'm'], data: {} }
+					: undefined,
 		};
 
 		// 获取SMA的所有配置数据
