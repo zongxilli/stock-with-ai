@@ -548,8 +548,6 @@ export default function StockPage() {
 				realTimeData={realTimeData}
 				chartData={chartData}
 				loading={loading}
-				setIsDialogOpen={setIsAIDialogOpen}
-				isLoadingAI={_aiLoading}
 			/>
 
 			{/* 时间范围选择器 */}
@@ -575,7 +573,7 @@ export default function StockPage() {
 			{/* AI Assistant Dialog */}
 			<AIAssistantDialog
 				isOpen={isAIDialogOpen}
-				onClose={() => setIsAIDialogOpen(false)}
+				setIsOpen={setIsAIDialogOpen}
 				symbol={symbol}
 				isLoading={_aiLoading}
 				data={_aiData}

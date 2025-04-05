@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 
 import {
 	AIAnalysisResult,
@@ -19,6 +19,7 @@ import {
 	setAIAssistantCache,
 } from '@/app/actions/redis/ai-assistant-cache';
 import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
+import { IconButton } from '@/components/custom/iconButton';
 
 interface SequentialThinkingStep {
 	step: number;
@@ -39,7 +40,7 @@ interface AIAssistantData {
 
 interface AIAssistantDialogProps {
 	isOpen: boolean;
-	onClose: () => void;
+	setIsOpen: (isOpen: boolean) => void;
 	symbol: string;
 	isLoading: boolean;
 	data: AIAssistantData | null;
@@ -209,13 +210,16 @@ const processSSEMessage = async (
 			case 'complete':
 				// 收到完整数据
 				console.log('Received complete data');
-				
+
 				if (typeof data.content === 'object') {
 					// 确保最小必要字段存在
 					const processedData = {
 						...data.content,
-						analysis: data.content.analysis || 'No analysis available',
-						recommendations: Array.isArray(data.content.recommendations)
+						analysis:
+							data.content.analysis || 'No analysis available',
+						recommendations: Array.isArray(
+							data.content.recommendations
+						)
 							? data.content.recommendations
 							: [],
 						sentiment: data.content.sentiment || 'neutral',
@@ -312,7 +316,7 @@ const processStream = async (
 					code,
 					exchange
 				);
-				
+
 				// 如果流处理完成，退出循环
 				if (isComplete) return;
 			}
@@ -367,7 +371,7 @@ const requestStreamAnalysis = async (
 
 export default function AIAssistantDialog({
 	isOpen,
-	onClose,
+	setIsOpen,
 	symbol,
 	isLoading: initialIsLoading,
 	data: initialData,
@@ -393,7 +397,7 @@ export default function AIAssistantDialog({
 	useEffect(() => {
 		const handleEscapeKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape' && isOpen) {
-				onClose();
+				setIsOpen(false);
 			}
 		};
 
@@ -401,7 +405,7 @@ export default function AIAssistantDialog({
 		return () => {
 			document.removeEventListener('keydown', handleEscapeKey);
 		};
-	}, [isOpen, onClose]);
+	}, [isOpen, setIsOpen]);
 
 	// 当对话框打开时禁用body滚动
 	useEffect(() => {
@@ -517,7 +521,7 @@ export default function AIAssistantDialog({
 				abortControllerRef.current.abort();
 				console.log('组件卸载：中止DeepSeek API流连接以节省token使用');
 			}
-			
+
 			// 重置状态
 			resetStreamState();
 		};
@@ -526,10 +530,24 @@ export default function AIAssistantDialog({
 	// 处理对话框关闭
 	const handleClose = () => {
 		// 调用onClose回调关闭对话框
-		onClose();
+		setIsOpen(false);
 	};
 
-	if (!isOpen) return null;
+	if (!isOpen)
+		return (
+			<div
+				className='fixed top-[5rem] right-[1rem] z-50 flex items-center justify-center bg-black/50'
+				onClick={() => setIsOpen(true)}
+			>
+				<IconButton
+					onClick={() => setIsOpen(true)}
+					aria-label='AI Assistant'
+					className='bg-blue-600 hover:bg-blue-600/80'
+				>
+					<Sparkles className='h-5 w-5 text-indigo-200' />
+				</IconButton>
+			</div>
+		);
 
 	return (
 		<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>

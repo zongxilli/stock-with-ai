@@ -1,11 +1,6 @@
 'use client';
 
-import { Sparkles } from 'lucide-react';
-
 import { PriceDisplay, PriceDisplayFallback } from './price-display';
-
-import { IconButton } from '@/components/custom/iconButton';
-import { Button } from '@/components/ui/button';
 
 // 股票实时数据类型
 interface StockRealTimeData {
@@ -51,8 +46,6 @@ interface StockHeaderProps {
 	realTimeData: StockRealTimeData | null;
 	chartData: any | null;
 	loading: boolean;
-	setIsDialogOpen: (isOpen: boolean) => void;
-	isLoadingAI: boolean;
 }
 
 export default function StockHeader({
@@ -61,8 +54,6 @@ export default function StockHeader({
 	realTimeData,
 	chartData,
 	loading,
-	setIsDialogOpen,
-	isLoadingAI,
 }: StockHeaderProps) {
 	// 判断是否显示盘前价格
 	const shouldShowPreMarketPrice = () => {
@@ -123,28 +114,6 @@ export default function StockHeader({
 						{stockSymbol}
 					</span>
 				</h1>
-				<div className='relative'>
-					<div className='flex items-center'>
-						<Button
-							onClick={() => setIsDialogOpen(true)}
-							aria-label='AI Assistant'
-							disabled={isLoadingAI}
-							className='hidden md:flex bg-blue-600 text-white rounded-full md:rounded-md hover:bg-blue-600/80'
-						>
-							<Sparkles className='h-5 w-5 mr-0 md:mr-2' />
-							<span className='hidden md:inline'>
-								AI Analysis
-							</span>
-						</Button>
-						<IconButton
-							onClick={() => setIsDialogOpen(true)}
-							aria-label='AI Assistant'
-							className='md:hidden bg-blue-600 hover:bg-blue-600/80'
-						>
-							<Sparkles className='h-5 w-5 text-indigo-200' />
-						</IconButton>
-					</div>
-				</div>
 			</div>
 
 			{/* 使用实时数据显示当前价格 */}
