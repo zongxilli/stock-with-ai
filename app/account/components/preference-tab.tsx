@@ -146,7 +146,8 @@ export function PreferenceTab() {
 
 			toast({
 				title: 'Success',
-				description: 'Technical indicator preferences updated successfully',
+				description:
+					'Technical indicator preferences updated successfully',
 			});
 		} catch (error) {
 			console.error('更新技术指标偏好出错:', error);
@@ -166,7 +167,10 @@ export function PreferenceTab() {
 			title: 'Moving Averages',
 			indicators: [
 				{ key: 'sma' as const, name: 'Simple Moving Average (SMA)' },
-				{ key: 'ema' as const, name: 'Exponential Moving Average (EMA)' },
+				{
+					key: 'ema' as const,
+					name: 'Exponential Moving Average (EMA)',
+				},
 				{ key: 'wma' as const, name: 'Weighted Moving Average (WMA)' },
 			],
 		},
@@ -174,7 +178,10 @@ export function PreferenceTab() {
 			title: 'Oscillators',
 			indicators: [
 				{ key: 'rsi' as const, name: 'Relative Strength Index (RSI)' },
-				{ key: 'macd' as const, name: 'Moving Average Convergence Divergence (MACD)' },
+				{
+					key: 'macd' as const,
+					name: 'Moving Average Convergence Divergence (MACD)',
+				},
 				{ key: 'stochastic' as const, name: 'Stochastic Oscillator' },
 				{
 					key: 'stochasticRSI' as const,
@@ -198,8 +205,14 @@ export function PreferenceTab() {
 		{
 			title: 'Trend Indicators',
 			indicators: [
-				{ key: 'dmi' as const, name: 'Directional Movement Index (DMI)' },
-				{ key: 'adx' as const, name: 'Average Directional Index (ADX)' },
+				{
+					key: 'dmi' as const,
+					name: 'Directional Movement Index (DMI)',
+				},
+				{
+					key: 'adx' as const,
+					name: 'Average Directional Index (ADX)',
+				},
 				{ key: 'sar' as const, name: 'Parabolic SAR' },
 				{ key: 'slope' as const, name: 'Slope' },
 			],
@@ -225,7 +238,144 @@ export function PreferenceTab() {
 	];
 
 	if (loading) {
-		return <div className='flex justify-center py-10'>Loading...</div>;
+		// 创建默认的用户偏好作为占位符
+		const defaultPreference: UserPreference = {
+			theme: 'light',
+			language: 'CN',
+			technicalIndicators: {
+				sma: false,
+				ema: false,
+				wma: false,
+				rsi: false,
+				macd: false,
+				stochastic: false,
+				stochasticRSI: false,
+				cci: false,
+				bollingerBands: false,
+				atr: false,
+				volatility: false,
+				stdDev: false,
+				dmi: false,
+				adx: false,
+				sar: false,
+				slope: false,
+				beta: false,
+				averageVolume: false,
+				averageVolumeByPrice: false,
+				splitAdjusted: false,
+			},
+		};
+
+		return (
+			<div className='space-y-6'>
+				<div className='text-xl font-semibold'>Preferences</div>
+
+				{/* 基本设置 - 加载状态 */}
+				<Card>
+					<CardContent className='pt-6'>
+						<h3 className='text-lg font-medium mb-4'>
+							Basic Settings
+						</h3>
+
+						<div className='space-y-4'>
+							<div className='flex items-center justify-between'>
+								<div className='space-y-0.5'>
+									<Label htmlFor='dark-mode'>Dark Mode</Label>
+									<p className='text-sm text-muted-foreground'>
+										Toggle between light and dark modes
+									</p>
+								</div>
+								<Switch
+									id='dark-mode'
+									checked={defaultPreference.theme === 'dark'}
+									onCheckedChange={() => {}}
+									disabled={true}
+								/>
+							</div>
+
+							<Separator />
+
+							<div className='flex items-center justify-between'>
+								<div className='space-y-0.5'>
+									<Label htmlFor='language'>Language</Label>
+									<p className='text-sm text-muted-foreground'>
+										Set interface display language
+									</p>
+								</div>
+								<Select
+									value={defaultPreference.language}
+									onValueChange={() => {}}
+									disabled={true}
+								>
+									<SelectTrigger className='w-[100px]'>
+										<SelectValue placeholder='Select language' />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value='CN'>
+											Chinese
+										</SelectItem>
+										<SelectItem value='EN'>
+											English
+										</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* 技术指标设置 - 加载状态 */}
+				<Card>
+					<CardContent className='pt-6'>
+						<h3 className='text-lg font-medium mb-4'>
+							Technical Indicator Preferences
+						</h3>
+						<p className='text-sm text-muted-foreground mb-6'>
+							Select which technical indicators you want to
+							display in your analysis. Enabled indicators will be
+							shown on the stock detail page.
+						</p>
+
+						<div className='space-y-6'>
+							{technicalIndicatorGroups.map((group) => (
+								<div key={group.title} className='space-y-3'>
+									<h4 className='font-medium'>
+										{group.title}
+									</h4>
+
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+										{group.indicators.map((indicator) => (
+											<div
+												key={indicator.key}
+												className='flex items-center justify-between space-x-2'
+											>
+												<Label
+													htmlFor={indicator.key}
+													className='cursor-pointer'
+												>
+													{indicator.name}
+												</Label>
+												<Switch
+													id={indicator.key}
+													checked={false}
+													onCheckedChange={() => {}}
+													disabled={true}
+												/>
+											</div>
+										))}
+									</div>
+
+									{group !==
+										technicalIndicatorGroups[
+											technicalIndicatorGroups.length - 1
+										] && <Separator className='my-2' />}
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		);
 	}
 
 	return (
@@ -283,9 +433,13 @@ export function PreferenceTab() {
 			{/* 技术指标设置 */}
 			<Card>
 				<CardContent className='pt-6'>
-					<h3 className='text-lg font-medium mb-4'>Technical Indicator Preferences</h3>
+					<h3 className='text-lg font-medium mb-4'>
+						Technical Indicator Preferences
+					</h3>
 					<p className='text-sm text-muted-foreground mb-6'>
-						Select which technical indicators you want to display in your analysis. Enabled indicators will be shown on the stock detail page.
+						Select which technical indicators you want to display in
+						your analysis. Enabled indicators will be shown on the
+						stock detail page.
 					</p>
 
 					<div className='space-y-6'>
