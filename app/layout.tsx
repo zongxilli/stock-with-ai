@@ -8,6 +8,7 @@ import HeaderAuth from '@/components/header-auth';
 import { StockSearch } from '@/components/stock-search';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Toaster } from '@/components/ui/toaster';
+import { UserThemeProvider } from '@/components/user-theme-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { hasEnvVars } from '@/utils/supabase/check-env-vars';
 
@@ -91,6 +92,7 @@ export default function RootLayout({
 				>
 					<ErrorBoundary>
 						<QueryProvider>
+							<UserThemeProvider />
 							<main className='flex flex-col min-h-screen'>
 								<Navbar />
 								<div className='flex-grow flex flex-col pt-16'>

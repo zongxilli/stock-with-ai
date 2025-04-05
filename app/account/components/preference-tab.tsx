@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { useTheme } from 'next-themes';
+
 import {
 	getCurrentUserProfile,
 	updateUserPreference,
@@ -22,6 +24,7 @@ import { UserPreference } from '@/prisma/types/user-types';
 
 export function PreferenceTab() {
 	const { toast } = useToast();
+	const { setTheme } = useTheme();
 	const [userPreference, setUserPreference] = useState<UserPreference | null>(
 		null
 	);
@@ -59,10 +62,14 @@ export function PreferenceTab() {
 
 		try {
 			setSaving(true);
+			// 更新数据库中的主题偏好
 			await updateUserPreference({ theme: newTheme });
+			// 更新本地状态
 			setUserPreference((prev) =>
 				prev ? { ...prev, theme: newTheme } : null
 			);
+			// 同步更新应用主题
+			setTheme(newTheme);
 			toast({
 				title: 'Success',
 				description: 'Theme updated successfully',
