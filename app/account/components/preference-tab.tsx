@@ -1,6 +1,7 @@
 'use client';
 
 import { useTheme } from 'next-themes';
+import { useTranslation } from 'react-i18next';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -15,11 +16,14 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useProfile } from '@/hooks/use-profile';
 import { useToast } from '@/hooks/use-toast';
+import useLanguage from '@/hooks/useLanguage';
 import { UserPreference } from '@/prisma/types/user-types';
 
 export function PreferenceTab() {
 	const { toast } = useToast();
 	const { setTheme } = useTheme();
+	const { t } = useTranslation('accountPreferenceTab');
+	const { changeLanguage } = useLanguage();
 
 	// 使用 useProfile hook 获取用户偏好和更新方法
 	const {
@@ -43,8 +47,8 @@ export function PreferenceTab() {
 		} catch (error) {
 			console.error('update theme error:', error);
 			toast({
-				title: 'Error',
-				description: 'Failed to update theme',
+				title: t('error'),
+				description: t('failedToUpdateTheme'),
 				variant: 'destructive',
 			});
 		}
@@ -55,12 +59,16 @@ export function PreferenceTab() {
 		const newLanguage = value as 'EN' | 'CN';
 
 		try {
+			// 更新数据库中的语言偏好
 			updatePreference({ language: newLanguage });
+
+			// 同步更新应用语言
+			changeLanguage(newLanguage);
 		} catch (error) {
 			console.error('update language error:', error);
 			toast({
-				title: 'Error',
-				description: 'Failed to update language',
+				title: t('error'),
+				description: t('failedToUpdateLanguage'),
 				variant: 'destructive',
 			});
 		}
@@ -86,8 +94,8 @@ export function PreferenceTab() {
 		} catch (error) {
 			console.error('update technical indicator error:', error);
 			toast({
-				title: 'Error',
-				description: 'Failed to update technical indicator preferences',
+				title: t('error'),
+				description: t('failedToUpdateIndicators'),
 				variant: 'destructive',
 			});
 		}
@@ -176,14 +184,14 @@ export function PreferenceTab() {
 
 	// 如果加载中，显示加载状态
 	if (isLoading) {
-		return <div className='text-center py-10'>Loading...</div>;
+		return <div className='text-center py-10'>{t('loading')}</div>;
 	}
 
 	// 如果没有用户或偏好设置，显示错误信息
 	if (!profile || !preference) {
 		return (
 			<div className='text-center py-10 text-red-500'>
-				Failed to load user preferences, please try again later
+				{t('failedToLoad')}
 			</div>
 		);
 	}
@@ -200,7 +208,7 @@ export function PreferenceTab() {
 									htmlFor='theme-toggle'
 									className='font-medium'
 								>
-									Dark Mode
+									{t('darkMode')}
 								</Label>
 								<Switch
 									id='theme-toggle'
@@ -210,7 +218,7 @@ export function PreferenceTab() {
 								/>
 							</div>
 							<p className='text-muted-foreground text-sm mt-1'>
-								Toggle between light and dark modes
+								{t('darkModeDescription')}
 							</p>
 						</div>
 
@@ -219,10 +227,10 @@ export function PreferenceTab() {
 						{/* 语言设置 */}
 						<div>
 							<Label htmlFor='language' className='font-medium'>
-								Interface Language
+								{t('interfaceLanguage')}
 							</Label>
 							<p className='text-muted-foreground text-sm mt-1 mb-2'>
-								Select the language for the interface
+								{t('languageDescription')}
 							</p>
 							<Select
 								disabled={isUpdatingPreference}
@@ -230,7 +238,9 @@ export function PreferenceTab() {
 								onValueChange={handleLanguageChange}
 							>
 								<SelectTrigger className='w-full sm:w-[180px]'>
-									<SelectValue placeholder='选择语言' />
+									<SelectValue
+										placeholder={t('selectLanguage')}
+									/>
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value='EN'>English</SelectItem>
@@ -244,13 +254,10 @@ export function PreferenceTab() {
 						{/* 技术指标偏好设置 */}
 						<div>
 							<h3 className='font-medium'>
-								Technical Indicator Preferences
+								{t('technicalIndicators')}
 							</h3>
 							<p className='text-muted-foreground text-sm mt-1 mb-4'>
-								Select your preferred technical indicators for
-								AI analysis. The selected indicators will be
-								used to generate trading suggestions and other
-								insights.
+								{t('technicalIndicatorsDescription')}
 							</p>
 
 							<div className='space-y-6'>
