@@ -506,7 +506,7 @@ export default function AIAssistantDialog({
 	// 处理开始分析
 	const handleStartAnalysis = () => {
 		if (!useStream) return;
-		
+
 		// 创建AbortController用于中止fetch请求
 		const abortController = new AbortController();
 		abortControllerRef.current = abortController;
@@ -529,7 +529,9 @@ export default function AIAssistantDialog({
 			// 注意：这里的清理函数只会在组件完全卸载时执行，而不是在isOpen变更时
 			if (abortControllerRef.current && !isAbortedRef.current) {
 				abortControllerRef.current.abort();
-				console.log('组件完全卸载：中止DeepSeek API流连接以节省token使用');
+				console.log(
+					'组件完全卸载：中止DeepSeek API流连接以节省token使用'
+				);
 			}
 
 			// 重置状态
@@ -540,9 +542,14 @@ export default function AIAssistantDialog({
 	// 首次打开时检查Redis缓存
 	useEffect(() => {
 		// 只在首次打开对话框且没有初始数据时检查缓存
-		if (isOpen && !initialData && !streamData && !isCheckedCacheRef.current) {
+		if (
+			isOpen &&
+			!initialData &&
+			!streamData &&
+			!isCheckedCacheRef.current
+		) {
 			isCheckedCacheRef.current = true;
-			
+
 			const checkCache = async () => {
 				// 检查缓存中是否有数据
 				const cachedData = await checkCacheData(symbol, code, exchange);
@@ -551,7 +558,7 @@ export default function AIAssistantDialog({
 					setStreamData(cachedData);
 				}
 			};
-			
+
 			checkCache();
 		}
 	}, [isOpen, initialData, streamData, symbol, code, exchange]);
@@ -665,21 +672,37 @@ export default function AIAssistantDialog({
 				) : (
 					<div className='text-center py-8'>
 						<div className='max-w-2xl mx-auto bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/30 p-6 rounded-xl shadow-sm border border-blue-100 dark:border-blue-900/50'>
-							<h3 className='text-xl font-medium mb-4 text-blue-800 dark:text-blue-300'>Welcome to AI Stock Analysis</h3>
+							<h3 className='text-xl font-medium mb-4 text-blue-800 dark:text-blue-300'>
+								Welcome to AI Stock Analysis
+							</h3>
 							<div className='space-y-4 text-muted-foreground'>
 								<p>
-									Start a comprehensive AI analysis of {symbol} to receive valuable insights about this stock. 
-									Our advanced AI will evaluate the current market trends, recent price movements, and momentum indicators to help you understand the stock's direction.
+									Start a comprehensive AI analysis of{' '}
+									{symbol} to receive valuable insights about
+									this stock. Our advanced AI will evaluate
+									the current market trends, recent price
+									movements, and momentum indicators to help
+									you understand the stock's direction.
 								</p>
 								<p>
-									We'll analyze the latest news and their potential impact on the stock price, examine technical indicators and patterns to identify possible support and resistance levels, 
-									and assess the overall market sentiment to predict potential future scenarios.
+									We'll analyze the latest news and their
+									potential impact on the stock price, examine
+									technical indicators and patterns to
+									identify possible support and resistance
+									levels, and assess the overall market
+									sentiment to predict potential future
+									scenarios.
 								</p>
 								<p>
-									Additionally, we'll compare {symbol}'s performance with major market indexes to give you a complete picture of its relative strength in the current market environment.
+									Additionally, we'll compare {symbol}'s
+									performance with major market indexes to
+									give you a complete picture of its relative
+									strength in the current market environment.
 								</p>
 								<p className='text-sm text-muted-foreground/80 italic mt-4'>
-									The analysis may take a few moments to complete as we process and analyze multiple data sources.
+									The analysis may take a few moments to
+									complete as we process and analyze multiple
+									data sources.
 								</p>
 							</div>
 							<button
