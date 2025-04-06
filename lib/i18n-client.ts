@@ -4,6 +4,10 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import {
+	generalTabCN,
+	generalTabEN,
+} from './i18n/account/general-tab';
+import {
 	preferenceTabCN,
 	preferenceTabEN,
 } from './i18n/account/preference-tab';
@@ -12,9 +16,11 @@ import {
 const resources = {
 	EN: {
 		accountPreferenceTab: preferenceTabEN,
+		accountGeneralTab: generalTabEN,
 	},
 	CN: {
 		accountPreferenceTab: preferenceTabCN,
+		accountGeneralTab: generalTabCN,
 	},
 };
 

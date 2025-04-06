@@ -1,0 +1,33 @@
+export const generalTabEN = {
+	profile: 'Profile',
+	email: 'Email',
+	emailCannotBeChanged: 'Email cannot be changed',
+	noEmailProvided: 'No email provided',
+	username: 'Username',
+	chooseUsername: 'Choose a username',
+	fullName: 'Full Name',
+	yourFullName: 'Your full name',
+	bio: 'Bio',
+	tellUsAboutYourself: 'Tell us about yourself',
+	saving: 'Saving...',
+	saveProfile: 'Save Profile',
+	errorLoadingProfile: 'Error loading profile data. Please refresh the page and try again.',
+	refreshPage: 'Refresh Page',
+};
+
+export const generalTabCN = {
+	profile: '个人资料',
+	email: '邮箱',
+	emailCannotBeChanged: '邮箱无法更改',
+	noEmailProvided: '未提供邮箱',
+	username: '用户名',
+	chooseUsername: '选择一个用户名',
+	fullName: '全名',
+	yourFullName: '您的全名',
+	bio: '个人简介',
+	tellUsAboutYourself: '介绍一下您自己',
+	saving: '保存中...',
+	saveProfile: '保存资料',
+	errorLoadingProfile: '加载用户资料失败，请刷新页面重试。',
+	refreshPage: '刷新页面',
+};

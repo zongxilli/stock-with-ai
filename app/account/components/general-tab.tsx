@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +13,7 @@ import { useProfile } from '@/hooks/use-profile';
  * 用户账户的通用标签页组件
  */
 export function GeneralTab() {
+  const { t } = useTranslation('accountGeneralTab');
   const {
     profile,
     formData,
@@ -60,13 +63,13 @@ export function GeneralTab() {
     return (
       <div>
         <div className='p-4 border rounded-md bg-destructive/10 text-destructive'>
-          Error loading profile data. Please refresh the page and try again.
+          {t('errorLoadingProfile')}
         </div>
         <Button
           className='mt-4'
           onClick={() => window.location.reload()}
         >
-          Refresh Page
+          {t('refreshPage')}
         </Button>
       </div>
     );
@@ -74,57 +77,57 @@ export function GeneralTab() {
 
   return (
     <div className="space-y-6">
-      <div className="text-xl font-semibold">Profile</div>
+      <div className="text-xl font-semibold">{t('profile')}</div>
       <form onSubmit={handleSubmit} className='space-y-6'>
         {/* Email */}
         <div className='space-y-2'>
-          <Label htmlFor='email'>Email</Label>
+          <Label htmlFor='email'>{t('email')}</Label>
           <Input
             id='email'
-            value={profile.email || 'No email provided'}
+            value={profile.email || t('noEmailProvided')}
             disabled
             readOnly
           />
           <p className='text-xs text-muted-foreground'>
-            Email cannot be changed
+            {t('emailCannotBeChanged')}
           </p>
         </div>
 
         {/* Username */}
         <div className='space-y-2'>
-          <Label htmlFor='username'>Username</Label>
+          <Label htmlFor='username'>{t('username')}</Label>
           <Input
             id='username'
             name='username'
             value={formData.username}
             onChange={handleChange}
-            placeholder='Choose a username'
+            placeholder={t('chooseUsername')}
             disabled={isUpdating}
           />
         </div>
 
         {/* Full Name */}
         <div className='space-y-2'>
-          <Label htmlFor='fullName'>Full Name</Label>
+          <Label htmlFor='fullName'>{t('fullName')}</Label>
           <Input
             id='fullName'
             name='fullName'
             value={formData.fullName}
             onChange={handleChange}
-            placeholder='Your full name'
+            placeholder={t('yourFullName')}
             disabled={isUpdating}
           />
         </div>
 
         {/* Bio */}
         <div className='space-y-2'>
-          <Label htmlFor='bio'>Bio</Label>
+          <Label htmlFor='bio'>{t('bio')}</Label>
           <Textarea
             id='bio'
             name='bio'
             value={formData.bio}
             onChange={handleChange}
-            placeholder='Tell us about yourself'
+            placeholder={t('tellUsAboutYourself')}
             rows={4}
             disabled={isUpdating}
           />
@@ -135,7 +138,7 @@ export function GeneralTab() {
             type='submit' 
             disabled={isUpdating || !isFormChanged}
           >
-            {isUpdating ? 'Saving...' : 'Save Profile'}
+            {isUpdating ? t('saving') : t('saveProfile')}
           </Button>
         </div>
       </form>
