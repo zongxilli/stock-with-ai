@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes';
 import { EnvVarWarning } from '@/components/env-var-warning';
 import ErrorBoundary from '@/components/error/error-boundary';
 import HeaderAuth from '@/components/header-auth';
+import { I18nProvider } from '@/components/i18n-provider';
 import { StockSearch } from '@/components/stock-search';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Toaster } from '@/components/ui/toaster';
@@ -89,13 +90,16 @@ export default function RootLayout({
 					<ErrorBoundary>
 						<QueryProvider>
 							<UserThemeProvider />
-							<main className='flex flex-col min-h-screen'>
-								<Navbar />
-								<div className='flex-grow flex flex-col pt-16'>
-									<Body children={children} />
-								</div>
-								<Footer />
-							</main>
+								<I18nProvider>
+									<main className='flex flex-col min-h-screen'>
+										<Navbar />
+										<div className='flex-grow flex flex-col pt-16'>
+											<Body children={children} />
+										</div>
+										<Footer />
+									</main>
+								</I18nProvider>
+
 							<Toaster />
 						</QueryProvider>
 					</ErrorBoundary>

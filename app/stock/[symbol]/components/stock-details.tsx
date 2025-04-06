@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 import { DataPoint } from '@/components/custom/dataPoint';
 
 // 定义股票详情数据的接口
@@ -121,6 +123,8 @@ export default function StockDetails({
 	shortRatio,
 	currency = 'USD',
 }: StockDetailsGridProps) {
+	const { t } = useTranslation('stockDetails');
+
 	// 格式化数字
 	const formatNumber = (num: number | undefined, decimals = 2): string => {
 		if (num === undefined) return '--';
@@ -178,176 +182,176 @@ export default function StockDetails({
 	if (recommendationKey) {
 		switch (recommendationKey.toLowerCase()) {
 			case 'strong buy':
-				recommendationDesc = '分析师强烈推荐买入该股票';
+				recommendationDesc = t('analystRatingDescStrongBuy');
 				break;
 			case 'buy':
-				recommendationDesc = '分析师推荐买入该股票';
+				recommendationDesc = t('analystRatingDescBuy');
 				break;
 			case 'hold':
-				recommendationDesc = '分析师建议持有该股票';
+				recommendationDesc = t('analystRatingDescHold');
 				break;
 			case 'underperform':
-				recommendationDesc = '分析师认为该股票表现不及预期';
+				recommendationDesc = t('analystRatingDescUnderperform');
 				break;
 			case 'sell':
-				recommendationDesc = '分析师建议卖出该股票';
+				recommendationDesc = t('analystRatingDescSell');
 				break;
 			default:
-				recommendationDesc = '分析师对该股票的综合评级';
+				recommendationDesc = t('analystRatingDescDefault');
 		}
 	}
 
 	return (
 		<div className='w-full mt-6'>
-			<h2 className='text-xl font-bold mb-4'>Stock Details</h2>
+			<h2 className='text-xl font-bold mb-4'>{t('title')}</h2>
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1'>
 				{/* 第一列：价格信息 */}
 				<div className='space-y-0'>
 					<h3 className='font-semibold text-md mb-2 border-b pb-1'>
-						Trading Information
+						{t('tradingInfo')}
 					</h3>
 					<DataPoint
-						label='Previous Close'
+						label={t('previousClose')}
 						value={formatNumber(previousClose)}
-						tooltip='股票在前一个交易日的收盘价格'
+						tooltip={t('previousCloseTooltip')}
 					/>
 					<DataPoint
-						label='Open'
+						label={t('open')}
 						value={formatNumber(open)}
-						tooltip='股票在当前交易日的开盘价格'
+						tooltip={t('openTooltip')}
 					/>
 					<DataPoint
-						label='Bid'
+						label={t('bid')}
 						value={
 							bidSize
 								? `${formatNumber(bid)} x ${formatNumber(bidSize, 0)}`
 								: formatNumber(bid)
 						}
-						tooltip='当前买单的最高价格和数量'
+						tooltip={t('bidTooltip')}
 					/>
 					<DataPoint
-						label='Ask'
+						label={t('ask')}
 						value={
 							askSize
 								? `${formatNumber(ask)} x ${formatNumber(askSize, 0)}`
 								: formatNumber(ask)
 						}
-						tooltip='当前卖单的最低价格和数量'
+						tooltip={t('askTooltip')}
 					/>
 					<DataPoint
-						label="Day's Range"
+						label={t('daysRange')}
 						value={formatRange(daysRange)}
-						tooltip='股票在当前交易日的价格波动范围'
+						tooltip={t('daysRangeTooltip')}
 					/>
 					<DataPoint
-						label='52 Week Range'
+						label={t('weekRange')}
 						value={formatRange(weekRange)}
-						tooltip='股票在过去52周的价格波动范围'
+						tooltip={t('weekRangeTooltip')}
 					/>
 				</div>
 
-				{/* 第二列：交易量和市场数据 */}
+				{/* 第二列：成交量和市场数据 */}
 				<div className='space-y-0'>
 					<h3 className='font-semibold text-md mb-2 border-b pb-1'>
-						Volume & Market Data
+						{t('volumeMarketData')}
 					</h3>
 					<DataPoint
-						label='Volume'
+						label={t('volume')}
 						value={volume?.toLocaleString()}
-						tooltip='当前交易日的成交量'
+						tooltip={t('volumeTooltip')}
 					/>
 					<DataPoint
-						label='Avg. Volume'
+						label={t('avgVolume')}
 						value={avgVolume?.toLocaleString()}
-						tooltip='过去3个月的平均每日成交量'
+						tooltip={t('avgVolumeTooltip')}
 					/>
 					<DataPoint
-						label='Avg. Volume (10 day)'
+						label={t('avgVolume10Day')}
 						value={avgVolume10Day?.toLocaleString()}
-						tooltip='过去10天的平均每日成交量'
+						tooltip={t('avgVolume10DayTooltip')}
 					/>
 					<DataPoint
-						label='Market Cap'
+						label={t('marketCap')}
 						value={formatLargeNumber(marketCap)}
-						tooltip='公司当前市值（股价 × 流通股数量）'
+						tooltip={t('marketCapTooltip')}
 					/>
 					<DataPoint
-						label='Beta (5Y Monthly)'
+						label={t('beta')}
 						value={formatNumber(beta)}
-						tooltip='股票相对于市场的波动性指标（>1表示波动性高于市场）'
+						tooltip={t('betaTooltip')}
 					/>
 					<DataPoint
-						label='Shares Outstanding'
+						label={t('sharesOutstanding')}
 						value={sharesOutstanding?.toLocaleString()}
-						tooltip='公司发行的总股票数量'
+						tooltip={t('sharesOutstandingTooltip')}
 					/>
 				</div>
 
 				{/* 第三列：财务比率 */}
 				<div className='space-y-0'>
 					<h3 className='font-semibold text-md mb-2 border-b pb-1'>
-						Financial Ratios
+						{t('financialRatios')}
 					</h3>
 					<DataPoint
-						label='PE Ratio (TTM)'
+						label={t('peRatio')}
 						value={formatNumber(peRatio)}
-						tooltip='股价与每股收益的比率（TTM表示过去12个月）'
+						tooltip={t('peRatioTooltip')}
 					/>
 					<DataPoint
-						label='Forward PE'
+						label={t('forwardPE')}
 						value={formatNumber(forwardPE)}
-						tooltip='股价与预测未来每股收益的比率'
+						tooltip={t('forwardPETooltip')}
 					/>
 					<DataPoint
-						label='EPS (TTM)'
+						label={t('eps')}
 						value={formatNumber(eps)}
-						tooltip='每股收益（TTM表示过去12个月）'
+						tooltip={t('epsTooltip')}
 					/>
 					<DataPoint
-						label='Profit Margins'
+						label={t('profitMargins')}
 						value={formatPercent(
 							profitMargins && profitMargins * 100
 						)}
-						tooltip='净利润与总收入的比率'
+						tooltip={t('profitMarginsTooltip')}
 					/>
 					<DataPoint
-						label='ROA'
+						label={t('roa')}
 						value={formatPercent(
 							returnOnAssets && returnOnAssets * 100
 						)}
-						tooltip='资产回报率，表示公司利用资产创造利润的能力'
+						tooltip={t('roaTooltip')}
 					/>
 					<DataPoint
-						label='ROE'
+						label={t('roe')}
 						value={formatPercent(
 							returnOnEquity && returnOnEquity * 100
 						)}
-						tooltip='股本回报率，表示公司对股东投资的回报能力'
+						tooltip={t('roeTooltip')}
 					/>
 				</div>
 
-				{/* 第四列：股息和分析师 */}
+				{/* 第四列：股息和分析师评级 */}
 				<div className='space-y-0'>
 					<h3 className='font-semibold text-md mb-2 border-b pb-1'>
-						Dividends & Analyst Ratings
+						{t('dividendsAnalystRatings')}
 					</h3>
 					<DataPoint
-						label='Earnings Date'
+						label={t('earningsDate')}
 						value={earningsDate}
-						tooltip='下一次财报公布的日期'
+						tooltip={t('earningsDateTooltip')}
 					/>
 					<DataPoint
-						label='Dividend Rate'
+						label={t('dividendRate')}
 						value={formatDividendYield(dividendRate, dividendYield)}
-						tooltip='年度股息金额和收益率'
+						tooltip={t('dividendRateTooltip')}
 					/>
 					<DataPoint
-						label='Ex-Dividend Date'
+						label={t('exDividendDate')}
 						value={exDividendDate}
-						tooltip='除息日期，持有股票需要在此日期前购买才能获得下一次股息'
+						tooltip={t('exDividendDateTooltip')}
 					/>
 					<DataPoint
-						label='Analyst Rating'
+						label={t('analystRating')}
 						value={formatRecommendation(
 							recommendationKey,
 							recommendationMean
@@ -355,132 +359,132 @@ export default function StockDetails({
 						tooltip={recommendationDesc}
 					/>
 					<DataPoint
-						label='Price Target'
+						label={t('priceTarget')}
 						value={
 							targetMean
 								? `${formatNumber(targetMean)} (${formatNumber(targetLow)} - ${formatNumber(targetHigh)})`
 								: '--'
 						}
-						tooltip='分析师预测的12个月目标价格范围'
+						tooltip={t('priceTargetTooltip')}
 					/>
 					<DataPoint
-						label='Price Target Median'
+						label={t('priceTargetMedian')}
 						value={formatNumber(targetMedian)}
-						tooltip='分析师预测的12个月目标价格中位数'
+						tooltip={t('priceTargetMedianTooltip')}
 					/>
 					<DataPoint
-						label='Analysts Covering'
+						label={t('analystsCovering')}
 						value={numberOfAnalysts?.toString()}
-						tooltip='关注并分析该股票的分析师数量'
+						tooltip={t('analystsCoveringTooltip')}
 					/>
 				</div>
 
 				{/* 第五列：成长和业绩 */}
 				<div className='space-y-0'>
 					<h3 className='font-semibold text-md mb-2 border-b pb-1'>
-						Growth & Performance
+						{t('growthPerformance')}
 					</h3>
 					<DataPoint
-						label='Revenue Growth'
+						label={t('revenueGrowth')}
 						value={formatPercent(
 							revenueGrowth && revenueGrowth * 100
 						)}
-						tooltip='公司收入的年增长率'
+						tooltip={t('revenueGrowthTooltip')}
 					/>
 					<DataPoint
-						label='Earnings Growth'
+						label={t('earningsGrowth')}
 						value={formatPercent(
 							earningsGrowth && earningsGrowth * 100
 						)}
-						tooltip='公司盈利的年增长率'
+						tooltip={t('earningsGrowthTooltip')}
 					/>
 					<DataPoint
-						label='Free Cash Flow'
+						label={t('freeCashFlow')}
 						value={formatLargeNumber(freeCashflow)}
-						tooltip='公司自由现金流，表示可用于投资、还债或分红的现金'
+						tooltip={t('freeCashFlowTooltip')}
 					/>
 					<DataPoint
-						label='Total Cash'
+						label={t('totalCash')}
 						value={formatLargeNumber(totalCash)}
-						tooltip='公司持有的总现金及等价物'
+						tooltip={t('totalCashTooltip')}
 					/>
 					<DataPoint
-						label='Cash Per Share'
+						label={t('cashPerShare')}
 						value={formatNumber(totalCashPerShare)}
-						tooltip='每股所代表的现金价值'
+						tooltip={t('cashPerShareTooltip')}
 					/>
 				</div>
 
 				{/* 第六列：债务和流动性 */}
 				<div className='space-y-0'>
 					<DataPoint
-						label='Total Debt'
+						label={t('totalDebt')}
 						value={formatLargeNumber(totalDebt)}
-						tooltip='公司总债务'
+						tooltip={t('totalDebtTooltip')}
 					/>
 					<DataPoint
-						label='Debt to Equity'
+						label={t('debtToEquity')}
 						value={formatNumber(debtToEquity)}
-						tooltip='债务与股东权益比率，衡量公司财务杠杆水平'
+						tooltip={t('debtToEquityTooltip')}
 					/>
 					<DataPoint
-						label='Current Ratio'
+						label={t('currentRatio')}
 						value={formatNumber(currentRatio)}
-						tooltip='流动比率，表示公司短期偿债能力'
+						tooltip={t('currentRatioTooltip')}
 					/>
 					<DataPoint
-						label='Quick Ratio'
+						label={t('quickRatio')}
 						value={formatNumber(quickRatio)}
-						tooltip='速动比率，不包括库存的短期偿债能力指标'
+						tooltip={t('quickRatioTooltip')}
 					/>
 				</div>
 
 				{/* 第七列：持股信息 */}
 				<div className='space-y-0'>
 					<h3 className='font-semibold text-md mb-2 border-b pb-1'>
-						Ownership
+						{t('ownership')}
 					</h3>
 					<DataPoint
-						label='Insider Ownership'
+						label={t('insiderOwnership')}
 						value={formatPercent(
 							heldPercentInsiders && heldPercentInsiders * 100
 						)}
-						tooltip='公司内部人持有的股份比例'
+						tooltip={t('insiderOwnershipTooltip')}
 					/>
 					<DataPoint
-						label='Institution Ownership'
+						label={t('institutionOwnership')}
 						value={formatPercent(
 							heldPercentInstitutions &&
 								heldPercentInstitutions * 100
 						)}
-						tooltip='机构投资者持有的股份比例'
+						tooltip={t('institutionOwnershipTooltip')}
 					/>
 					<DataPoint
-						label='Float Shares'
+						label={t('floatShares')}
 						value={floatShares?.toLocaleString()}
-						tooltip='可自由交易的流通股数量'
+						tooltip={t('floatSharesTooltip')}
 					/>
 					<DataPoint
-						label='Short Ratio'
+						label={t('shortRatio')}
 						value={formatNumber(shortRatio)}
-						tooltip='卖空比率，表示平仓所需的交易天数'
+						tooltip={t('shortRatioTooltip')}
 					/>
 				</div>
 
 				{/* 第八列：其他信息 - 可以根据需要添加 */}
 				<div className='space-y-0'>
 					<h3 className='font-semibold text-md mb-2 border-b pb-1'>
-						Additional Info
+						{t('additionalInfo')}
 					</h3>
 					<DataPoint
-						label='Currency'
+						label={t('currency')}
 						value={currency}
-						tooltip='股票交易使用的货币'
+						tooltip={t('currencyTooltip')}
 					/>
 					<DataPoint
-						label='Dividend Date'
+						label={t('dividendDate')}
 						value={dividendDate}
-						tooltip='下一次派息日期'
+						tooltip={t('dividendDateTooltip')}
 					/>
 					{/* 可以根据需要添加更多数据点 */}
 				</div>

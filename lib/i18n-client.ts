@@ -9,6 +9,7 @@ import {
 	preferenceTabCN,
 	preferenceTabEN,
 } from './i18n/account/preference-tab';
+import { stockDetailsCN, stockDetailsEN } from './i18n/stock/details';
 
 // 内联翻译字典
 const resources = {
@@ -17,12 +18,18 @@ const resources = {
 		accountPage: accountPageEN,
 		accountPreferenceTab: preferenceTabEN,
 		accountGeneralTab: generalTabEN,
+
+		// stock[symbol] page
+		stockDetails: stockDetailsEN,
 	},
 	CN: {
 		// account page
 		accountPage: accountPageCN,
 		accountPreferenceTab: preferenceTabCN,
 		accountGeneralTab: generalTabCN,
+
+		// stock[symbol] page
+		stockDetails: stockDetailsCN,
 	},
 };
 
@@ -30,9 +37,9 @@ i18n.use(initReactI18next).init({
 	resources,
 	lng:
 		typeof window !== 'undefined'
-			? localStorage.getItem('lang') || 'CN'
-			: 'CN',
-	fallbackLng: 'CN',
+			? localStorage.getItem('lang') || 'EN'
+			: 'EN',
+	fallbackLng: 'EN',
 	interpolation: {
 		escapeValue: false,
 	},
