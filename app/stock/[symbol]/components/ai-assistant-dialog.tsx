@@ -107,7 +107,7 @@ const collectStockData = async (
 ): Promise<{ data: StockAnalysisData | null; error: string | null }> => {
 	try {
 		setCurrentAction('Gathering real-time data...');
-		setProgress(5.0);
+		setProgress(0);
 
 		// 获取综合数据
 		const comprehensiveData = await getComprehensiveStockData(symbol);
@@ -118,7 +118,7 @@ const collectStockData = async (
 		}
 
 		setCurrentAction('Gathering technical indicators data...');
-		setProgress(10.0);
+		setProgress(5.0);
 
 		// 获取技术指标数据
 		const technicalIndicatorsData =
@@ -129,7 +129,7 @@ const collectStockData = async (
 			);
 
 		setCurrentAction('Gathering historical data...');
-		setProgress(15.0);
+		setProgress(10.0);
 
 		// 获取历史数据
 		const historicalData = await getCompressedHistoricalDataForAnalysis(
@@ -139,7 +139,7 @@ const collectStockData = async (
 		);
 
 		setCurrentAction('Gathering main indexes data...');
-		setProgress(20.0);
+		setProgress(15.0);
 
 		// 获取主要指数历史数据
 		const mainIndexesHistoricalData =
@@ -149,7 +149,7 @@ const collectStockData = async (
 			);
 
 		setCurrentAction('Gathering news data...');
-		setProgress(25.0);
+		setProgress(20.0);
 
 		// 获取最近的新闻数据
 		const newsData = await getCompressedNewsDataForAnalysis(
@@ -197,10 +197,14 @@ const processSSEMessage = async (
 		setStreamError: (error: string | null) => void;
 		setIsStreaming: (isStreaming: boolean) => void;
 		setActiveTab: (tab: string) => void;
+		setCurrentAction: (action: string) => void;
+		setProgress: (progress: number) => void;
 	},
 	symbol: string,
 	code: string,
-	exchange: string
+	exchange: string,
+	hasReceivedContentRef: { current: boolean },
+	hasReceivedThinkingRef: { current: boolean }
 ): Promise<boolean> => {
 	try {
 		// 解析JSON数据
@@ -211,11 +215,27 @@ const processSSEMessage = async (
 		switch (data.type) {
 			case 'thinking':
 				callbacks.setThinking((prev) => prev + data.content);
+
+				// 当收到第一个思考消息时，更新进度至30%
+				if (!hasReceivedThinkingRef.current) {
+					callbacks.setCurrentAction('Thinking...');
+					callbacks.setProgress(30.0);
+					hasReceivedThinkingRef.current = true;
+				}
 				break;
 			case 'content':
 				// 添加内容消息到思考过程中
 				callbacks.setThinkingContent((prev) => prev + data.content);
 				console.log('Content chunk received');
+
+				// 当第一次收到内容时，更新进度至50%
+				if (!hasReceivedContentRef.current) {
+					callbacks.setCurrentAction(
+						'Processing and generating insights...'
+					);
+					callbacks.setProgress(50.0);
+					hasReceivedContentRef.current = true;
+				}
 				break;
 			case 'status':
 				// 状态更新
@@ -300,7 +320,9 @@ const processStream = async (
 	},
 	symbol: string,
 	code: string,
-	exchange: string
+	exchange: string,
+	hasReceivedContentRef: { current: boolean },
+	hasReceivedThinkingRef: { current: boolean }
 ) => {
 	const reader = response.body?.getReader();
 	if (!reader) {
@@ -333,7 +355,9 @@ const processStream = async (
 					callbacks,
 					symbol,
 					code,
-					exchange
+					exchange,
+					hasReceivedContentRef,
+					hasReceivedThinkingRef
 				);
 
 				// 如果流处理完成，退出循环
@@ -387,10 +411,22 @@ const requestStreamAnalysis = async (
 	}
 
 	callbacks.setCurrentAction('Sending data to DeepSeek R1...');
-	callbacks.setProgress(30.0);
+	callbacks.setProgress(25.0);
 
 	// 处理流数据
-	await processStream(response, callbacks, symbol, code, exchange);
+	await processStream(
+		response,
+		callbacks,
+		symbol,
+		code,
+		exchange,
+		{
+			current: false,
+		},
+		{
+			current: false,
+		}
+	);
 };
 
 export default function AIAssistantDialog({
@@ -415,21 +451,26 @@ export default function AIAssistantDialog({
 	const isCheckedCacheRef = useRef<boolean>(false);
 	const [progress, setProgress] = useState(0);
 	const [currentAction, setCurrentAction] = useState('');
+	const hasReceivedContentRef = useRef<boolean>(false);
+	const hasReceivedThinkingRef = useRef<boolean>(false);
 
-// 进度自动增长效果
-useEffect(() => {
-  let intervalId: NodeJS.Timeout;
-  
-  if ((progress >= 30 && progress <= 48.75) || (progress >= 50 && progress <= 98.75)) {
-    intervalId = setInterval(() => {
-      setProgress(prev => prev + 0.25);
-    }, 1000);
-  }
-  
-  return () => {
-    if (intervalId) clearInterval(intervalId);
-  };
-}, [progress]);
+	// 进度自动增长效果
+	useEffect(() => {
+		let intervalId: NodeJS.Timeout;
+
+		if (
+			(progress >= 30 && progress <= 48.75) ||
+			(progress >= 50 && progress <= 98.75)
+		) {
+			intervalId = setInterval(() => {
+				setProgress((prev) => prev + 0.75);
+			}, 1000);
+		}
+
+		return () => {
+			if (intervalId) clearInterval(intervalId);
+		};
+	}, [progress]);
 
 	// 使用流式数据或初始数据
 	const data = streamData || initialData;
@@ -551,6 +592,12 @@ useEffect(() => {
 	// 处理开始分析
 	const handleStartAnalysis = () => {
 		if (!useStream) return;
+
+		// 重置状态
+		hasReceivedContentRef.current = false;
+		hasReceivedThinkingRef.current = false;
+		setProgress(0);
+		setCurrentAction('');
 
 		// 创建AbortController用于中止fetch请求
 		const abortController = new AbortController();
