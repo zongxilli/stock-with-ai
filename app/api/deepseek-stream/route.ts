@@ -117,6 +117,8 @@ export async function POST(req: NextRequest) {
 							reasoning_language:
 								language === 'CN' ? '中文' : 'English',
 							language: language === 'CN' ? '中文' : 'English',
+							thinking_language:
+								language === 'CN' ? '中文' : 'English',
 							response_format: {
 								type: 'json_object',
 							},
