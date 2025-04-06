@@ -37,6 +37,7 @@
 		"clsx": "^2.1.1",
 		"date-fns": "^4.1.0",
 		"i18next": "^24.2.3",
+		"lightweight-charts": "^5.0.5",
 		"lodash": "^4.17.21",
 		"lucide-react": "^0.468.0",
 		"next": "latest",
