@@ -10,6 +10,7 @@ import {
 	preferenceTabEN,
 } from './i18n/account/preference-tab';
 import { stockDetailsCN, stockDetailsEN } from './i18n/stock/details';
+import { stockHeaderCN, stockHeaderEN } from './i18n/stock/header';
 
 // 内联翻译字典
 const resources = {
@@ -20,6 +21,7 @@ const resources = {
 		accountGeneralTab: generalTabEN,
 
 		// stock[symbol] page
+		stockHeader: stockHeaderEN,
 		stockDetails: stockDetailsEN,
 	},
 	CN: {
@@ -29,6 +31,7 @@ const resources = {
 		accountGeneralTab: generalTabCN,
 
 		// stock[symbol] page
+		stockHeader: stockHeaderCN,
 		stockDetails: stockDetailsCN,
 	},
 };

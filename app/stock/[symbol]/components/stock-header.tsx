@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 import { PriceDisplay, PriceDisplayFallback } from './price-display';
 
 // 股票实时数据类型
@@ -55,6 +57,8 @@ export default function StockHeader({
 	chartData,
 	loading,
 }: StockHeaderProps) {
+	const { t } = useTranslation('stockHeader');
+
 	// 判断是否显示盘前价格
 	const shouldShowPreMarketPrice = () => {
 		if (
@@ -108,7 +112,7 @@ export default function StockHeader({
 			<div className='flex justify-between items-center'>
 				<h1 className='text-2xl font-bold mb-1'>
 					{loading && !realTimeData && !chartData
-						? 'Loading...'
+						? t('loading')
 						: stockName}
 					<span className='ml-2 text-muted-foreground'>
 						{stockSymbol}
@@ -118,81 +122,81 @@ export default function StockHeader({
 
 			{/* 使用实时数据显示当前价格 */}
 			{realTimeData &&
-			typeof realTimeData === 'object' &&
-			'price' in realTimeData &&
-			realTimeData.price !== undefined ? (
-				<div className='flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3'>
-					<div className='flex flex-col'>
-						{/* 常规市场价格 */}
-						<div className='flex items-baseline'>
-							<span className='text-3xl font-bold mr-3'>
-								${realTimeData.price.toFixed(2)}
-							</span>
-							<PriceDisplay
-								change={realTimeData.change}
-								changePercent={realTimeData.changePercent}
-							/>
+				typeof realTimeData === 'object' &&
+				'price' in realTimeData &&
+				realTimeData.price !== undefined ? (
+					<div className='flex flex-col md:flex-row md:items-baseline gap-1 md:gap-3'>
+						<div className='flex flex-col'>
+							{/* 常规市场价格 */}
+							<div className='flex items-baseline'>
+								<span className='text-3xl font-bold mr-3'>
+									${realTimeData.price.toFixed(2)}
+								</span>
+								<PriceDisplay
+									change={realTimeData.change}
+									changePercent={realTimeData.changePercent}
+								/>
+							</div>
+
+							{/* 盘前市场价格 */}
+							{shouldShowPreMarketPrice() && (
+								<div className='flex items-baseline mt-2'>
+									<span className='text-sm font-medium mr-3'>
+										{t('preMarket')}: $
+										{realTimeData.preMarketPrice!.toFixed(2)}
+									</span>
+									<PriceDisplay
+										change={realTimeData.preMarketChange!}
+										changePercent={
+											realTimeData.preMarketChangePercent!
+										}
+										small={true}
+									/>
+								</div>
+							)}
+
+							{/* 盘后市场价格 */}
+							{shouldShowPostMarketPrice() && (
+								<div className='flex items-baseline mt-2'>
+									<span className='text-sm font-medium mr-3'>
+										{t('afterHours')}: $
+										{realTimeData.postMarketPrice!.toFixed(2)}
+									</span>
+									<PriceDisplay
+										change={realTimeData.postMarketChange!}
+										changePercent={
+											realTimeData.postMarketChangePercent!
+										}
+										small={true}
+									/>
+								</div>
+							)}
 						</div>
 
-						{/* 盘前市场价格 */}
-						{shouldShowPreMarketPrice() && (
-							<div className='flex items-baseline mt-2'>
-								<span className='text-sm font-medium mr-3'>
-									Pre-Market: $
-									{realTimeData.preMarketPrice!.toFixed(2)}
-								</span>
-								<PriceDisplay
-									change={realTimeData.preMarketChange!}
-									changePercent={
-										realTimeData.preMarketChangePercent!
-									}
-									small={true}
-								/>
-							</div>
-						)}
-
-						{/* 盘后市场价格 */}
-						{shouldShowPostMarketPrice() && (
-							<div className='flex items-baseline mt-2'>
-								<span className='text-sm font-medium mr-3'>
-									After Hours: $
-									{realTimeData.postMarketPrice!.toFixed(2)}
-								</span>
-								<PriceDisplay
-									change={realTimeData.postMarketChange!}
-									changePercent={
-										realTimeData.postMarketChangePercent!
-									}
-									small={true}
-								/>
-							</div>
+						{/* 交易量信息 */}
+						<div className='text-sm text-muted-foreground'>
+							{t('volume')}: {realTimeData.marketVolume.toLocaleString()}
+						</div>
+					</div>
+				) : chartData?.meta?.regularMarketPrice ? (
+					<div className='flex items-baseline'>
+						<span className='text-3xl font-bold mr-3'>
+							${chartData.meta.regularMarketPrice.toFixed(2)}
+						</span>
+						{chartData.quotes && chartData.quotes.length > 1 && (
+							<PriceDisplayFallback
+								current={chartData.meta.regularMarketPrice}
+								previous={chartData.quotes[0].close}
+							/>
 						)}
 					</div>
-
-					{/* 交易量信息 */}
-					<div className='text-sm text-muted-foreground'>
-						Volume: {realTimeData.marketVolume.toLocaleString()}
+				) : (
+					<div className='h-10 mt-2 text-muted-foreground'>
+						{loading
+							? t('loadingPrice')
+							: t('priceNotAvailable')}
 					</div>
-				</div>
-			) : chartData?.meta?.regularMarketPrice ? (
-				<div className='flex items-baseline'>
-					<span className='text-3xl font-bold mr-3'>
-						${chartData.meta.regularMarketPrice.toFixed(2)}
-					</span>
-					{chartData.quotes && chartData.quotes.length > 1 && (
-						<PriceDisplayFallback
-							current={chartData.meta.regularMarketPrice}
-							previous={chartData.quotes[0].close}
-						/>
-					)}
-				</div>
-			) : (
-				<div className='h-10 mt-2 text-muted-foreground'>
-					{loading
-						? 'Loading price data...'
-						: 'Price data not available'}
-				</div>
-			)}
+				)}
 
 			{/* 最高/最低价格 */}
 			{realTimeData &&
@@ -204,16 +208,16 @@ export default function StockHeader({
 				'fiftyTwoWeekLow' in realTimeData &&
 				'fiftyTwoWeekHigh' in realTimeData && (
 					<div className='flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-muted-foreground'>
-						<div>Open: ${realTimeData.open.toFixed(2)}</div>
+						<div>{t('open')}: ${realTimeData.open.toFixed(2)}</div>
 						<div>
-							Prev Close: ${realTimeData.previousClose.toFixed(2)}
+							{t('prevClose')}: ${realTimeData.previousClose.toFixed(2)}
 						</div>
 						<div>
-							Day Range: ${realTimeData.dayLow.toFixed(2)} - $
+							{t('dayRange')}: ${realTimeData.dayLow.toFixed(2)} - $
 							{realTimeData.dayHigh.toFixed(2)}
 						</div>
 						<div>
-							52wk Range: $
+							{t('weekRange')}: $
 							{realTimeData.fiftyTwoWeekLow.toFixed(2)} - $
 							{realTimeData.fiftyTwoWeekHigh.toFixed(2)}
 						</div>
