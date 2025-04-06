@@ -101,9 +101,14 @@ const checkCacheData = async (
 const collectStockData = async (
 	symbol: string,
 	code: string,
-	exchange: string
+	exchange: string,
+	setCurrentAction: (action: string) => void,
+	setProgress: (progress: number) => void
 ): Promise<{ data: StockAnalysisData | null; error: string | null }> => {
 	try {
+		setCurrentAction('Gathering real-time data...');
+		setProgress(5.0);
+
 		// 获取综合数据
 		const comprehensiveData = await getComprehensiveStockData(symbol);
 
@@ -111,6 +116,9 @@ const collectStockData = async (
 		if (comprehensiveData && 'error' in comprehensiveData) {
 			return { data: null, error: comprehensiveData.error };
 		}
+
+		setCurrentAction('Gathering technical indicators data...');
+		setProgress(10.0);
 
 		// 获取技术指标数据
 		const technicalIndicatorsData =
@@ -120,6 +128,9 @@ const collectStockData = async (
 				'1y'
 			);
 
+		setCurrentAction('Gathering historical data...');
+		setProgress(15.0);
+
 		// 获取历史数据
 		const historicalData = await getCompressedHistoricalDataForAnalysis(
 			code,
@@ -127,12 +138,18 @@ const collectStockData = async (
 			'1y'
 		);
 
+		setCurrentAction('Gathering main indexes data...');
+		setProgress(20.0);
+
 		// 获取主要指数历史数据
 		const mainIndexesHistoricalData =
 			await getCompressedMainIndexesHistoricalDataForAnalysis(
 				exchange,
 				'1y'
 			);
+
+		setCurrentAction('Gathering news data...');
+		setProgress(25.0);
 
 		// 获取最近的新闻数据
 		const newsData = await getCompressedNewsDataForAnalysis(
@@ -278,6 +295,8 @@ const processStream = async (
 		setStreamError: (error: string | null) => void;
 		setIsStreaming: (isStreaming: boolean) => void;
 		setActiveTab: (tab: string) => void;
+		setCurrentAction: (action: string) => void;
+		setProgress: (progress: number) => void;
 	},
 	symbol: string,
 	code: string,
@@ -346,6 +365,8 @@ const requestStreamAnalysis = async (
 		setStreamError: (error: string | null) => void;
 		setIsStreaming: (isStreaming: boolean) => void;
 		setActiveTab: (tab: string) => void;
+		setCurrentAction: (action: string) => void;
+		setProgress: (progress: number) => void;
 	},
 	symbol: string,
 	code: string,
@@ -364,6 +385,9 @@ const requestStreamAnalysis = async (
 	if (!response.ok) {
 		throw new Error(`API error: ${response.status}`);
 	}
+
+	callbacks.setCurrentAction('Sending data to DeepSeek R1...');
+	callbacks.setProgress(30.0);
 
 	// 处理流数据
 	await processStream(response, callbacks, symbol, code, exchange);
@@ -389,6 +413,8 @@ export default function AIAssistantDialog({
 	const abortControllerRef = useRef<AbortController | null>(null);
 	const isAbortedRef = useRef<boolean>(false);
 	const isCheckedCacheRef = useRef<boolean>(false);
+	const [progress, setProgress] = useState(0);
+	const [currentAction, setCurrentAction] = useState('');
 
 	// 使用流式数据或初始数据
 	const data = streamData || initialData;
@@ -451,7 +477,9 @@ export default function AIAssistantDialog({
 			const { data: stockData, error } = await collectStockData(
 				symbol,
 				code,
-				exchange
+				exchange,
+				setCurrentAction,
+				setProgress
 			);
 
 			if (error) {
@@ -475,6 +503,8 @@ export default function AIAssistantDialog({
 				setStreamError,
 				setIsStreaming,
 				setActiveTab,
+				setCurrentAction,
+				setProgress,
 			};
 
 			// 请求并处理流式分析数据
@@ -599,6 +629,23 @@ export default function AIAssistantDialog({
 
 				{isLoading ? (
 					<div className='flex flex-col items-center justify-center py-10'>
+						<div className='w-full max-w-md mb-4 px-4'>
+							<div className='text-xs text-muted-foreground mb-2 flex justify-between'>
+								<span className='font-medium'>
+									{currentAction}
+								</span>
+								<span className='bg-primary/10 px-2 py-0.5 rounded-full text-primary'>
+									{progress.toFixed(0)}%
+								</span>
+							</div>
+							<div className='w-full bg-muted rounded-full h-2 overflow-hidden'>
+								<div
+									className='h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300 ease-in-out'
+									style={{ width: `${progress}%` }}
+								/>
+							</div>
+						</div>
+
 						{!thinking && (
 							<>
 								<Loader2 className='h-10 w-10 animate-spin text-primary mb-4' />
