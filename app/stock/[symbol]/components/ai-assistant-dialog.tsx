@@ -679,7 +679,7 @@ export default function AIAssistantDialog({
 	if (!isOpen)
 		return (
 			<div
-				className='fixed top-[5rem] right-[1rem] z-50 flex items-center justify-center bg-black/50'
+				className='fixed top-[6rem] right-[2rem] z-50 flex items-center justify-center bg-black/50'
 				onClick={() => setIsOpen(true)}
 			>
 				<IconButton
