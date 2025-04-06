@@ -2,6 +2,8 @@
 
 import { useCallback, useState } from 'react';
 
+import { useTranslation } from 'react-i18next';
+
 import { BillingTab } from './components/billing-tab';
 import { GeneralTab } from './components/general-tab';
 import { PreferenceTab } from './components/preference-tab';
@@ -10,6 +12,8 @@ import { Tab } from './types';
 
 
 export default function AccountPage() {
+	const { t } = useTranslation('accountPage');
+	
 	const [currentTab, setCurrentTab] = useState<Tab>('general');
 
 	const renderCurrentTab = useCallback(() => {
@@ -28,7 +32,7 @@ export default function AccountPage() {
 
 	return (
 		<div className='container py-8'>
-			<h1 className='text-2xl font-bold mb-8'>Account Settings</h1>
+			<h1 className='text-2xl font-bold mb-8'>{t('pageHeader')}</h1>
 
 			<div className='flex flex-col md:flex-row gap-8'>
 				<aside className='md:w-1/5'>

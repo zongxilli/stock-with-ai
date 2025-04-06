@@ -3,10 +3,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import {
-	generalTabCN,
-	generalTabEN,
-} from './i18n/account/general-tab';
+import { generalTabCN, generalTabEN } from './i18n/account/general-tab';
+import { accountPageCN, accountPageEN } from './i18n/account/page';
 import {
 	preferenceTabCN,
 	preferenceTabEN,
@@ -15,10 +13,14 @@ import {
 // 内联翻译字典
 const resources = {
 	EN: {
+		// account page
+		accountPage: accountPageEN,
 		accountPreferenceTab: preferenceTabEN,
 		accountGeneralTab: generalTabEN,
 	},
 	CN: {
+		// account page
+		accountPage: accountPageCN,
 		accountPreferenceTab: preferenceTabCN,
 		accountGeneralTab: generalTabCN,
 	},

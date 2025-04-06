@@ -1,6 +1,8 @@
 'use client';
 
-import { Tab, tabs } from '../types';
+import { useTranslation } from 'react-i18next';
+
+import { Tab } from '../types';
 
 import { cn } from '@/lib/utils';
 
@@ -15,6 +17,14 @@ export function SidebarNav({
 	setCurrentTab,
 	className,
 }: SidebarNavProps) {
+	const { t } = useTranslation('accountPage');
+
+	const tabs: { value: Tab; label: string; disabled: boolean }[] = [
+		{ value: 'general', label: t('generalTab'), disabled: false },
+		{ value: 'preference', label: t('preferenceTab'), disabled: false },
+		{ value: 'billing', label: t('billingTab'), disabled: true },
+	];
+
 	return (
 		<nav className={cn('flex flex-col space-y-1', className)}>
 			{tabs.map((item) => {
