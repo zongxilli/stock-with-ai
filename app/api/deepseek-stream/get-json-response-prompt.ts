@@ -237,15 +237,9 @@ Return your analysis in the following JSON format:`
 
 	const jsonResponsePrompt = language === 'CN' ? JSON_CN : JSON_EN;
 
-	return language === 'CN'
-		? `
+	return `
 ${requestPrompt}
 
 ${JSON.stringify(jsonResponsePrompt, null, 2)}
-  `
-		: `
-${requestPrompt}
-
-${JSON.stringify(jsonResponsePrompt, null, 2)}
-  `;
+`;
 };
