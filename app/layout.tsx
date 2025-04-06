@@ -1,4 +1,4 @@
-import { Geist } from 'next/font/google';
+import { IBM_Plex_Sans } from 'next/font/google';
 import Link from 'next/link';
 import { ThemeProvider } from 'next-themes';
 
@@ -51,9 +51,7 @@ export function Footer() {
 
 export function Body({ children }: { children: React.ReactNode }) {
 	return (
-		<div className='container p-4 md:p-6 lg:p-8 flex-grow'>
-			{children}
-		</div>
+		<div className='container p-4 md:p-6 lg:p-8 flex-grow'>{children}</div>
 	);
 }
 
@@ -67,9 +65,11 @@ export const metadata = {
 	description: 'AIkie is a stock market analysis tool.',
 };
 
-const geistSans = Geist({
-	display: 'swap',
+const font = IBM_Plex_Sans({
 	subsets: ['latin'],
+	weight: ['400', '700'],
+	display: 'swap',
+	variable: '--font-noto-sans-sc',
 });
 
 export default function RootLayout({
@@ -78,11 +78,7 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html
-			lang='en'
-			className={geistSans.className}
-			suppressHydrationWarning
-		>
+		<html lang='en' className={font.className} suppressHydrationWarning>
 			<body className='bg-background text-foreground overflow-y-auto min-h-screen flex flex-col'>
 				<ThemeProvider
 					attribute='class'
