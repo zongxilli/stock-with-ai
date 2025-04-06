@@ -14,9 +14,9 @@ export const preferenceTabEN = {
 	failedToUpdateLanguage: 'Failed to update language',
 	failedToUpdateIndicators:
 		'Failed to update technical indicator preferences',
-	chinese: 'Chinese',
+	chinese: '简体中文',
 	english: 'English',
-	
+
 	// 技术指标组
 	movingAverages: 'Moving Averages',
 	oscillators: 'Oscillators',
@@ -24,35 +24,35 @@ export const preferenceTabEN = {
 	trendIndicators: 'Trend Indicators',
 	volumeIndicators: 'Volume Indicators',
 	otherIndicators: 'Other',
-	
+
 	// 指标名称 - Moving Averages
 	sma: 'Simple Moving Average (SMA)',
 	ema: 'Exponential Moving Average (EMA)',
 	wma: 'Weighted Moving Average (WMA)',
-	
+
 	// 指标名称 - Oscillators
 	rsi: 'Relative Strength Index (RSI)',
 	macd: 'Moving Average Convergence Divergence (MACD)',
 	stochastic: 'Stochastic Oscillator',
 	stochasticRSI: 'Stochastic RSI',
 	cci: 'Commodity Channel Index (CCI)',
-	
+
 	// 指标名称 - Volatility Indicators
 	bollingerBands: 'Bollinger Bands',
 	atr: 'Average True Range (ATR)',
 	volatility: 'Volatility',
 	stdDev: 'Standard Deviation',
-	
+
 	// 指标名称 - Trend Indicators
 	adx: 'Average Directional Index (ADX)',
 	dmi: 'Directional Movement Index (DMI)',
 	slope: 'Linear Regression Slope',
 	sar: 'Parabolic Stop and Reverse (SAR)',
-	
+
 	// 指标名称 - Volume Indicators
 	averageVolume: 'Average Volume',
 	averageVolumeByPrice: 'Volume by Price',
-	
+
 	// 指标名称 - Other
 	beta: 'Beta',
 	splitAdjusted: 'Split Adjusted Prices',
@@ -73,9 +73,9 @@ export const preferenceTabCN = {
 	failedToUpdateTheme: '更新主题失败',
 	failedToUpdateLanguage: '更新语言失败',
 	failedToUpdateIndicators: '更新技术指标偏好失败',
-	chinese: '中文',
+	chinese: '简体中文',
 	english: 'English',
-	
+
 	// 技术指标组
 	movingAverages: '移动平均线',
 	oscillators: '震荡指标',
@@ -83,35 +83,35 @@ export const preferenceTabCN = {
 	trendIndicators: '趋势指标',
 	volumeIndicators: '成交量指标',
 	otherIndicators: '其他指标',
-	
+
 	// 指标名称 - Moving Averages
 	sma: '简单移动平均线 (SMA)',
 	ema: '指数移动平均线 (EMA)',
 	wma: '加权移动平均线 (WMA)',
-	
+
 	// 指标名称 - Oscillators
 	rsi: '相对强弱指数 (RSI)',
 	macd: '移动平均线收敛散度 (MACD)',
 	stochastic: '随机指标',
 	stochasticRSI: '随机相对强弱指数',
 	cci: '商品通道指数 (CCI)',
-	
+
 	// 指标名称 - Volatility Indicators
 	bollingerBands: '布林带',
 	atr: '平均真实范围 (ATR)',
 	volatility: '波动率',
 	stdDev: '标准差',
-	
+
 	// 指标名称 - Trend Indicators
 	adx: '平均方向指数 (ADX)',
 	dmi: '方向运动指数 (DMI)',
 	slope: '线性回归斜率',
 	sar: '抛物线转向 (SAR)',
-	
+
 	// 指标名称 - Volume Indicators
 	averageVolume: '平均成交量',
 	averageVolumeByPrice: '价格成交量',
-	
+
 	// 指标名称 - Other
 	beta: '贝塔系数',
 	splitAdjusted: '分割调整价格',
