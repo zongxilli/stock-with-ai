@@ -9,6 +9,7 @@ import ChartContainer from './components/chart-container';
 import ErrorView from './components/error-view';
 import RangeSelector from './components/rangeSelector';
 import StatusIndicator from './components/status-indicator';
+import StockChartAdvancedContainer from './components/stock-chart-advanced-container';
 import StockDetails from './components/stock-details';
 import StockHeader from './components/stock-header';
 import StockNews from './components/stock-news';
@@ -568,6 +569,14 @@ export default function StockPage() {
 				range={range}
 				isChartUpdating={isChartUpdating}
 				realTimeData={realTimeData}
+			/>
+
+			<StockChartAdvancedContainer
+				start='2021-01-01'
+				end='2021-12-31'
+				code={code || ''}
+				exchange={exchange || ''}
+				className='mb-4'
 			/>
 
 			{/* AI Assistant Dialog */}
