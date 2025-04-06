@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 
-import { Loader2, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 import {
 	AIAnalysisResult,
@@ -458,18 +458,34 @@ export default function AIAssistantDialog({
 	useEffect(() => {
 		let intervalId: NodeJS.Timeout;
 
-		if (
-			(progress >= 30 && progress <= 48.75) ||
-			(progress >= 50 && progress <= 98.75)
-		) {
+		// 根据不同进度范围设置不同的增长速率
+		if (progress >= 25 && progress <= 29) {
+			// 25%-29%范围内每秒增加0.5%
 			intervalId = setInterval(() => {
-				setProgress((prev) => prev + 0.75);
+				setProgress((prev) => prev + 0.5);
+			}, 1000);
+		} else if (progress >= 30 && progress <= 49) {
+			// 30%-49%范围内每秒增加1%
+			intervalId = setInterval(() => {
+				setProgress((prev) => prev + 0.9);
+			}, 1000);
+		} else if (progress >= 50 && progress <= 99) {
+			// 50%-99%范围内每秒增加0.8%
+			intervalId = setInterval(() => {
+				setProgress((prev) => prev + 0.8);
 			}, 1000);
 		}
 
 		return () => {
 			if (intervalId) clearInterval(intervalId);
 		};
+	}, [progress]);
+
+	// 当进度达到99%以上时，改变文本为"Finalizing analysis..."
+	useEffect(() => {
+		if (progress >= 99) {
+			setCurrentAction('Finalizing analysis...');
+		}
 	}, [progress]);
 
 	// 使用流式数据或初始数据
@@ -694,35 +710,27 @@ export default function AIAssistantDialog({
 						<div className='w-full max-w-md mb-4 px-4'>
 							<div className='text-xs text-muted-foreground mb-2 flex justify-between'>
 								<span className='font-medium'>
-									{currentAction}
+									{progress >= 99
+										? 'Finalizing analysis...'
+										: currentAction || 'Processing...'}
 								</span>
-								<span className='bg-primary/10 px-2 py-0.5 rounded-full text-primary'>
-									{progress.toFixed(0)}%
+								<span className='text-sm font-medium text-muted-foreground'>
+									{Math.min(100, Math.round(progress))}%
 								</span>
 							</div>
 							<div className='w-full bg-muted rounded-full h-2 overflow-hidden'>
 								<div
-									className='h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300 ease-in-out'
-									style={{ width: `${progress}%` }}
+									className='h-full relative bg-gradient-to-r from-blue-500 via-indigo-600 to-blue-500 bg-animate-pulse transition-all duration-300 ease-in-out'
+									style={{
+										width: `${progress}%`,
+										backgroundSize: '200% 100%',
+										animation:
+											'gradientMove 2s linear infinite',
+									}}
 								/>
 							</div>
 						</div>
 
-						{!thinking && (
-							<>
-								<Loader2 className='h-10 w-10 animate-spin text-primary mb-4' />
-								<p className='text-center text-muted-foreground'>
-									Analyzing {symbol} data and generating
-									insights...
-									<br />
-									<span className='text-sm'>
-										This may take a few moments
-									</span>
-								</p>
-							</>
-						)}
-
-						{/* Display thinking process during streaming */}
 						{thinking && (
 							<AIThinkingProcessLoading
 								thinking={thinking}
@@ -825,6 +833,16 @@ export default function AIAssistantDialog({
 					</div>
 				)}
 			</div>
+			<style jsx global>{`
+				@keyframes gradientMove {
+					0% {
+						background-position: 0% 0%;
+					}
+					100% {
+						background-position: 100% 0%;
+					}
+				}
+			`}</style>
 		</div>
 	);
 }
