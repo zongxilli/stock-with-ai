@@ -416,6 +416,21 @@ export default function AIAssistantDialog({
 	const [progress, setProgress] = useState(0);
 	const [currentAction, setCurrentAction] = useState('');
 
+// 进度自动增长效果
+useEffect(() => {
+  let intervalId: NodeJS.Timeout;
+  
+  if ((progress >= 30 && progress <= 48.75) || (progress >= 50 && progress <= 98.75)) {
+    intervalId = setInterval(() => {
+      setProgress(prev => prev + 0.25);
+    }, 1000);
+  }
+  
+  return () => {
+    if (intervalId) clearInterval(intervalId);
+  };
+}, [progress]);
+
 	// 使用流式数据或初始数据
 	const data = streamData || initialData;
 	const isLoading = isStreaming || initialIsLoading;
