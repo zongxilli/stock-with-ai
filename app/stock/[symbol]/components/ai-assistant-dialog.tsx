@@ -20,6 +20,7 @@ import {
 } from '@/app/actions/redis/ai-assistant-cache';
 import { getComprehensiveStockData } from '@/app/actions/yahoo/get-comprehensive-stock-data';
 import { IconButton } from '@/components/custom/iconButton';
+import { useProfile } from '@/hooks/use-profile';
 
 interface SequentialThinkingStep {
 	step: number;
@@ -102,6 +103,7 @@ const collectStockData = async (
 	symbol: string,
 	code: string,
 	exchange: string,
+	language: string,
 	setCurrentAction: (action: string) => void,
 	setProgress: (progress: number) => void
 ): Promise<{ data: StockAnalysisData | null; error: string | null }> => {
@@ -161,7 +163,7 @@ const collectStockData = async (
 		return {
 			data: {
 				symbol,
-				language: 'CN',
+				language,
 				comprehensiveData,
 				technicalIndicatorsData,
 				historicalData,
@@ -379,7 +381,7 @@ const processStream = async (
  * @param exchange 交易所
  */
 const requestStreamAnalysis = async (
-	stockData: StockAnalysisData,
+	requestData: StockAnalysisData,
 	signal: AbortSignal,
 	callbacks: {
 		setThinking: (fn: (prev: string) => string) => void;
@@ -402,7 +404,7 @@ const requestStreamAnalysis = async (
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify(stockData),
+		body: JSON.stringify(requestData),
 		signal, // 添加abort signal以支持中止请求
 	});
 
@@ -453,6 +455,8 @@ export default function AIAssistantDialog({
 	const [currentAction, setCurrentAction] = useState('');
 	const hasReceivedContentRef = useRef<boolean>(false);
 	const hasReceivedThinkingRef = useRef<boolean>(false);
+
+	const { preference } = useProfile();
 
 	// 进度自动增长效果
 	useEffect(() => {
@@ -550,6 +554,7 @@ export default function AIAssistantDialog({
 				symbol,
 				code,
 				exchange,
+				preference?.language || 'CN',
 				setCurrentAction,
 				setProgress
 			);

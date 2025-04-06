@@ -70,9 +70,10 @@ export async function POST(req: NextRequest) {
 						: 'No historical data available';
 
 					// 准备主要指数历史数据字符串
-					const mainIndexesHistoricalDataString = mainIndexesHistoricalData
-						? mainIndexesHistoricalData
-						: 'No main indexes historical data available';
+					const mainIndexesHistoricalDataString =
+						mainIndexesHistoricalData
+							? mainIndexesHistoricalData
+							: 'No main indexes historical data available';
 
 					// 准备新闻数据字符串
 					const newsDataString = newsData
@@ -83,11 +84,11 @@ export async function POST(req: NextRequest) {
 					const userPrompt = `
 					${getSystemPrompt(language)}
 					${getProvideDataPrompt(
-						language, 
-						symbol, 
-						stockDataString, 
-						technicalDataString, 
-						historicalDataString, 
+						language,
+						symbol,
+						stockDataString,
+						technicalDataString,
+						historicalDataString,
 						mainIndexesHistoricalDataString,
 						newsDataString
 					)}
