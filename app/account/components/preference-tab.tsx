@@ -104,79 +104,79 @@ export function PreferenceTab() {
 	// 定义技术指标组
 	const technicalIndicatorGroups = [
 		{
-			title: 'Moving Averages',
+			title: t('movingAverages'),
 			indicators: [
-				{ key: 'sma' as const, name: 'Simple Moving Average (SMA)' },
+				{ key: 'sma' as const, name: t('sma') },
 				{
 					key: 'ema' as const,
-					name: 'Exponential Moving Average (EMA)',
+					name: t('ema'),
 				},
-				{ key: 'wma' as const, name: 'Weighted Moving Average (WMA)' },
+				{ key: 'wma' as const, name: t('wma') },
 			],
 		},
 		{
-			title: 'Oscillators',
+			title: t('oscillators'),
 			indicators: [
-				{ key: 'rsi' as const, name: 'Relative Strength Index (RSI)' },
+				{ key: 'rsi' as const, name: t('rsi') },
 				{
 					key: 'macd' as const,
-					name: 'Moving Average Convergence Divergence (MACD)',
+					name: t('macd'),
 				},
-				{ key: 'stochastic' as const, name: 'Stochastic Oscillator' },
+				{ key: 'stochastic' as const, name: t('stochastic') },
 				{
 					key: 'stochasticRSI' as const,
-					name: 'Stochastic RSI',
+					name: t('stochasticRSI'),
 				},
-				{ key: 'cci' as const, name: 'Commodity Channel Index (CCI)' },
+				{ key: 'cci' as const, name: t('cci') },
 			],
 		},
 		{
-			title: 'Volatility Indicators',
+			title: t('volatilityIndicators'),
 			indicators: [
 				{
 					key: 'bollingerBands' as const,
-					name: 'Bollinger Bands',
+					name: t('bollingerBands'),
 				},
-				{ key: 'atr' as const, name: 'Average True Range (ATR)' },
-				{ key: 'volatility' as const, name: 'Volatility' },
-				{ key: 'stdDev' as const, name: 'Standard Deviation' },
+				{ key: 'atr' as const, name: t('atr') },
+				{ key: 'volatility' as const, name: t('volatility') },
+				{ key: 'stdDev' as const, name: t('stdDev') },
 			],
 		},
 		{
-			title: 'Trend Indicators',
+			title: t('trendIndicators'),
 			indicators: [
 				{
 					key: 'adx' as const,
-					name: 'Average Directional Index (ADX)',
+					name: t('adx'),
 				},
 				{
 					key: 'dmi' as const,
-					name: 'Directional Movement Index (DMI)',
+					name: t('dmi'),
 				},
-				{ key: 'slope' as const, name: 'Linear Regression Slope' },
+				{ key: 'slope' as const, name: t('slope') },
 				{
 					key: 'sar' as const,
-					name: 'Parabolic Stop and Reverse (SAR)',
+					name: t('sar'),
 				},
 			],
 		},
 		{
-			title: 'Volume Indicators',
+			title: t('volumeIndicators'),
 			indicators: [
-				{ key: 'averageVolume' as const, name: 'Average Volume' },
+				{ key: 'averageVolume' as const, name: t('averageVolume') },
 				{
 					key: 'averageVolumeByPrice' as const,
-					name: 'Volume by Price',
+					name: t('averageVolumeByPrice'),
 				},
 			],
 		},
 		{
-			title: 'Other',
+			title: t('otherIndicators'),
 			indicators: [
-				{ key: 'beta' as const, name: 'Beta' },
+				{ key: 'beta' as const, name: t('beta') },
 				{
 					key: 'splitAdjusted' as const,
-					name: 'Split Adjusted Prices',
+					name: t('splitAdjusted'),
 				},
 			],
 		},
@@ -243,8 +243,8 @@ export function PreferenceTab() {
 									/>
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value='EN'>English</SelectItem>
-									<SelectItem value='CN'>中文</SelectItem>
+									<SelectItem value='EN'>{t('english')}</SelectItem>
+									<SelectItem value='CN'>{t('chinese')}</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
