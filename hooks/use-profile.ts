@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { isEqual } from 'lodash';
-import { useRouter } from 'next/navigation';
 
 import {
 	getCurrentUserProfile,
@@ -30,7 +29,6 @@ export function useProfile() {
 	});
 	const [isFormChanged, setIsFormChanged] = useState(false);
 
-	const router = useRouter();
 	const { toast } = useToast();
 
 	// 使用 React Query 获取用户资料
@@ -44,11 +42,7 @@ export function useProfile() {
 		queryFn: async () => {
 			try {
 				const data = await getCurrentUserProfile();
-				if (!data) {
-					// 未登录或出错
-					router.push('/sign-in');
-					return null;
-				}
+				// 如果未登录或出错，返回 null 而不是重定向
 				return data;
 			} catch (error) {
 				console.error('Error loading profile:', error);
