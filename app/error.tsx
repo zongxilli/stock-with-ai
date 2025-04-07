@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 
@@ -14,8 +13,6 @@ export default function GlobalError({
 	error: Error & { digest?: string };
 	reset: () => void;
 }) {
-	const router = useRouter();
-
 	useEffect(() => {
 		// 在这里记录错误到服务端日志
 		console.error('全局错误:', error);
@@ -47,7 +44,7 @@ export default function GlobalError({
 
 			<div className='flex flex-wrap gap-4'>
 				<Button
-					onClick={() => router.push('/')}
+					onClick={() => (window.location.href = '/')}
 					variant='outline'
 					size='lg'
 				>
