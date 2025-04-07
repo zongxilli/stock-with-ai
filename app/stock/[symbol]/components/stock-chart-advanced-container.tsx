@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 import StockChartAdvanced from './stock-chart-advanced';
 
-import { HistoricalDataPoint } from '@/app/actions/eodhd/get-historical-data';
 import { getHistoricalDataByRange } from '@/app/actions/eodhd/get-historical-data-by-range';
 import { formatHistoricalDataForChart } from '@/app/actions/eodhd/utils/format';
 
@@ -25,9 +24,6 @@ export default function StockChartAdvancedContainer({
 }: StockChartAdvancedContainerProps) {
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
-	const [historicalData, setHistoricalData] = useState<
-		HistoricalDataPoint[] | null
-	>(null);
 	const [chartData, setChartData] = useState<{
 		candlestickData: any[];
 		volumeData: any[];
@@ -48,8 +44,6 @@ export default function StockChartAdvancedContainer({
 					end
 				);
 
-				// 将获取的数据保存到状态中
-				setHistoricalData(data);
 				const formattedData = formatHistoricalDataForChart(data);
 				setChartData(formattedData);
 			} catch (err) {
