@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
@@ -542,6 +542,40 @@ export default function StockPage() {
 	const code = searchParams.get('code');
 	const exchange = searchParams.get('exchange');
 
+	const renderChart = useCallback(() => {
+		if (advancedView) {
+			return (
+				<StockChartAdvancedContainer
+					start='2024-04-06'
+					end='2025-04-06'
+					code={code || ''}
+					exchange={exchange || ''}
+					className='mb-4'
+				/>
+			);
+		}
+		return (
+			<ChartContainer
+				chartData={chartData}
+				chartLoading={chartLoading}
+				error={error}
+				range={range}
+				isChartUpdating={isChartUpdating}
+				realTimeData={realTimeData}
+			/>
+		);
+	}, [
+		advancedView,
+		code,
+		exchange,
+		chartData,
+		chartLoading,
+		error,
+		range,
+		isChartUpdating,
+		realTimeData,
+	]);
+
 	return (
 		<div className='w-full px-6 py-8'>
 			{/* 股票头部信息 */}
@@ -566,22 +600,7 @@ export default function StockPage() {
 			</div>
 
 			{/* 图表区域 */}
-			<ChartContainer
-				chartData={chartData}
-				chartLoading={chartLoading}
-				error={error}
-				range={range}
-				isChartUpdating={isChartUpdating}
-				realTimeData={realTimeData}
-			/>
-
-			<StockChartAdvancedContainer
-				start='2024-04-06'
-				end='2025-04-06'
-				code={code || ''}
-				exchange={exchange || ''}
-				className='mb-4'
-			/>
+			{renderChart()}
 
 			{/* AI Assistant Dialog */}
 			<AIAssistantDialog
