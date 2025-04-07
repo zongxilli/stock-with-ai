@@ -36,7 +36,7 @@ export async function buildIndicatorRequest(
 		period: period.toString(),
 		from: formatDate(startDate),
 		to: formatDate(endDate),
-		order: 'd', // 降序排列（从新到旧）
+		order: 'a', // 升序排列（从旧到新）
 	});
 
 	// 添加额外参数

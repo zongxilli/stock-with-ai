@@ -68,9 +68,9 @@ export function formatHistoricalDataForChart(
 
 /**
  * 将拆分调整数据格式化为图表组件需要的格式
- * 
+ *
  * 拆分调整数据的价格已经是调整后的价格，不需要再进行调整计算
- * 
+ *
  * @param splitAdjustedData API获取的拆分调整数据
  * @param upColor 上涨柱状图颜色
  * @param downColor 下跌柱状图颜色
@@ -82,12 +82,12 @@ export function formatSplitAdjustedDataForChart(
 	downColor: string = DEFAULT_DOWN_COLOR // 默认下跌颜色
 ): ChartData {
 	// 确保数据按日期升序排列（从旧到新）
-	const sortedData = [...splitAdjustedData].sort(
-		(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-	);
+	// const sortedData = [...splitAdjustedData].sort(
+	// 	(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+	// );
 
 	// 格式化K线数据 - 直接使用已调整的价格
-	const candlestickData: ChartDataPoint[] = sortedData.map((point) => {
+	const candlestickData: ChartDataPoint[] = splitAdjustedData.map((point) => {
 		return {
 			time: point.date,
 			open: parseFloat(point.open.toFixed(2)),
@@ -99,7 +99,7 @@ export function formatSplitAdjustedDataForChart(
 	});
 
 	// 格式化成交量数据并根据当天价格涨跌设置颜色
-	const volumeData: VolumeDataPoint[] = sortedData.map((point) => {
+	const volumeData: VolumeDataPoint[] = splitAdjustedData.map((point) => {
 		// 判断当天是上涨还是下跌
 		const isUp = point.close >= point.open;
 

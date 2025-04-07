@@ -23,6 +23,8 @@ interface StockChartAdvancedProps {
 	candlestickData?: ChartDataPoint[];
 	volumeData?: VolumeDataPoint[];
 	height?: number; // 调整为仅接受数字高度
+	fromDate?: string; // 新增：起始日期 'YYYY-MM-DD'
+	toDate?: string; // 新增：结束日期 'YYYY-MM-DD'
 }
 
 const StockChartAdvanced = ({
@@ -30,6 +32,8 @@ const StockChartAdvanced = ({
 	candlestickData,
 	volumeData,
 	height = 400, // 默认高度为400px
+	fromDate,
+	toDate,
 }: StockChartAdvancedProps) => {
 	const chartContainerRef = useRef<HTMLDivElement>(null);
 	const { theme } = useTheme();
@@ -141,36 +145,44 @@ const StockChartAdvanced = ({
 		// 处理成交量数据
 		volumeSeries.setData(volumeData!);
 
-		// 显示最近90天的数据
+		// 显示指定日期范围的数据，或默认显示最近90天
 		if (candlestickData.length > 0) {
 			// 获取最新的数据点
 			const lastIndex = candlestickData.length - 1;
 			const mostRecentDataPoint = candlestickData[lastIndex];
 
-			// 从最新日期计算90天前的日期
-			const lastDateParts = mostRecentDataPoint.time
-				.split('-')
-				.map(Number);
-			const lastDate = new Date(
-				lastDateParts[0],
-				lastDateParts[1] - 1,
-				lastDateParts[2]
-			);
+			// 使用提供的日期范围或计算默认范围
+			let fromDateStr = fromDate;
+			let toDateStr = toDate || mostRecentDataPoint.time;
 
-			// 计算默认的回溯日期
-			const ninetyDaysAgo = new Date(lastDate);
-			let defaultGoBackDate = 90;
-			if (preference?.chart.period === 'w') defaultGoBackDate *= 7;
-			if (preference?.chart.period === 'm') defaultGoBackDate *= 30;
+			// 如果未提供起始日期，计算默认起始日期
+			if (!fromDateStr) {
+				const lastDateParts = mostRecentDataPoint.time
+					.split('-')
+					.map(Number);
+				const lastDate = new Date(
+					lastDateParts[0],
+					lastDateParts[1] - 1,
+					lastDateParts[2]
+				);
 
-			ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - defaultGoBackDate);
-			// 转换为YYYY-MM-DD格式的字符串
-			const ninetyDaysAgoStr = ninetyDaysAgo.toISOString().split('T')[0];
+				// 计算默认的回溯日期
+				const ninetyDaysAgo = new Date(lastDate);
+				let defaultGoBackDate = 90;
+				if (preference?.chart.period === 'w') defaultGoBackDate *= 7;
+				if (preference?.chart.period === 'm') defaultGoBackDate *= 30;
+
+				ninetyDaysAgo.setDate(
+					ninetyDaysAgo.getDate() - defaultGoBackDate
+				);
+				// 转换为YYYY-MM-DD格式的字符串
+				fromDateStr = ninetyDaysAgo.toISOString().split('T')[0];
+			}
 
 			// 使用setVisibleRange设置可见范围
 			chart.timeScale().setVisibleRange({
-				from: ninetyDaysAgoStr,
-				to: mostRecentDataPoint.time,
+				from: fromDateStr,
+				to: toDateStr,
 			});
 		} else {
 			// 如果没有足够的数据，则显示所有可用数据
@@ -193,7 +205,7 @@ const StockChartAdvanced = ({
 			window.removeEventListener('resize', handleResize);
 			chart.remove();
 		};
-	}, [candlestickData, volumeData, themeColors, height]);
+	}, [candlestickData, volumeData, themeColors, height, fromDate, toDate]);
 
 	return (
 		<div
