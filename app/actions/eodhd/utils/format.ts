@@ -23,6 +23,8 @@ export function formatHistoricalDataForChart(
 	upColor: string = DEFAULT_UP_COLOR, // 默认上涨颜色
 	downColor: string = DEFAULT_DOWN_COLOR // 默认下跌颜色
 ): ChartData {
+	console.log(historicalData);
+
 	// 确保数据按日期升序排列（从旧到新）
 	const sortedData = [...historicalData].sort(
 		(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()

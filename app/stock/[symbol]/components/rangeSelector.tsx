@@ -49,6 +49,12 @@ export default function RangeSelector({
 		{ label: 'MAX', value: 'max' }, // 新增MAX选项，显示全部历史数据
 	];
 
+	const periods: { label: string; value: 'd' | 'w' | 'm' }[] = [
+		{ label: '1D', value: 'd' },
+		{ label: '1W', value: 'w' },
+		{ label: '1M', value: 'm' },
+	];
+
 	// 使用客户端路由而不是Link组件，以便于保持滚动位置
 	const handleRangeChange = useCallback(
 		(rangeValue: string) => {
@@ -86,8 +92,10 @@ export default function RangeSelector({
 		[onChartHeightModeChange]
 	);
 
-	return (
-		<div className='flex flex-wrap items-center justify-between gap-2'>
+	const renderRangeSelectors = useCallback(() => {
+		if (preference?.advancedView) return null;
+
+		return (
 			<div className='flex flex-wrap gap-2'>
 				{ranges.map((range) => (
 					<button
@@ -108,7 +116,66 @@ export default function RangeSelector({
 					</button>
 				))}
 			</div>
+		);
+	}, [
+		handleRangeChange,
+		preference?.advancedView,
+		currentRange,
+		isLoading,
+		ranges,
+	]);
 
+	const updatePreferencePeriod = useCallback(
+		(period: 'd' | 'w' | 'm') => {
+			if (!preference) return;
+
+			updatePreference({
+				chart: {
+					...preference.chart,
+					period,
+				},
+			});
+		},
+		[updatePreference, preference?.chart]
+	);
+
+	const renderPeriodSelectors = useCallback(() => {
+		if (!preference?.advancedView) return null;
+
+		return (
+			<div className='flex flex-wrap gap-2'>
+				{periods.map((period) => (
+					<button
+						key={period.value}
+						onClick={() => updatePreferencePeriod(period.value)}
+						disabled={isLoading} // 当正在加载时禁用所有按钮
+						className={cn(
+							'px-3 py-1 rounded-md text-sm font-medium transition-colors',
+							preference?.chart.period === period.value
+								? isLoading
+									? 'bg-primary/70 text-primary-foreground animate-pulse' // 当前正在加载的范围
+									: 'bg-primary text-primary-foreground' // 当前选中的范围
+								: 'bg-secondary hover:bg-secondary/80 text-secondary-foreground', // 未选中的范围
+							isLoading && 'cursor-not-allowed opacity-70' // 加载中时降低所有按钮的不透明度
+						)}
+					>
+						{period.label}
+					</button>
+				))}
+			</div>
+		);
+	}, [
+		handleRangeChange,
+		currentRange,
+		isLoading,
+		periods,
+		preference?.advancedView,
+	]);
+
+	return (
+		<div className='flex flex-wrap items-center justify-between gap-2'>
+			{renderRangeSelectors()}
+			{renderPeriodSelectors()}
 			<div className='flex items-center gap-2'>
 				{/* 当在高级视图模式下，显示图表高度模式切换按钮 */}
 				{preference?.advancedView && (

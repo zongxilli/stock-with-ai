@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 import StockChartAdvanced from './stock-chart-advanced';
 
-import { getHistoricalDataByRange } from '@/app/actions/eodhd/get-historical-data-by-range';
+import { getHistoricalDataByPeriod } from '@/app/actions/eodhd/get-historical-data-by-period';
 import { formatHistoricalDataForChart } from '@/app/actions/eodhd/utils/format';
 import { ChartHeightMode } from '@/app/types/stock-page/chart-advanced';
 import { useProfile } from '@/hooks/use-profile';
@@ -43,11 +43,12 @@ export default function StockChartAdvancedContainer({
 
 			try {
 				// 调用 server action 获取数据
-				const data = await getHistoricalDataByRange(
+				const data = await getHistoricalDataByPeriod(
 					code,
 					exchange,
 					start,
-					end
+					end,
+					preference?.chart.period
 				);
 
 				const formattedData = formatHistoricalDataForChart(
@@ -72,10 +73,13 @@ export default function StockChartAdvancedContainer({
 		exchange,
 		preference?.chart.upColor,
 		preference?.chart.downColor,
+		preference?.chart.period,
 	]); // 当这些属性变化时重新获取数据
 
 	return (
-		<div className={`w-full rounded-lg border p-6 bg-card shadow-sm relative ${className || ''}`}>
+		<div
+			className={`w-full rounded-lg border p-6 bg-card shadow-sm relative ${className || ''}`}
+		>
 			{isLoading && (
 				<div className='h-full w-full flex items-center justify-center min-h-[400px]'>
 					<div className='animate-pulse text-muted-foreground'>

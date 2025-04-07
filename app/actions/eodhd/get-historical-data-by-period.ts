@@ -16,18 +16,19 @@ import { getCache, setCache } from '@/lib/redis';
  * @param minimal 是否只返回简化数据 (默认为true)
  * @returns 历史数据点数组，按日期排序（从最旧到最新）
  */
-export async function getHistoricalDataByRange(
+export async function getHistoricalDataByPeriod(
 	code: string,
 	exchange: string,
 	startDate: string,
-	endDate: string
+	endDate: string,
+	period: 'd' | 'w' | 'm' = 'd'
 ): Promise<HistoricalDataPoint[]> {
 	try {
 		// 构建完整的股票标识符（格式：CODE.EXCHANGE）
 		const symbol = `${code}.${exchange}`;
 
 		// 尝试从Redis缓存获取数据
-		const cacheKey = `eodhd_historical_range:${symbol}:${startDate}_${endDate}`;
+		const cacheKey = `eodhd_historical_range:${symbol}:${startDate}_${endDate}_${period}`;
 		const cachedData = await getCache(cacheKey);
 		if (cachedData) {
 			return cachedData;
@@ -43,7 +44,7 @@ export async function getHistoricalDataByRange(
 		const params = new URLSearchParams({
 			api_token: apiKey,
 			fmt: 'json',
-			period: 'd', // 使用日数据
+			period: period,
 			order: 'a', // 升序排列（从旧到新）
 			from: startDate,
 			to: endDate,
