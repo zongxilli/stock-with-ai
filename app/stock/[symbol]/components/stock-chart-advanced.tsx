@@ -96,12 +96,15 @@ const StockChartAdvanced = ({
 				visible: true, // 显示左侧价格轴
 			},
 			grid: {
-				// 移除所有网格线
+				// 修改网格线设置
 				vertLines: {
 					visible: false,
 				},
 				horzLines: {
-					visible: false,
+					visible: true, // 显示水平线
+					color: isDarkMode
+						? 'rgba(255, 255, 255, 0.05)'
+						: 'rgba(0, 0, 0, 0.05)', // 设置水平线低透明度
 				},
 			},
 		};
@@ -114,7 +117,7 @@ const StockChartAdvanced = ({
 
 		// 应用K线样式选项 - 上涨K线为空心（只有边框）
 		candlestickSeries.applyOptions({
-			upColor: 'rgba(0, 0, 0, 0)', // 将上涨蜡烛填充设为透明
+			upColor: themeColors.upColor, // 将上涨蜡烛填充设为透明
 			downColor: themeColors.downColor, // 下跌蜡烛保持实心红色
 			borderVisible: true, // 显示边框
 			borderUpColor: themeColors.upColor, // 上涨蜡烛边框为绿色
@@ -147,6 +150,12 @@ const StockChartAdvanced = ({
 				top: 0.85, // 最高点距离顶部85%
 				bottom: 0, // 最低点在最底部
 			},
+		});
+
+		// 关闭成交量区域的网格线
+		volumeSeries.applyOptions({
+			lastValueVisible: false, // 不显示最后一个值
+			priceLineVisible: false, // 关闭成交量价格线
 		});
 
 		// 设置K线数据
