@@ -48,8 +48,6 @@ export default function StockChartAdvancedContainer({
 					end
 				);
 
-				console.log('EODHD 历史数据获取成功:', data);
-
 				// 将获取的数据保存到状态中
 				setHistoricalData(data);
 				const formattedData = formatHistoricalDataForChart(data);

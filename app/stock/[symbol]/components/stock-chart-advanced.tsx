@@ -126,27 +126,8 @@ const StockChartAdvanced = ({
 		candlestickSeries.setData(candlestickData);
 
 		// 处理成交量数据
-		if (volumeData) {
-			// 直接使用传入的成交量数据
-			volumeSeries.setData(volumeData);
-		} else {
-			// 根据K线数据生成成交量数据
-			const generatedVolumeData = candlestickData.map((item) => {
-				// 判断当天是上涨还是下跌
-				const isUp = item.close >= item.open;
-
-				return {
-					time: item.time,
-					value: item.volume,
-					color: isUp
-						? themeColors.upColor
-						: themeColors.downColor,
-				};
-			});
-
-			// 设置成交量数据
-			volumeSeries.setData(generatedVolumeData);
-		}
+		// 直接使用传入的成交量数据
+		volumeSeries.setData(volumeData!);
 
 		// 调整图表以适应所有数据
 		chart.timeScale().fitContent();
