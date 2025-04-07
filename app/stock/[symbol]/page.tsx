@@ -572,8 +572,8 @@ export default function StockPage() {
 			/>
 
 			<StockChartAdvancedContainer
-				start='2021-01-01'
-				end='2021-12-31'
+				start='2024-04-06'
+				end='2025-04-06'
 				code={code || ''}
 				exchange={exchange || ''}
 				className='mb-4'
