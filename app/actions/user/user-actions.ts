@@ -114,6 +114,19 @@ export async function updateUserPreference(preference: Partial<UserPreference>) 
 			};
 		}
 
+		// 如果更新了图表偏好，确保合并而不是替换
+		if (preference.chart && currentUser.preference.chart) {
+			updatedPreference.chart = {
+				...currentUser.preference.chart,
+				...preference.chart
+			};
+		}
+
+		// advancedView 是布尔值，直接使用新值或保留原值
+		if (preference.advancedView !== undefined) {
+			updatedPreference.advancedView = preference.advancedView;
+		}
+
 		// 更新用户偏好
 		const updatedUser = await userService.updateUser(user.id, {
 			preference: updatedPreference,
@@ -128,6 +141,8 @@ export async function updateUserPreference(preference: Partial<UserPreference>) 
 
 		// 重新验证个人资料页面
 		revalidatePath('/account');
+		// 重新验证股票页面
+		revalidatePath('/stock/[symbol]', 'page');
 
 		return { success: true, message: '偏好设置已更新' };
 	} catch (error) {

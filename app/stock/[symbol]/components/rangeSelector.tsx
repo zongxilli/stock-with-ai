@@ -6,6 +6,7 @@ import { ChartCandlestick } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Toggle } from '@/components/ui/toggle';
+import { useProfile } from '@/hooks/use-profile';
 import { cn } from '@/lib/utils';
 
 interface RangeSelectorProps {
@@ -13,8 +14,6 @@ interface RangeSelectorProps {
 	symbol: string;
 	isLoading?: boolean; // 新增：加载状态属性
 	exchangeName?: string; // 新增：交易所名称
-	advancedView: boolean;
-	setAdvancedView: (advancedView: boolean) => void;
 }
 
 export default function RangeSelector({
@@ -22,11 +21,10 @@ export default function RangeSelector({
 	symbol,
 	isLoading = false, // 默认为false
 	exchangeName = '', // 默认为空字符串
-	advancedView,
-	setAdvancedView,
 }: RangeSelectorProps) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const { preference, updatePreference } = useProfile();
 
 	// 判断是否为美股市场
 	const isUSMarket =
@@ -95,8 +93,12 @@ export default function RangeSelector({
 			</div>
 			<div className='flex items-center gap-2'>
 				<Toggle
-					pressed={advancedView}
-					onPressedChange={setAdvancedView}
+					pressed={preference?.advancedView || false}
+					onPressedChange={() =>
+						updatePreference({
+							advancedView: !preference?.advancedView,
+						})
+					}
 					disabled={isLoading}
 					aria-label='Switch to advanced view'
 				>
