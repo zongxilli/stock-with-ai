@@ -25,6 +25,7 @@ interface StockChartAdvancedProps {
 	height?: number; // 调整为仅接受数字高度
 	fromDate?: string; // 新增：起始日期 'YYYY-MM-DD'
 	toDate?: string; // 新增：结束日期 'YYYY-MM-DD'
+	realtimeCandle?: ChartDataPoint; // 新增：实时蜡烛图数据
 }
 
 const StockChartAdvanced = ({
@@ -34,6 +35,7 @@ const StockChartAdvanced = ({
 	height = 400, // 默认高度为400px
 	fromDate,
 	toDate,
+	realtimeCandle,
 }: StockChartAdvancedProps) => {
 	const chartContainerRef = useRef<HTMLDivElement>(null);
 	const { theme } = useTheme();
@@ -85,6 +87,7 @@ const StockChartAdvanced = ({
 			timeScale: {
 				timeVisible: true,
 				secondsVisible: false,
+				rightOffset: 2, // 为实时数据留出空间
 			},
 			grid: {
 				// 移除所有网格线
@@ -189,6 +192,29 @@ const StockChartAdvanced = ({
 			chart.timeScale().fitContent();
 		}
 
+		// 实时数据更新处理
+		if (realtimeCandle) {
+			// 如果有实时数据，添加到现有数据中
+			candlestickSeries.update(realtimeCandle);
+
+			// 更新成交量数据
+			if (realtimeCandle.volume) {
+				const volumeColor =
+					realtimeCandle.close >= realtimeCandle.open
+						? themeColors.upColor
+						: themeColors.downColor;
+
+				volumeSeries.update({
+					time: realtimeCandle.time,
+					value: realtimeCandle.volume,
+					color: volumeColor,
+				});
+			}
+
+			// 自动滚动到最新数据
+			chart.timeScale().scrollToRealTime();
+		}
+
 		// 处理窗口大小变化，使图表响应式
 		const handleResize = () => {
 			if (chartContainerRef.current) {
@@ -205,7 +231,15 @@ const StockChartAdvanced = ({
 			window.removeEventListener('resize', handleResize);
 			chart.remove();
 		};
-	}, [candlestickData, volumeData, themeColors, height, fromDate, toDate]);
+	}, [
+		candlestickData,
+		volumeData,
+		themeColors,
+		height,
+		fromDate,
+		toDate,
+		realtimeCandle,
+	]);
 
 	return (
 		<div
