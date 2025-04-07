@@ -4,11 +4,13 @@ import {
 	ChartData,
 	ChartDataPoint,
 	VolumeDataPoint,
+	DEFAULT_UP_COLOR,
+	DEFAULT_DOWN_COLOR,
 } from '@/app/types/stock-page/chart-advanced';
 
 /**
  * 将API获取的历史数据格式化为图表组件需要的格式
- *
+
  * 根据调整后收盘价计算调整比率，并对所有价格数据进行调整
  *
  * @param historicalData API获取的历史数据
@@ -18,8 +20,8 @@ import {
  */
 export function formatHistoricalDataForChart(
 	historicalData: HistoricalDataPoint[],
-	upColor: string = '#26a69a', // 默认上涨颜色
-	downColor: string = '#ef5350' // 默认下跌颜色
+	upColor: string = DEFAULT_UP_COLOR, // 默认上涨颜色
+	downColor: string = DEFAULT_DOWN_COLOR // 默认下跌颜色
 ): ChartData {
 	// 确保数据按日期升序排列（从旧到新）
 	const sortedData = [...historicalData].sort(

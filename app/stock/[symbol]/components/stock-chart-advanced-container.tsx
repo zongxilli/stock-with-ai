@@ -6,6 +6,7 @@ import StockChartAdvanced from './stock-chart-advanced';
 
 import { getHistoricalDataByRange } from '@/app/actions/eodhd/get-historical-data-by-range';
 import { formatHistoricalDataForChart } from '@/app/actions/eodhd/utils/format';
+import { useProfile } from '@/hooks/use-profile';
 
 interface StockChartAdvancedContainerProps {
 	start: string; // 开始日期，格式如 'YYYY-MM-DD'
@@ -22,6 +23,8 @@ export default function StockChartAdvancedContainer({
 	exchange,
 	className,
 }: StockChartAdvancedContainerProps) {
+	const { preference } = useProfile();
+
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
 	const [chartData, setChartData] = useState<{
@@ -44,7 +47,11 @@ export default function StockChartAdvancedContainer({
 					end
 				);
 
-				const formattedData = formatHistoricalDataForChart(data);
+				const formattedData = formatHistoricalDataForChart(
+					data,
+					preference?.chart.upColor,
+					preference?.chart.downColor
+				);
 				setChartData(formattedData);
 			} catch (err) {
 				console.error('获取历史数据时出错:', err);
@@ -55,7 +62,14 @@ export default function StockChartAdvancedContainer({
 		};
 
 		fetchHistoricalData();
-	}, [start, end, code, exchange]); // 当这些属性变化时重新获取数据
+	}, [
+		start,
+		end,
+		code,
+		exchange,
+		preference?.chart.upColor,
+		preference?.chart.downColor,
+	]); // 当这些属性变化时重新获取数据
 
 	return (
 		<div

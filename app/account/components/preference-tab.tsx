@@ -6,6 +6,10 @@ import { Undo2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 
+import {
+	DEFAULT_DOWN_COLOR,
+	DEFAULT_UP_COLOR,
+} from '@/app/types/stock-page/chart-advanced';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -137,7 +141,7 @@ export function PreferenceTab() {
 	// 重置上涨颜色输入
 	const handleUpColorReset = () => {
 		if (preference?.chart) {
-			setUpColorInput(preference.chart.upColor || '');
+			setUpColorInput(DEFAULT_UP_COLOR);
 		}
 	};
 
@@ -173,7 +177,7 @@ export function PreferenceTab() {
 	// 重置下跌颜色输入
 	const handleDownColorReset = () => {
 		if (preference?.chart) {
-			setDownColorInput(preference.chart.downColor || '');
+			setDownColorInput(DEFAULT_DOWN_COLOR);
 		}
 	};
 
@@ -419,14 +423,14 @@ export function PreferenceTab() {
 										>
 											{t('upColor')}
 										</Label>
-										{upColorInput !==
-											preference.chart.upColor && (
+										{upColorInput !== DEFAULT_UP_COLOR && (
 											<Badge
 												variant='outline'
 												className='h-5 px-1.5 text-[10px] cursor-pointer hover:bg-muted/80 flex items-center gap-1'
 												onClick={handleUpColorReset}
 											>
 												<Undo2 className='h-3 w-3' />
+												{t('revert')}
 											</Badge>
 										)}
 									</div>
@@ -479,13 +483,14 @@ export function PreferenceTab() {
 											{t('downColor')}
 										</Label>
 										{downColorInput !==
-											preference.chart.downColor && (
+											DEFAULT_DOWN_COLOR && (
 											<Badge
 												variant='outline'
 												className='h-5 px-1.5 text-[10px] cursor-pointer hover:bg-muted/80 flex items-center gap-1'
 												onClick={handleDownColorReset}
 											>
 												<Undo2 className='h-3 w-3' />
+												{t('revert')}
 											</Badge>
 										)}
 									</div>

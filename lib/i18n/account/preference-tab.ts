@@ -35,6 +35,7 @@ export const preferenceTabEN = {
 	confirm: 'Confirm',
 	reset: 'Reset',
 	save: 'Save',
+	revert: 'Revert to Default',
 	modified: 'Modified',
 
 	// 技术指标组
@@ -114,6 +115,7 @@ export const preferenceTabCN = {
 	confirm: '确认',
 	reset: '重置',
 	save: '保存',
+	revert: '还原到默认',
 	modified: '已修改',
 
 	// 技术指标组

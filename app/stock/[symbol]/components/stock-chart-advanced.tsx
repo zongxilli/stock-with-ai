@@ -13,7 +13,10 @@ import { useTheme } from 'next-themes';
 import {
 	ChartDataPoint,
 	VolumeDataPoint,
+	DEFAULT_UP_COLOR,
+	DEFAULT_DOWN_COLOR,
 } from '@/app/types/stock-page/chart-advanced';
+import { useProfile } from '@/hooks/use-profile';
 
 interface StockChartAdvancedProps {
 	className?: string;
@@ -29,12 +32,13 @@ const StockChartAdvanced = ({
 	const chartContainerRef = useRef<HTMLDivElement>(null);
 	const { theme } = useTheme();
 	const isDarkMode = theme === 'dark';
+	const { preference } = useProfile();
 
 	// 获取当前主题
 	const themeColors = useMemo(() => {
 		// 定义上涨和下跌的颜色
-		const upColorValue = '#26a69a'; // 上涨保持绿色
-		const downColorValue = '#ef5350'; // 下跌保持红色
+		const upColorValue = preference?.chart.upColor || DEFAULT_UP_COLOR; // 上涨保持绿色
+		const downColorValue = preference?.chart.downColor || DEFAULT_DOWN_COLOR; // 下跌保持红色
 
 		return {
 			textColor: isDarkMode
@@ -44,7 +48,7 @@ const StockChartAdvanced = ({
 			upColor: upColorValue,
 			downColor: downColorValue,
 		};
-	}, [isDarkMode]);
+	}, [isDarkMode, preference?.chart.upColor, preference?.chart.downColor]);
 
 	useEffect(() => {
 		// 如果没有数据或DOM元素不存在，则不渲染图表

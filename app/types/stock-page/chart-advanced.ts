@@ -29,3 +29,6 @@ export interface ChartData {
 	candlestickData: ChartDataPoint[]; // K线数据
 	volumeData: VolumeDataPoint[]; // 成交量数据
 }
+
+export const DEFAULT_UP_COLOR = '#26a69a';
+export const DEFAULT_DOWN_COLOR = '#ef5350';
