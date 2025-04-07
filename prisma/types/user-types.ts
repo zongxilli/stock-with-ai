@@ -1,6 +1,12 @@
 export type UserPreference = {
 	theme: 'light' | 'dark';
 	language: 'EN' | 'CN';
+	advancedView: boolean;
+	chart: {
+		upColor: string;
+		downColor: string;
+		period: 'd' | 'w' | 'm';
+	};
 	technicalIndicators: {
 		ema: boolean;
 		sma: boolean;
