@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 
+import { Undo2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -124,7 +126,6 @@ export function PreferenceTab() {
 			// 更新本地输入值为规范化的颜色
 			setUpColorInput(normalizedColor);
 		} catch (error) {
-			console.error('update chart up color error:', error);
 			toast({
 				title: t('error'),
 				description: t('failedToUpdateChart'),
@@ -161,7 +162,6 @@ export function PreferenceTab() {
 			// 更新本地输入值为规范化的颜色
 			setDownColorInput(normalizedColor);
 		} catch (error) {
-			console.error('update chart down color error:', error);
 			toast({
 				title: t('error'),
 				description: t('failedToUpdateChart'),
@@ -412,13 +412,25 @@ export function PreferenceTab() {
 							<div className='space-y-4'>
 								{/* 上涨颜色 */}
 								<div>
-									<Label
-										htmlFor='up-color'
-										className='font-medium'
-									>
-										{t('upColor')}
-									</Label>
-									<p className='text-muted-foreground text-sm mt-1 mb-2'>
+									<div className='flex items-center gap-2 mb-1 h-8'>
+										<Label
+											htmlFor='up-color'
+											className='font-medium'
+										>
+											{t('upColor')}
+										</Label>
+										{upColorInput !==
+											preference.chart.upColor && (
+											<Badge
+												variant='outline'
+												className='h-5 px-1.5 text-[10px] cursor-pointer hover:bg-muted/80 flex items-center gap-1'
+												onClick={handleUpColorReset}
+											>
+												<Undo2 className='h-3 w-3' />
+											</Badge>
+										)}
+									</div>
+									<p className='text-muted-foreground text-sm mb-2'>
 										{t('upColorDescription')}
 									</p>
 									<div className='flex items-center space-x-2'>
@@ -438,46 +450,46 @@ export function PreferenceTab() {
 											onChange={(e) =>
 												setUpColorInput(e.target.value)
 											}
-											disabled={isUpdatingPreference}
 											className='w-32'
 										/>
-										<Button
-											size='sm'
-											variant={
-												upColorInput ===
-												preference.chart.upColor
-													? 'outline'
-													: 'default'
-											}
-											onClick={
-												upColorInput ===
-												preference.chart.upColor
-													? handleUpColorReset
-													: handleUpColorConfirm
-											}
-											disabled={
-												isUpdatingPreference ||
-												upColorInput ===
-													preference.chart.upColor
-											}
-										>
-											{upColorInput ===
-											preference.chart.upColor
-												? t('reset')
-												: t('confirm')}
-										</Button>
+										{upColorInput !==
+											preference.chart.upColor && (
+											<Button
+												size='sm'
+												onClick={handleUpColorConfirm}
+												disabled={
+													isUpdatingPreference ||
+													upColorInput ===
+														preference.chart.upColor
+												}
+											>
+												{t('save')}
+											</Button>
+										)}
 									</div>
 								</div>
 
 								{/* 下跌颜色 */}
 								<div>
-									<Label
-										htmlFor='down-color'
-										className='font-medium'
-									>
-										{t('downColor')}
-									</Label>
-									<p className='text-muted-foreground text-sm mt-1 mb-2'>
+									<div className='flex items-center gap-2 mb-1 h-8'>
+										<Label
+											htmlFor='down-color'
+											className='font-medium'
+										>
+											{t('downColor')}
+										</Label>
+										{downColorInput !==
+											preference.chart.downColor && (
+											<Badge
+												variant='outline'
+												className='h-5 px-1.5 text-[10px] cursor-pointer hover:bg-muted/80 flex items-center gap-1'
+												onClick={handleDownColorReset}
+											>
+												<Undo2 className='h-3 w-3' />
+											</Badge>
+										)}
+									</div>
+									<p className='text-muted-foreground text-sm mb-2'>
 										{t('downColorDescription')}
 									</p>
 									<div className='flex items-center space-x-2'>
@@ -502,31 +514,21 @@ export function PreferenceTab() {
 											disabled={isUpdatingPreference}
 											className='w-32'
 										/>
-										<Button
-											size='sm'
-											variant={
-												downColorInput ===
-												preference.chart.downColor
-													? 'outline'
-													: 'default'
-											}
-											onClick={
-												downColorInput ===
-												preference.chart.downColor
-													? handleDownColorReset
-													: handleDownColorConfirm
-											}
-											disabled={
-												isUpdatingPreference ||
-												downColorInput ===
-													preference.chart.downColor
-											}
-										>
-											{downColorInput ===
-											preference.chart.downColor
-												? t('reset')
-												: t('confirm')}
-										</Button>
+										{downColorInput !==
+											preference.chart.downColor && (
+											<Button
+												size='sm'
+												onClick={handleDownColorConfirm}
+												disabled={
+													isUpdatingPreference ||
+													downColorInput ===
+														preference.chart
+															.downColor
+												}
+											>
+												{t('save')}
+											</Button>
+										)}
 									</div>
 								</div>
 

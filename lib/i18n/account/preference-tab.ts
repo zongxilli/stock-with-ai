@@ -34,6 +34,8 @@ export const preferenceTabEN = {
 	monthly: 'Monthly',
 	confirm: 'Confirm',
 	reset: 'Reset',
+	save: 'Save',
+	modified: 'Modified',
 
 	// 技术指标组
 	movingAverages: 'Moving Averages',
@@ -111,6 +113,8 @@ export const preferenceTabCN = {
 	monthly: '月线',
 	confirm: '确认',
 	reset: '重置',
+	save: '保存',
+	modified: '已修改',
 
 	// 技术指标组
 	movingAverages: '移动平均线',
