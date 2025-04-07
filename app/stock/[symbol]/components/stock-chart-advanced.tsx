@@ -92,13 +92,15 @@ const StockChartAdvanced = ({
 		// 添加K线图系列
 		const candlestickSeries = chart.addSeries(CandlestickSeries);
 
-		// 应用K线样式选项
+		// 应用K线样式选项 - 上涨K线为空心（只有边框）
 		candlestickSeries.applyOptions({
-			upColor: themeColors.upColor,
-			downColor: themeColors.downColor,
-			borderVisible: false,
-			wickUpColor: themeColors.upColor,
-			wickDownColor: themeColors.downColor,
+			upColor: 'rgba(0, 0, 0, 0)', // 将上涨蜡烛填充设为透明
+			downColor: themeColors.downColor, // 下跌蜡烛保持实心红色
+			borderVisible: true, // 显示边框
+			borderUpColor: themeColors.upColor, // 上涨蜡烛边框为绿色
+			borderDownColor: themeColors.downColor, // 下跌蜡烛边框为红色
+			wickUpColor: themeColors.upColor, // 上涨蜡烛影线为绿色
+			wickDownColor: themeColors.downColor, // 下跌蜡烛影线为红色
 		});
 
 		// 配置K线图的位置
