@@ -6,6 +6,7 @@ import StockChartAdvanced from './stock-chart-advanced';
 
 import { getSplitAdjustedData } from '@/app/actions/eodhd/indicators/splitadjusted';
 import { formatSplitAdjustedDataForChart } from '@/app/actions/eodhd/utils/format';
+import { getStockRealTimeDataForChart } from '@/app/actions/yahoo/get-stock-realtime-data';
 import {
 	ChartDataPoint,
 	ChartHeightMode,
@@ -17,6 +18,7 @@ interface StockChartAdvancedContainerProps {
 	end: string; // 结束日期，格式如 'YYYY-MM-DD'
 	code: string; // 股票代码
 	exchange: string; // 交易所代码
+	symbol: string; // 股票代码 Yahoo Finance
 	className?: string; // 可选的样式类
 	heightMode?: ChartHeightMode; // 图表高度模式
 }
@@ -26,6 +28,7 @@ export default function StockChartAdvancedContainer({
 	end,
 	code,
 	exchange,
+	symbol,
 	className,
 	heightMode = ChartHeightMode.NORMAL, // 默认为普通高度
 }: StockChartAdvancedContainerProps) {
@@ -95,56 +98,19 @@ export default function StockChartAdvancedContainer({
 		preference?.chart.period,
 	]); // 当这些属性变化时重新获取数据
 
-	// 新增：模拟实时数据更新
+	// 获取实时数据
 	useEffect(() => {
 		if (!chartData || chartData.candlestickData.length === 0) return;
 
-		// 基于最后一个蜡烛图数据点创建实时数据
-		const lastCandle =
-			chartData.candlestickData[chartData.candlestickData.length - 1];
-		let currentRealtimeCandle: ChartDataPoint | undefined = undefined;
+		const fetchRealtimeData = async () => {
+			const realtimeChartData =
+				await getStockRealTimeDataForChart(symbol);
 
-		// 创建模拟实时数据函数
-		const generateRealtimeUpdate = () => {
-			// 从上一个记录的价格开始，或从最后一个历史蜡烛图开始
-			const baseCandle = currentRealtimeCandle || lastCandle;
-
-			// 获取当前日期作为时间戳
-			const today = new Date();
-			today.setDate(today.getDate() + 1); // 获取明天的日期
-			const timeStr = today.toISOString().split('T')[0]; // 格式：'YYYY-MM-DD'
-
-			// 创建一个小的随机变化
-			const priceChange = (Math.random() - 0.5) * baseCandle.close * 0.01; // 价格变动在 ±0.5% 之间
-			const volumeChange = Math.random() * baseCandle.volume * 0.1; // 成交量变动在 0-10% 之间
-
-			// 计算新的价格
-			const newClose = baseCandle.close + priceChange;
-			const newHigh = Math.max(baseCandle.high, newClose);
-			const newLow = Math.min(baseCandle.low, newClose);
-
-			// 创建新的实时蜡烛图数据
-			currentRealtimeCandle = {
-				time: timeStr,
-				open: baseCandle.close, // 开盘价为上一根蜡烛的收盘价
-				high: newHigh,
-				low: newLow,
-				close: newClose,
-				volume: baseCandle.volume + volumeChange,
-			};
-
-			// 更新状态
-			setRealtimeCandle(currentRealtimeCandle);
+			setRealtimeCandle(realtimeChartData);
 		};
 
-		// 每秒更新一次实时数据
-		const intervalId = setInterval(generateRealtimeUpdate, 1000);
-
-		// 清理函数
-		return () => {
-			clearInterval(intervalId);
-		};
-	}, [chartData]);
+		fetchRealtimeData();
+	}, [symbol, chartData]);
 
 	return (
 		<div

@@ -369,6 +369,26 @@ export async function getStockRealTimeData(symbol: string) {
 			// 保存结果到Redis缓存
 			await setCache(cacheKey, stockData, cacheTime);
 
+			// 如果市场状态为交易中(REGULAR)或已收盘(CLOSED)，为图表组件设置专用缓存数据
+			if (
+				quote.marketState === 'REGULAR' ||
+				quote.marketState === 'CLOSED'
+			) {
+				const chartDataCacheKey = `stock_realtime_for_chart:${symbol}`;
+				// 创建图表所需的实时蜡烛图数据点
+				const realtimeCandle = {
+					time: new Date().toISOString().split('T')[0], // 使用今天的日期，格式化为 'YYYY-MM-DD'
+					open: quote.regularMarketOpen || quote.regularMarketPrice,
+					high:
+						quote.regularMarketDayHigh || quote.regularMarketPrice,
+					low: quote.regularMarketDayLow || quote.regularMarketPrice,
+					close: quote.regularMarketPrice,
+					volume: quote.regularMarketVolume,
+				};
+
+				await setCache(chartDataCacheKey, realtimeCandle, cacheTime);
+			}
+
 			return stockData;
 		} catch (innerError) {
 			// 这里处理Yahoo Finance API可能抛出的错误
@@ -392,5 +412,25 @@ export async function getStockRealTimeData(symbol: string) {
 			originalError:
 				error instanceof Error ? error.message : String(error),
 		};
+	}
+}
+
+/**
+ * 从Redis缓存中获取实时股票图表数据
+ * @param symbol 股票代码
+ * @returns 股票实时图表数据，如果数据不存在则返回undefined
+ */
+export async function getStockRealTimeDataForChart(symbol: string) {
+	try {
+		const chartDataCacheKey = `stock_realtime_for_chart:${symbol}`;
+		// 从Redis缓存获取数据
+		const cachedData = await getCache(chartDataCacheKey);
+
+		// 如果缓存数据存在则返回数据，否则返回undefined
+		return cachedData || undefined;
+	} catch (error) {
+		console.error(`获取股票${symbol}实时图表数据失败:`, error);
+		// 出现错误时也返回undefined
+		return undefined;
 	}
 }

@@ -565,11 +565,13 @@ export default function StockPage() {
 					end={new Date().toISOString().split('T')[0]}
 					code={code || ''}
 					exchange={exchange || ''}
+					symbol={symbol || ''}
 					className='mb-4'
 					heightMode={chartHeightMode}
 				/>
 			);
 		}
+
 		return (
 			<ChartContainer
 				chartData={chartData}

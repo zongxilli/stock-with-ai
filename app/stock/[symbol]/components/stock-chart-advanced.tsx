@@ -193,6 +193,7 @@ const StockChartAdvanced = ({
 		}
 
 		// 实时数据更新处理
+		// 如果为同一天，数据会override最后一条数据
 		if (realtimeCandle) {
 			// 如果有实时数据，添加到现有数据中
 			candlestickSeries.update(realtimeCandle);
