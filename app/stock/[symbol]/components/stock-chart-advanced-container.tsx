@@ -82,23 +82,11 @@ export default function StockChartAdvancedContainer({
 			)}
 
 			{!isLoading && !error && (
-				<div>
-					<StockChartAdvanced
-						className='mt-4'
-						candlestickData={chartData?.candlestickData}
-						volumeData={chartData?.volumeData}
-					/>
-
-					<div className='mt-4 p-3 text-xs bg-muted rounded-md'>
-						<p className='font-medium'>获取的数据参数:</p>
-						<p>开始: {start}</p>
-						<p>结束: {end}</p>
-						<p>
-							代码: {code}.{exchange}
-						</p>
-						<p>数据点: {historicalData?.length || 0}</p>
-					</div>
-				</div>
+				<StockChartAdvanced
+					className='mt-4'
+					candlestickData={chartData?.candlestickData}
+					volumeData={chartData?.volumeData}
+				/>
 			)}
 		</div>
 	);
