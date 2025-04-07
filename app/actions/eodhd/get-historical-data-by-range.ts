@@ -1,12 +1,8 @@
 'use server';
 
-import {
-	HistoricalDataPoint,
-	HistoricalDataMinimal,
-} from './get-historical-data';
+import { HistoricalDataPoint } from './get-historical-data';
 
 import { getCache, setCache } from '@/lib/redis';
-
 
 /**
  * 根据指定的开始和结束日期获取股票历史数据
@@ -24,15 +20,14 @@ export async function getHistoricalDataByRange(
 	code: string,
 	exchange: string,
 	startDate: string,
-	endDate: string,
-	minimal: boolean = true
-): Promise<HistoricalDataPoint[] | HistoricalDataMinimal[]> {
+	endDate: string
+): Promise<HistoricalDataPoint[]> {
 	try {
 		// 构建完整的股票标识符（格式：CODE.EXCHANGE）
 		const symbol = `${code}.${exchange}`;
 
 		// 尝试从Redis缓存获取数据
-		const cacheKey = `eodhd_historical_range:${symbol}:${startDate}_${endDate}:minimal=${minimal}`;
+		const cacheKey = `eodhd_historical_range:${symbol}:${startDate}_${endDate}`;
 		const cachedData = await getCache(cacheKey);
 		if (cachedData) {
 			return cachedData;
@@ -69,26 +64,17 @@ export async function getHistoricalDataByRange(
 		// 解析API响应数据
 		const apiData = await response.json();
 
-		let historicalData: HistoricalDataPoint[] | HistoricalDataMinimal[] =
-			[];
+		let historicalData: HistoricalDataPoint[] = [];
 
-		if (minimal) {
-			historicalData = apiData.map((item: any) => ({
-				date: item.date,
-				adjusted_close: item.adjusted_close,
-				volume: item.volume,
-			}));
-		} else {
-			historicalData = apiData.map((item: any) => ({
-				date: item.date,
-				open: item.open,
-				high: item.high,
-				low: item.low,
-				close: item.close,
-				adjusted_close: item.adjusted_close,
-				volume: item.volume,
-			}));
-		}
+		historicalData = apiData.map((item: any) => ({
+			date: item.date,
+			open: item.open,
+			high: item.high,
+			low: item.low,
+			close: item.close,
+			adjusted_close: item.adjusted_close,
+			volume: item.volume,
+		}));
 
 		// 将数据缓存到Redis（缓存1小时）
 		await setCache(cacheKey, historicalData, 3600);
