@@ -156,6 +156,8 @@ export default function StockPage() {
 	// 标记是否停止自动刷新
 	const [stopAutoRefresh, setStopAutoRefresh] = useState(false);
 
+	const [advancedView, setAdvancedView] = useState(false);
+
 	// AI Assistant dialog state
 	const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
 	// These state variables are managed by the AIAssistantDialog component internally
@@ -558,6 +560,8 @@ export default function StockPage() {
 					symbol={symbol || ''}
 					isLoading={chartLoading}
 					exchangeName={realTimeData?.exchangeName}
+					advancedView={advancedView}
+					setAdvancedView={setAdvancedView}
 				/>
 			</div>
 

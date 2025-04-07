@@ -2,8 +2,10 @@
 
 import { useCallback } from 'react';
 
+import { ChartCandlestick } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { Toggle } from '@/components/ui/toggle';
 import { cn } from '@/lib/utils';
 
 interface RangeSelectorProps {
@@ -11,6 +13,8 @@ interface RangeSelectorProps {
 	symbol: string;
 	isLoading?: boolean; // 新增：加载状态属性
 	exchangeName?: string; // 新增：交易所名称
+	advancedView?: boolean; // 新增：高级视图属性
+	setAdvancedView?: (advancedView: boolean) => void; // 新增：设置高级视图属性
 }
 
 export default function RangeSelector({
@@ -18,6 +22,8 @@ export default function RangeSelector({
 	symbol,
 	isLoading = false, // 默认为false
 	exchangeName = '', // 默认为空字符串
+	advancedView = false, // 默认为false
+	setAdvancedView = () => {}, // 默认为空函数
 }: RangeSelectorProps) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -66,25 +72,38 @@ export default function RangeSelector({
 	);
 
 	return (
-		<div className='flex flex-wrap gap-2'>
-			{ranges.map((range) => (
-				<button
-					key={range.value}
-					onClick={() => handleRangeChange(range.value)}
-					disabled={isLoading} // 当正在加载时禁用所有按钮
-					className={cn(
-						'px-3 py-1 rounded-md text-sm font-medium transition-colors',
-						currentRange === range.value
-							? isLoading
-								? 'bg-primary/70 text-primary-foreground animate-pulse' // 当前正在加载的范围
-								: 'bg-primary text-primary-foreground' // 当前选中的范围
-							: 'bg-secondary hover:bg-secondary/80 text-secondary-foreground', // 未选中的范围
-						isLoading && 'cursor-not-allowed opacity-70' // 加载中时降低所有按钮的不透明度
-					)}
+		<div className='flex flex-wrap items-center justify-between gap-2'>
+			<div className='flex flex-wrap gap-2'>
+				{ranges.map((range) => (
+					<button
+						key={range.value}
+						onClick={() => handleRangeChange(range.value)}
+						disabled={isLoading} // 当正在加载时禁用所有按钮
+						className={cn(
+							'px-3 py-1 rounded-md text-sm font-medium transition-colors',
+							currentRange === range.value
+								? isLoading
+									? 'bg-primary/70 text-primary-foreground animate-pulse' // 当前正在加载的范围
+									: 'bg-primary text-primary-foreground' // 当前选中的范围
+								: 'bg-secondary hover:bg-secondary/80 text-secondary-foreground', // 未选中的范围
+							isLoading && 'cursor-not-allowed opacity-70' // 加载中时降低所有按钮的不透明度
+						)}
+					>
+						{range.label}
+					</button>
+				))}
+			</div>
+			<div className='flex items-center gap-2'>
+				<Toggle
+					pressed={advancedView}
+					onPressedChange={setAdvancedView}
+					disabled={isLoading}
+					aria-label='Switch to advanced view'
 				>
-					{range.label}
-				</button>
-			))}
+					<ChartCandlestick className='h-4 w-4' />
+					Adv
+				</Toggle>
+			</div>
 		</div>
 	);
 }
