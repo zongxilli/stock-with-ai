@@ -1,4 +1,5 @@
 import { HistoricalDataPoint } from '../get-historical-data';
+import { SplitAdjustedDataPoint } from '../indicators/splitadjusted';
 
 import {
 	ChartData,
@@ -43,6 +44,56 @@ export function formatHistoricalDataForChart(
 			high: parseFloat((point.high * adjustmentRatio).toFixed(2)),
 			low: parseFloat((point.low * adjustmentRatio).toFixed(2)),
 			close: parseFloat(point.adjusted_close.toFixed(2)), // 直接使用调整后收盘价
+			volume: point.volume,
+		};
+	});
+
+	// 格式化成交量数据并根据当天价格涨跌设置颜色
+	const volumeData: VolumeDataPoint[] = sortedData.map((point) => {
+		// 判断当天是上涨还是下跌
+		const isUp = point.close >= point.open;
+
+		return {
+			time: point.date,
+			value: point.volume,
+			color: isUp ? upColor : downColor,
+		};
+	});
+
+	return {
+		candlestickData,
+		volumeData,
+	};
+}
+
+/**
+ * 将拆分调整数据格式化为图表组件需要的格式
+ * 
+ * 拆分调整数据的价格已经是调整后的价格，不需要再进行调整计算
+ * 
+ * @param splitAdjustedData API获取的拆分调整数据
+ * @param upColor 上涨柱状图颜色
+ * @param downColor 下跌柱状图颜色
+ * @returns 格式化后的图表数据，包含K线和成交量数据
+ */
+export function formatSplitAdjustedDataForChart(
+	splitAdjustedData: SplitAdjustedDataPoint[],
+	upColor: string = DEFAULT_UP_COLOR, // 默认上涨颜色
+	downColor: string = DEFAULT_DOWN_COLOR // 默认下跌颜色
+): ChartData {
+	// 确保数据按日期升序排列（从旧到新）
+	const sortedData = [...splitAdjustedData].sort(
+		(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+	);
+
+	// 格式化K线数据 - 直接使用已调整的价格
+	const candlestickData: ChartDataPoint[] = sortedData.map((point) => {
+		return {
+			time: point.date,
+			open: parseFloat(point.open.toFixed(2)),
+			high: parseFloat(point.high.toFixed(2)),
+			low: parseFloat(point.low.toFixed(2)),
+			close: parseFloat(point.close.toFixed(2)),
 			volume: point.volume,
 		};
 	});

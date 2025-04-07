@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 
 import StockChartAdvanced from './stock-chart-advanced';
 
-import { getHistoricalDataByPeriod } from '@/app/actions/eodhd/get-historical-data-by-period';
-import { formatHistoricalDataForChart } from '@/app/actions/eodhd/utils/format';
+import { getSplitAdjustedData } from '@/app/actions/eodhd/indicators/splitadjusted';
+import { formatSplitAdjustedDataForChart } from '@/app/actions/eodhd/utils/format';
 import { ChartHeightMode } from '@/app/types/stock-page/chart-advanced';
 import { useProfile } from '@/hooks/use-profile';
 
@@ -43,15 +43,27 @@ export default function StockChartAdvancedContainer({
 
 			try {
 				// 调用 server action 获取数据
-				const data = await getHistoricalDataByPeriod(
+				// const data = await getHistoricalDataByPeriod(
+				// 	code,
+				// 	exchange,
+				// 	start,
+				// 	end,
+				// 	preference?.chart.period
+				// );
+
+				const data = await getSplitAdjustedData({
 					code,
 					exchange,
-					start,
-					end,
-					preference?.chart.period
-				);
+					range: 'max',
+					aggPeriod: preference?.chart.period,
+				});
 
-				const formattedData = formatHistoricalDataForChart(
+				// const formattedData = formatHistoricalDataForChart(
+				// 	data,
+				// 	preference?.chart.upColor,
+				// 	preference?.chart.downColor
+				// );
+				const formattedData = formatSplitAdjustedDataForChart(
 					data,
 					preference?.chart.upColor,
 					preference?.chart.downColor
