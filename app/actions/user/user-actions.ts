@@ -81,7 +81,9 @@ export async function updateUserProfile(formData: FormData) {
 }
 
 // 更新用户偏好设置
-export async function updateUserPreference(preference: Partial<UserPreference>) {
+export async function updateUserPreference(
+	preference: Partial<UserPreference>
+) {
 	try {
 		const supabase = await createClient();
 
@@ -95,7 +97,7 @@ export async function updateUserPreference(preference: Partial<UserPreference>) 
 
 		// 获取当前用户
 		const currentUser = await userService.getUserById(user.id);
-		
+
 		if (!currentUser) {
 			return { success: false, message: '用户资料未找到' };
 		}
@@ -105,12 +107,15 @@ export async function updateUserPreference(preference: Partial<UserPreference>) 
 			...currentUser.preference,
 			...preference,
 		};
-		
+
 		// 如果更新了技术指标偏好，确保合并而不是替换
-		if (preference.technicalIndicators && currentUser.preference.technicalIndicators) {
+		if (
+			preference.technicalIndicators &&
+			currentUser.preference.technicalIndicators
+		) {
 			updatedPreference.technicalIndicators = {
 				...currentUser.preference.technicalIndicators,
-				...preference.technicalIndicators
+				...preference.technicalIndicators,
 			};
 		}
 
@@ -118,7 +123,7 @@ export async function updateUserPreference(preference: Partial<UserPreference>) 
 		if (preference.chart && currentUser.preference.chart) {
 			updatedPreference.chart = {
 				...currentUser.preference.chart,
-				...preference.chart
+				...preference.chart,
 			};
 		}
 
@@ -139,8 +144,10 @@ export async function updateUserPreference(preference: Partial<UserPreference>) 
 			};
 		}
 
+		// 重新验证首页
+		revalidatePath('/', 'page');
 		// 重新验证个人资料页面
-		revalidatePath('/account');
+		revalidatePath('/account', 'page');
 		// 重新验证股票页面
 		revalidatePath('/stock/[symbol]', 'page');
 

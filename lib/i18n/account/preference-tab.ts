@@ -14,8 +14,26 @@ export const preferenceTabEN = {
 	failedToUpdateLanguage: 'Failed to update language',
 	failedToUpdateIndicators:
 		'Failed to update technical indicator preferences',
+	failedToUpdateChart: 'Failed to update chart preferences',
 	chinese: '简体中文',
 	english: 'English',
+
+	// 图表相关设置
+	chartSettings: 'Chart Settings',
+	chartSettingsDescription: 'Customize your chart appearance and behavior',
+	upColor: 'Up Color',
+	upColorDescription: 'Color for bullish candles and bars',
+	downColor: 'Down Color',
+	downColorDescription: 'Color for bearish candles and bars',
+	chartPeriod: 'Default Chart Period',
+	chartPeriodDescription: 'Default time period for stock charts',
+	advancedView: 'Advanced View',
+	advancedViewDescription: 'Enable advanced chart features and indicators',
+	daily: 'Daily',
+	weekly: 'Weekly',
+	monthly: 'Monthly',
+	confirm: 'Confirm',
+	reset: 'Reset',
 
 	// 技术指标组
 	movingAverages: 'Moving Averages',
@@ -73,8 +91,26 @@ export const preferenceTabCN = {
 	failedToUpdateTheme: '更新主题失败',
 	failedToUpdateLanguage: '更新语言失败',
 	failedToUpdateIndicators: '更新技术指标偏好失败',
+	failedToUpdateChart: '更新图表设置失败',
 	chinese: '简体中文',
 	english: 'English',
+
+	// 图表相关设置
+	chartSettings: '图表设置',
+	chartSettingsDescription: '自定义您的图表外观和行为',
+	upColor: '上涨颜色',
+	upColorDescription: '用于多头蜡烛和柱状图的颜色',
+	downColor: '下跌颜色',
+	downColorDescription: '用于空头蜡烛和柱状图的颜色',
+	chartPeriod: '默认图表周期',
+	chartPeriodDescription: '股票图表的默认时间周期',
+	advancedView: '高级视图',
+	advancedViewDescription: '启用高级图表功能和指标',
+	daily: '日线',
+	weekly: '周线',
+	monthly: '月线',
+	confirm: '确认',
+	reset: '重置',
 
 	// 技术指标组
 	movingAverages: '移动平均线',

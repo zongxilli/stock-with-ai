@@ -1,9 +1,13 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
 	Select,
@@ -33,6 +37,31 @@ export function PreferenceTab() {
 		isUpdatingPreference,
 		updatePreference,
 	} = useProfile();
+
+	// 本地状态管理颜色输入
+	const [upColorInput, setUpColorInput] = useState('');
+	const [downColorInput, setDownColorInput] = useState('');
+
+	// 当偏好设置加载完成后，初始化本地颜色状态
+	useEffect(() => {
+		if (preference?.chart) {
+			setUpColorInput(preference.chart.upColor || '');
+			setDownColorInput(preference.chart.downColor || '');
+		}
+	}, [preference]);
+
+	// 检查颜色值是否有效并确保带有#前缀
+	const normalizeColorValue = (color: string) => {
+		// 如果颜色为空，返回默认颜色
+		if (!color) return '#00C805';
+
+		// 确保颜色值以#开头
+		if (!color.startsWith('#')) {
+			return `#${color}`;
+		}
+
+		return color;
+	};
 
 	// 更新主题
 	const handleThemeChange = async (checked: boolean) => {
@@ -69,6 +98,122 @@ export function PreferenceTab() {
 			toast({
 				title: t('error'),
 				description: t('failedToUpdateLanguage'),
+				variant: 'destructive',
+			});
+		}
+	};
+
+	// 确认上涨颜色更新
+	const handleUpColorConfirm = async () => {
+		if (!preference) return;
+
+		try {
+			// 规范化颜色值
+			const normalizedColor = normalizeColorValue(upColorInput);
+
+			// 创建更新后的图表设置对象
+			const updatedChart = {
+				...preference.chart,
+				upColor: normalizedColor,
+			};
+
+			updatePreference({
+				chart: updatedChart,
+			});
+
+			// 更新本地输入值为规范化的颜色
+			setUpColorInput(normalizedColor);
+		} catch (error) {
+			console.error('update chart up color error:', error);
+			toast({
+				title: t('error'),
+				description: t('failedToUpdateChart'),
+				variant: 'destructive',
+			});
+		}
+	};
+
+	// 重置上涨颜色输入
+	const handleUpColorReset = () => {
+		if (preference?.chart) {
+			setUpColorInput(preference.chart.upColor || '');
+		}
+	};
+
+	// 确认下跌颜色更新
+	const handleDownColorConfirm = async () => {
+		if (!preference) return;
+
+		try {
+			// 规范化颜色值
+			const normalizedColor = normalizeColorValue(downColorInput);
+
+			// 创建更新后的图表设置对象
+			const updatedChart = {
+				...preference.chart,
+				downColor: normalizedColor,
+			};
+
+			updatePreference({
+				chart: updatedChart,
+			});
+
+			// 更新本地输入值为规范化的颜色
+			setDownColorInput(normalizedColor);
+		} catch (error) {
+			console.error('update chart down color error:', error);
+			toast({
+				title: t('error'),
+				description: t('failedToUpdateChart'),
+				variant: 'destructive',
+			});
+		}
+	};
+
+	// 重置下跌颜色输入
+	const handleDownColorReset = () => {
+		if (preference?.chart) {
+			setDownColorInput(preference.chart.downColor || '');
+		}
+	};
+
+	// 更新图表周期
+	const handleChartPeriodChange = async (value: string) => {
+		if (!preference) return;
+
+		try {
+			// 创建更新后的图表设置对象
+			const updatedChart = {
+				...preference.chart,
+				period: value as 'd' | 'w' | 'm',
+			};
+
+			updatePreference({
+				chart: updatedChart,
+			});
+		} catch (error) {
+			console.error('update chart period error:', error);
+			toast({
+				title: t('error'),
+				description: t('failedToUpdateChart'),
+				variant: 'destructive',
+			});
+		}
+	};
+
+	// 更新高级视图设置
+	const handleAdvancedViewChange = async (checked: boolean) => {
+		if (!preference) return;
+
+		try {
+			updatePreference({
+				advancedView: checked,
+			});
+		} catch (error) {
+			console.error('update advanced view error:', error);
+			toast({
+				title: t('error'),
+				description: t('failedToUpdateChart'),
 				variant: 'destructive',
 			});
 		}
@@ -243,10 +388,206 @@ export function PreferenceTab() {
 									/>
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value='EN'>{t('english')}</SelectItem>
-									<SelectItem value='CN'>{t('chinese')}</SelectItem>
+									<SelectItem value='EN'>
+										{t('english')}
+									</SelectItem>
+									<SelectItem value='CN'>
+										{t('chinese')}
+									</SelectItem>
 								</SelectContent>
 							</Select>
+						</div>
+
+						<Separator />
+
+						{/* 图表设置 */}
+						<div>
+							<h3 className='font-medium'>
+								{t('chartSettings')}
+							</h3>
+							<p className='text-muted-foreground text-sm mt-1 mb-4'>
+								{t('chartSettingsDescription')}
+							</p>
+
+							<div className='space-y-4'>
+								{/* 上涨颜色 */}
+								<div>
+									<Label
+										htmlFor='up-color'
+										className='font-medium'
+									>
+										{t('upColor')}
+									</Label>
+									<p className='text-muted-foreground text-sm mt-1 mb-2'>
+										{t('upColorDescription')}
+									</p>
+									<div className='flex items-center space-x-2'>
+										<div
+											className='w-10 h-8 border rounded-md flex-shrink-0'
+											style={{
+												backgroundColor:
+													normalizeColorValue(
+														upColorInput
+													),
+											}}
+										/>
+										<Input
+											id='up-color'
+											type='text'
+											value={upColorInput}
+											onChange={(e) =>
+												setUpColorInput(e.target.value)
+											}
+											disabled={isUpdatingPreference}
+											className='w-32'
+										/>
+										<Button
+											size='sm'
+											variant={
+												upColorInput ===
+												preference.chart.upColor
+													? 'outline'
+													: 'default'
+											}
+											onClick={
+												upColorInput ===
+												preference.chart.upColor
+													? handleUpColorReset
+													: handleUpColorConfirm
+											}
+											disabled={
+												isUpdatingPreference ||
+												upColorInput ===
+													preference.chart.upColor
+											}
+										>
+											{upColorInput ===
+											preference.chart.upColor
+												? t('reset')
+												: t('confirm')}
+										</Button>
+									</div>
+								</div>
+
+								{/* 下跌颜色 */}
+								<div>
+									<Label
+										htmlFor='down-color'
+										className='font-medium'
+									>
+										{t('downColor')}
+									</Label>
+									<p className='text-muted-foreground text-sm mt-1 mb-2'>
+										{t('downColorDescription')}
+									</p>
+									<div className='flex items-center space-x-2'>
+										<div
+											className='w-10 h-8 border rounded-md flex-shrink-0'
+											style={{
+												backgroundColor:
+													normalizeColorValue(
+														downColorInput
+													),
+											}}
+										/>
+										<Input
+											id='down-color'
+											type='text'
+											value={downColorInput}
+											onChange={(e) =>
+												setDownColorInput(
+													e.target.value
+												)
+											}
+											disabled={isUpdatingPreference}
+											className='w-32'
+										/>
+										<Button
+											size='sm'
+											variant={
+												downColorInput ===
+												preference.chart.downColor
+													? 'outline'
+													: 'default'
+											}
+											onClick={
+												downColorInput ===
+												preference.chart.downColor
+													? handleDownColorReset
+													: handleDownColorConfirm
+											}
+											disabled={
+												isUpdatingPreference ||
+												downColorInput ===
+													preference.chart.downColor
+											}
+										>
+											{downColorInput ===
+											preference.chart.downColor
+												? t('reset')
+												: t('confirm')}
+										</Button>
+									</div>
+								</div>
+
+								{/* 图表周期 */}
+								<div>
+									<Label
+										htmlFor='chart-period'
+										className='font-medium'
+									>
+										{t('chartPeriod')}
+									</Label>
+									<p className='text-muted-foreground text-sm mt-1 mb-2'>
+										{t('chartPeriodDescription')}
+									</p>
+									<Select
+										disabled={isUpdatingPreference}
+										value={preference.chart.period}
+										onValueChange={handleChartPeriodChange}
+									>
+										<SelectTrigger className='w-full sm:w-[180px]'>
+											<SelectValue
+												placeholder={t('chartPeriod')}
+											/>
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value='d'>
+												{t('daily')}
+											</SelectItem>
+											<SelectItem value='w'>
+												{t('weekly')}
+											</SelectItem>
+											<SelectItem value='m'>
+												{t('monthly')}
+											</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{/* 高级视图开关 */}
+								<div>
+									<div className='flex items-center justify-between'>
+										<Label
+											htmlFor='advanced-view-toggle'
+											className='font-medium'
+										>
+											{t('advancedView')}
+										</Label>
+										<Switch
+											id='advanced-view-toggle'
+											checked={preference.advancedView}
+											onCheckedChange={
+												handleAdvancedViewChange
+											}
+											disabled={isUpdatingPreference}
+										/>
+									</div>
+									<p className='text-muted-foreground text-sm mt-1'>
+										{t('advancedViewDescription')}
+									</p>
+								</div>
+							</div>
 						</div>
 
 						<Separator />
