@@ -13,8 +13,8 @@ interface RangeSelectorProps {
 	symbol: string;
 	isLoading?: boolean; // 新增：加载状态属性
 	exchangeName?: string; // 新增：交易所名称
-	advancedView?: boolean; // 新增：高级视图属性
-	setAdvancedView?: (advancedView: boolean) => void; // 新增：设置高级视图属性
+	advancedView: boolean;
+	setAdvancedView: (advancedView: boolean) => void;
 }
 
 export default function RangeSelector({
@@ -22,8 +22,8 @@ export default function RangeSelector({
 	symbol,
 	isLoading = false, // 默认为false
 	exchangeName = '', // 默认为空字符串
-	advancedView = false, // 默认为false
-	setAdvancedView = () => {}, // 默认为空函数
+	advancedView,
+	setAdvancedView,
 }: RangeSelectorProps) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
