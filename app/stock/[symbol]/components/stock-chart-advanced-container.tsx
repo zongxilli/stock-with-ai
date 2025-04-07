@@ -6,6 +6,7 @@ import StockChartAdvanced from './stock-chart-advanced';
 
 import { HistoricalDataPoint } from '@/app/actions/eodhd/get-historical-data';
 import { getHistoricalDataByRange } from '@/app/actions/eodhd/get-historical-data-by-range';
+import { formatHistoricalDataForChart } from '@/app/actions/eodhd/utils/format';
 
 interface StockChartAdvancedContainerProps {
 	start: string; // 开始日期，格式如 'YYYY-MM-DD'
@@ -27,6 +28,10 @@ export default function StockChartAdvancedContainer({
 	const [historicalData, setHistoricalData] = useState<
 		HistoricalDataPoint[] | null
 	>(null);
+	const [chartData, setChartData] = useState<{
+		candlestickData: any[];
+		volumeData: any[];
+	} | null>(null);
 
 	// 使用 server action 获取历史数据
 	useEffect(() => {
@@ -40,14 +45,15 @@ export default function StockChartAdvancedContainer({
 					code,
 					exchange,
 					start,
-					end,
-					false // 获取完整数据而非简化数据
+					end
 				);
 
 				console.log('EODHD 历史数据获取成功:', data);
 
 				// 将获取的数据保存到状态中
-				setHistoricalData(data as HistoricalDataPoint[]);
+				setHistoricalData(data);
+				const formattedData = formatHistoricalDataForChart(data);
+				setChartData(formattedData);
 			} catch (err) {
 				console.error('获取历史数据时出错:', err);
 				setError(err instanceof Error ? err.message : '获取数据失败');
@@ -79,13 +85,12 @@ export default function StockChartAdvancedContainer({
 
 			{!isLoading && !error && (
 				<div>
-					{/* 
-            目前使用现有的 StockChartAdvanced 组件，它使用自己的 mock 数据
-            后续可以修改 StockChartAdvanced 组件来使用我们从 API 获取的 historicalData
-          */}
-					<StockChartAdvanced className='mt-4' />
+					<StockChartAdvanced
+						className='mt-4'
+						candlestickData={chartData?.candlestickData}
+						volumeData={chartData?.volumeData}
+					/>
 
-					{/* 数据调试信息，开发时使用 */}
 					<div className='mt-4 p-3 text-xs bg-muted rounded-md'>
 						<p className='font-medium'>获取的数据参数:</p>
 						<p>开始: {start}</p>

@@ -9,11 +9,22 @@ import {
 	HistogramSeries,
 } from 'lightweight-charts';
 
+import {
+	ChartDataPoint,
+	VolumeDataPoint,
+} from '@/app/types/stock-page/chart-advanced';
+
 interface StockChartAdvancedProps {
 	className?: string;
+	candlestickData?: ChartDataPoint[];
+	volumeData?: VolumeDataPoint[];
 }
 
-const StockChartAdvanced = ({ className }: StockChartAdvancedProps) => {
+const StockChartAdvanced = ({
+	className,
+	candlestickData,
+	volumeData,
+}: StockChartAdvancedProps) => {
 	const chartContainerRef = useRef<HTMLDivElement>(null);
 
 	// 获取当前主题
@@ -107,7 +118,7 @@ const StockChartAdvanced = ({ className }: StockChartAdvancedProps) => {
 				},
 			});
 
-			// 模拟数据 - 包含K线和成交量数据
+			// 使用传入的数据或模拟数据
 			const mockData = [
 				{
 					time: '2022-01-17',
@@ -279,23 +290,31 @@ const StockChartAdvanced = ({ className }: StockChartAdvancedProps) => {
 				},
 			];
 
-			// 设置K线数据
-			candlestickSeries.setData(mockData);
+			// 设置K线数据 - 使用传入的数据或模拟数据
+			candlestickSeries.setData(candlestickData || mockData);
 
-			// 处理成交量数据 - 根据价格涨跌设置颜色
-			const volumeData = mockData.map((item) => {
-				// 判断当天是上涨还是下跌
-				const isUp = item.close >= item.open;
+			// 使用传入的成交量数据，如果没有则根据价格涨跌生成成交量数据颜色
+			if (volumeData) {
+				// 直接使用传入的成交量数据
+				volumeSeries.setData(volumeData);
+			} else {
+				// 处理成交量数据 - 根据价格涨跌设置颜色
+				const generatedVolumeData = mockData.map((item) => {
+					// 判断当天是上涨还是下跌
+					const isUp = item.close >= item.open;
 
-				return {
-					time: item.time,
-					value: item.volume,
-					color: isUp ? themeColors.upColor : themeColors.downColor,
-				};
-			});
+					return {
+						time: item.time,
+						value: item.volume,
+						color: isUp
+							? themeColors.upColor
+							: themeColors.downColor,
+					};
+				});
 
-			// 设置成交量数据
-			volumeSeries.setData(volumeData);
+				// 设置成交量数据
+				volumeSeries.setData(generatedVolumeData);
+			}
 
 			// 调整图表以适应所有数据
 			chart.timeScale().fitContent();
