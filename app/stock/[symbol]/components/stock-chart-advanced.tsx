@@ -89,6 +89,12 @@ const StockChartAdvanced = ({
 				secondsVisible: false,
 				rightOffset: 2, // 为实时数据留出空间
 			},
+			rightPriceScale: {
+				visible: false, // 隐藏右侧价格轴
+			},
+			leftPriceScale: {
+				visible: true, // 显示左侧价格轴
+			},
 			grid: {
 				// 移除所有网格线
 				vertLines: {
@@ -131,7 +137,8 @@ const StockChartAdvanced = ({
 			priceFormat: {
 				type: 'volume',
 			},
-			priceScaleId: '', // 设置为覆盖图层
+			priceScaleId: 'volume', // 使用独立的价格轴ID
+			lastValueVisible: false, // 不显示最后一个值
 		});
 
 		// 配置成交量图的位置
