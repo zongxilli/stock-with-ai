@@ -32,12 +32,11 @@ const StockChartAdvanced = ({
 
 	// 获取当前主题
 	const themeColors = useMemo(() => {
-		// 定义上涨和下跌的颜色（这些是交易图表的专业标准颜色）
+		// 定义上涨和下跌的颜色
 		const upColorValue = '#26a69a'; // 上涨保持绿色
 		const downColorValue = '#ef5350'; // 下跌保持红色
 
 		return {
-			// 深色模式下使用较亮的文字，浅色模式下使用较暗的文字
 			textColor: isDarkMode
 				? 'rgba(255, 255, 255, 0.9)'
 				: 'rgba(0, 0, 0, 0.9)',
@@ -102,11 +101,11 @@ const StockChartAdvanced = ({
 			wickDownColor: themeColors.downColor,
 		});
 
-		// 配置K线图的位置（占据上部分区域）
+		// 配置K线图的位置
 		candlestickSeries.priceScale().applyOptions({
 			scaleMargins: {
 				top: 0.05, // 最高点距离顶部5%
-				bottom: 0.2, // 最低点距离底部20%（增大了K线图的显示区域）
+				bottom: 0.2, // 最低点距离底部20%
 			},
 		});
 
@@ -119,10 +118,10 @@ const StockChartAdvanced = ({
 			priceScaleId: '', // 设置为覆盖图层
 		});
 
-		// 配置成交量图的位置（占据下部分区域）
+		// 配置成交量图的位置
 		volumeSeries.priceScale().applyOptions({
 			scaleMargins: {
-				top: 0.85, // 最高点距离顶部80%（减小了成交量图的显示区域）
+				top: 0.85, // 最高点距离顶部85%
 				bottom: 0, // 最低点在最底部
 			},
 		});
@@ -131,11 +130,40 @@ const StockChartAdvanced = ({
 		candlestickSeries.setData(candlestickData);
 
 		// 处理成交量数据
-		// 直接使用传入的成交量数据
 		volumeSeries.setData(volumeData!);
 
-		// 调整图表以适应所有数据
-		chart.timeScale().fitContent();
+		// 显示最近90天的数据
+		if (candlestickData.length > 0) {
+			// 获取最新的数据点
+			const lastIndex = candlestickData.length - 1;
+			const mostRecentDataPoint = candlestickData[lastIndex];
+
+			// 从最新日期计算90天前的日期
+			const lastDateParts = mostRecentDataPoint.time
+				.split('-')
+				.map(Number);
+			const lastDate = new Date(
+				lastDateParts[0],
+				lastDateParts[1] - 1,
+				lastDateParts[2]
+			);
+
+			// 计算90天前的日期
+			const ninetyDaysAgo = new Date(lastDate);
+			ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+			// 转换为YYYY-MM-DD格式的字符串
+			const ninetyDaysAgoStr = ninetyDaysAgo.toISOString().split('T')[0];
+
+			// 使用setVisibleRange设置可见范围
+			chart.timeScale().setVisibleRange({
+				from: ninetyDaysAgoStr,
+				to: mostRecentDataPoint.time,
+			});
+		} else {
+			// 如果没有足够的数据，则显示所有可用数据
+			chart.timeScale().fitContent();
+		}
 
 		// 处理窗口大小变化，使图表响应式
 		const handleResize = () => {
