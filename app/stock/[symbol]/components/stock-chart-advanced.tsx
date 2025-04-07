@@ -40,7 +40,8 @@ const StockChartAdvanced = ({
 	const themeColors = useMemo(() => {
 		// 定义上涨和下跌的颜色
 		const upColorValue = preference?.chart.upColor || DEFAULT_UP_COLOR; // 上涨保持绿色
-		const downColorValue = preference?.chart.downColor || DEFAULT_DOWN_COLOR; // 下跌保持红色
+		const downColorValue =
+			preference?.chart.downColor || DEFAULT_DOWN_COLOR; // 下跌保持红色
 
 		return {
 			textColor: isDarkMode
@@ -156,10 +157,13 @@ const StockChartAdvanced = ({
 				lastDateParts[2]
 			);
 
-			// 计算90天前的日期
+			// 计算默认的回溯日期
 			const ninetyDaysAgo = new Date(lastDate);
-			ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+			let defaultGoBackDate = 90;
+			if (preference?.chart.period === 'w') defaultGoBackDate *= 7;
+			if (preference?.chart.period === 'm') defaultGoBackDate *= 30;
 
+			ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - defaultGoBackDate);
 			// 转换为YYYY-MM-DD格式的字符串
 			const ninetyDaysAgoStr = ninetyDaysAgo.toISOString().split('T')[0];
 
