@@ -546,8 +546,16 @@ export default function StockPage() {
 		if (advancedView) {
 			return (
 				<StockChartAdvancedContainer
-					start='2024-04-06'
-					end='2025-04-06'
+					start={
+						new Date(
+							new Date().setFullYear(
+								new Date().getFullYear() - 100
+							)
+						)
+							.toISOString()
+							.split('T')[0]
+					}
+					end={new Date().toISOString().split('T')[0]}
 					code={code || ''}
 					exchange={exchange || ''}
 					className='mb-4'
