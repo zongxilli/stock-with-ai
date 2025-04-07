@@ -2,9 +2,10 @@
 
 import { useCallback } from 'react';
 
-import { ChartCandlestick } from 'lucide-react';
+import { ChartCandlestick, Maximize } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { ChartHeightMode } from '@/app/types/stock-page/chart-advanced';
 import { Toggle } from '@/components/ui/toggle';
 import { useProfile } from '@/hooks/use-profile';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,8 @@ interface RangeSelectorProps {
 	symbol: string;
 	isLoading?: boolean; // 新增：加载状态属性
 	exchangeName?: string; // 新增：交易所名称
+	chartHeightMode?: ChartHeightMode; // 新增：图表高度模式
+	onChartHeightModeChange?: (mode: ChartHeightMode) => void; // 新增：图表高度模式切换回调
 }
 
 export default function RangeSelector({
@@ -21,6 +24,8 @@ export default function RangeSelector({
 	symbol,
 	isLoading = false, // 默认为false
 	exchangeName = '', // 默认为空字符串
+	chartHeightMode = ChartHeightMode.NORMAL, // 默认为普通高度
+	onChartHeightModeChange, // 高度模式切换回调
 }: RangeSelectorProps) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -69,6 +74,18 @@ export default function RangeSelector({
 		[router, symbol, currentRange, isLoading]
 	);
 
+	// 切换图表高度模式
+	const toggleHeightMode = useCallback(
+		(isPressed: boolean) => {
+			if (onChartHeightModeChange) {
+				onChartHeightModeChange(
+					isPressed ? ChartHeightMode.LARGE : ChartHeightMode.NORMAL
+				);
+			}
+		},
+		[onChartHeightModeChange]
+	);
+
 	return (
 		<div className='flex flex-wrap items-center justify-between gap-2'>
 			<div className='flex flex-wrap gap-2'>
@@ -91,7 +108,20 @@ export default function RangeSelector({
 					</button>
 				))}
 			</div>
+
 			<div className='flex items-center gap-2'>
+				{/* 当在高级视图模式下，显示图表高度模式切换按钮 */}
+				{preference?.advancedView && (
+					<Toggle
+						pressed={chartHeightMode === ChartHeightMode.LARGE}
+						onPressedChange={toggleHeightMode}
+						disabled={isLoading}
+						aria-label='Switch to large chart size'
+					>
+						<Maximize className='h-4 w-4' />
+					</Toggle>
+				)}
+
 				<Toggle
 					pressed={preference?.advancedView || false}
 					onPressedChange={() =>

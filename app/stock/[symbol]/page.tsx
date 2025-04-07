@@ -17,6 +17,7 @@ import StockNews from './components/stock-news';
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
 import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
 import { searchStock } from '@/app/actions/yahoo/search-stock';
+import { ChartHeightMode } from '@/app/types/stock-page/chart-advanced';
 import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
 import { usePrevious } from '@/hooks/use-previous';
 import { useProfile } from '@/hooks/use-profile';
@@ -169,6 +170,11 @@ export default function StockPage() {
 	// 添加重定向状态
 	const [isRedirecting, setIsRedirecting] = useState(false);
 	const [searchedOnce, setSearchedOnce] = useState(false);
+
+	// 图表高度模式状态
+	const [chartHeightMode, setChartHeightMode] = useState<ChartHeightMode>(
+		ChartHeightMode.NORMAL
+	);
 
 	// 如果没有指定时间范围，重定向到默认的1年范围
 	useEffect(() => {
@@ -560,6 +566,7 @@ export default function StockPage() {
 					code={code || ''}
 					exchange={exchange || ''}
 					className='mb-4'
+					heightMode={chartHeightMode}
 				/>
 			);
 		}
@@ -583,6 +590,7 @@ export default function StockPage() {
 		range,
 		isChartUpdating,
 		realTimeData,
+		chartHeightMode,
 	]);
 
 	return (
@@ -603,6 +611,8 @@ export default function StockPage() {
 					symbol={symbol || ''}
 					isLoading={chartLoading}
 					exchangeName={realTimeData?.exchangeName}
+					chartHeightMode={chartHeightMode}
+					onChartHeightModeChange={setChartHeightMode}
 				/>
 			</div>
 

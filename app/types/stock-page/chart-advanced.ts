@@ -30,5 +30,13 @@ export interface ChartData {
 	volumeData: VolumeDataPoint[]; // 成交量数据
 }
 
+/**
+ * 图表高度模式枚举
+ */
+export enum ChartHeightMode {
+	NORMAL = 400, // 普通高度 - 400px
+	LARGE = 800, // 大尺寸高度 - 800px
+}
+
 export const DEFAULT_UP_COLOR = '#26a69a';
 export const DEFAULT_DOWN_COLOR = '#ef5350';

@@ -22,12 +22,14 @@ interface StockChartAdvancedProps {
 	className?: string;
 	candlestickData?: ChartDataPoint[];
 	volumeData?: VolumeDataPoint[];
+	height?: number; // 调整为仅接受数字高度
 }
 
 const StockChartAdvanced = ({
 	className,
 	candlestickData,
 	volumeData,
+	height = 400, // 默认高度为400px
 }: StockChartAdvancedProps) => {
 	const chartContainerRef = useRef<HTMLDivElement>(null);
 	const { theme } = useTheme();
@@ -74,7 +76,7 @@ const StockChartAdvanced = ({
 				attributionLogo: false, // 隐藏TradingView的logo
 			},
 			width: chartContainerRef.current.clientWidth,
-			height: 400,
+			height: height, // 直接使用传入的高度值
 			timeScale: {
 				timeVisible: true,
 				secondsVisible: false,
@@ -187,12 +189,13 @@ const StockChartAdvanced = ({
 			window.removeEventListener('resize', handleResize);
 			chart.remove();
 		};
-	}, [candlestickData, volumeData, themeColors]);
+	}, [candlestickData, volumeData, themeColors, height]);
 
 	return (
 		<div
 			ref={chartContainerRef}
-			className={`w-full h-[400px] ${className || ''}`}
+			className={`w-full ${className || ''}`}
+			style={{ height: `${height}px` }}
 		/>
 	);
 };
