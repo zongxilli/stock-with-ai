@@ -86,9 +86,11 @@ export async function searchStock(
 
 		let data = (await response.json()) as StockSearchResult[];
 
-		// 过滤只保留目标国家的结果
-		data = data.filter((item) =>
-			targetCountries.some((country) => item.Country === country)
+		// 过滤结果，只保留目标国家的股票和ETF
+		data = data.filter(
+			(item) =>
+				targetCountries.some((country) => item.Country === country) &&
+				['Common Stock', 'ETF'].includes(item.Type)
 		);
 
 		// 将数据缓存1小时 (3600秒)
