@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import {
 	createChart,
@@ -8,6 +8,7 @@ import {
 	ColorType,
 	HistogramSeries,
 } from 'lightweight-charts';
+import { useTheme } from 'next-themes';
 
 import {
 	ChartDataPoint,
@@ -26,34 +27,38 @@ const StockChartAdvanced = ({
 	volumeData,
 }: StockChartAdvancedProps) => {
 	const chartContainerRef = useRef<HTMLDivElement>(null);
+	const { theme } = useTheme();
+	const isDarkMode = theme === 'dark';
 
 	// 获取当前主题
-	const useThemeColors = () => {
-		// 可以根据实际情况添加逻辑，检测当前是深色还是浅色模式
-		// 例如通过检查HTML元素上的class或data属性
-		const isDarkMode =
-			typeof window !== 'undefined' &&
-			document.documentElement.classList.contains('dark');
+	const themeColors = useMemo(() => {
+		// 定义上涨和下跌的颜色（这些是交易图表的专业标准颜色）
+		const upColorValue = '#26a69a'; // 上涨保持绿色
+		const downColorValue = '#ef5350'; // 下跌保持红色
 
 		return {
-			textColor: isDarkMode ? 'var(--foreground)' : 'var(--foreground)',
+			// 深色模式下使用较亮的文字，浅色模式下使用较暗的文字
+			textColor: isDarkMode
+				? 'rgba(255, 255, 255, 0.9)'
+				: 'rgba(0, 0, 0, 0.9)',
 			backgroundColor: 'transparent',
-			upColor: isDarkMode ? '#26a69a' : '#26a69a', // 可以根据主题调整
-			downColor: isDarkMode ? '#ef5350' : '#ef5350', // 可以根据主题调整
+			upColor: upColorValue,
+			downColor: downColorValue,
 		};
-	};
+	}, [isDarkMode]);
 
 	useEffect(() => {
 		// 如果没有数据或DOM元素不存在，则不渲染图表
-		if (!candlestickData || candlestickData.length === 0 || !chartContainerRef.current) {
+		if (
+			!candlestickData ||
+			candlestickData.length === 0 ||
+			!chartContainerRef.current
+		) {
 			return;
 		}
 
 		// 清除任何现有的图表
 		chartContainerRef.current.innerHTML = '';
-
-		// 获取主题颜色
-		const themeColors = useThemeColors();
 
 		// 创建图表选项
 		const chartOptions = {
@@ -148,7 +153,7 @@ const StockChartAdvanced = ({
 			window.removeEventListener('resize', handleResize);
 			chart.remove();
 		};
-	}, [candlestickData, volumeData]);
+	}, [candlestickData, volumeData, themeColors]);
 
 	return (
 		<div
