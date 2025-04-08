@@ -135,25 +135,102 @@ const StockChartAdvanced = ({
 		legendElement.style.zIndex = '1';
 		legendElement.style.fontSize = '14px';
 		legendElement.style.fontFamily = 'sans-serif';
-		legendElement.style.lineHeight = '18px';
 		legendElement.style.fontWeight = '300';
 		legendElement.style.color = themeColors.textColor;
-		legendElement.style.padding = '4px 8px';
+		legendElement.style.padding = '8px 12px';
 		legendElement.style.backgroundColor = isDarkMode
 			? 'rgba(0, 0, 0, 0.6)'
 			: 'rgba(255, 255, 255, 0.6)';
 		legendElement.style.borderRadius = '4px';
 		legendElement.style.backdropFilter = 'blur(4px)';
-		legendElement.style.maxWidth = '200px';
 		legendElement.style.display = 'none'; // 默认隐藏，只在hover时显示
+		legendElement.style.width = 'auto'; // 允许宽度自适应内容
+		legendElement.style.whiteSpace = 'nowrap'; // 确保内容在一行
 		chartContainerRef.current.appendChild(legendElement);
 
-		// 创建价格和涨跌幅的行
-		const priceRow = document.createElement('div');
-		legendElement.appendChild(priceRow);
+		// 订阅十字线移动事件，更新legend
+		chart.subscribeCrosshairMove((param) => {
+			if (!param.time || !param.point) {
+				// 如果没有时间点数据，隐藏legend
+				legendElement.style.display = 'none';
+				return;
+			}
 
-		const changeRow = document.createElement('div');
-		legendElement.appendChild(changeRow);
+			// 显示legend
+			legendElement.style.display = 'block';
+
+			// 获取当前K线数据
+			const candleData = param.seriesData.get(
+				candlestickSeries as ISeriesApi<'Candlestick'>
+			);
+			if (!candleData) {
+				return;
+			}
+
+			// 安全地访问OHLC属性
+			const open = 'open' in candleData ? candleData.open : 0;
+			const high = 'high' in candleData ? candleData.high : 0;
+			const low = 'low' in candleData ? candleData.low : 0;
+			const close = 'close' in candleData ? candleData.close : 0;
+
+			// 获取当前柱的索引（如果可能）
+			let previousClose = null;
+			if (candlestickData && 'time' in candleData && candleData.time) {
+				const currentTime = candleData.time.toString();
+				const currentIndex = candlestickData.findIndex(
+					(item) => item.time === currentTime
+				);
+
+				if (currentIndex > 0) {
+					previousClose = candlestickData[currentIndex - 1].close;
+				}
+			}
+
+			let baseTextColor = themeColors.textColor;
+
+			let openColor = themeColors.textColor;
+			let closeColor = themeColors.textColor;
+			let highColor = themeColors.textColor;
+			let lowColor = themeColors.textColor;
+
+			let changeColor = themeColors.textColor;
+			let changePercent = 0;
+			let change = 0;
+
+			if (previousClose !== null) {
+				// 计算涨跌幅（与前一天相比）
+				change = close - previousClose;
+
+				changePercent = (change / previousClose) * 100;
+				changeColor =
+					change >= 0 ? themeColors.upColor : themeColors.downColor;
+				openColor =
+					open > previousClose
+						? themeColors.upColor
+						: themeColors.downColor;
+				closeColor = changeColor;
+				highColor =
+					high > previousClose
+						? themeColors.upColor
+						: themeColors.downColor;
+				lowColor =
+					low < previousClose
+						? themeColors.downColor
+						: themeColors.upColor;
+			}
+
+			// 格式化价格数字，保留2位小数
+			const formatPrice = (price: number) => price.toFixed(2);
+
+			// 更新legend内容为一行显示
+			legendElement.innerHTML = `
+				<span style="color:${baseTextColor}">O</span><span style="margin-right:10px; color:${openColor}">${formatPrice(open)}</span>
+				<span style="color:${baseTextColor}">H</span><span style="margin-right:10px; color:${highColor}">${formatPrice(high)}</span>
+				<span style="color:${baseTextColor}">L</span><span style="margin-right:10px; color:${lowColor}">${formatPrice(low)}</span>
+				<span style="color:${baseTextColor}">C</span><span style="margin-right:10px; color:${closeColor}">${formatPrice(close)}</span>
+				<span style="color:${changeColor}">${change >= 0 ? '+' : ''}${formatPrice(change)} (${changePercent.toFixed(2)}%)</span>
+			`;
+		});
 
 		// 添加K线图系列
 		const candlestickSeries = chart.addSeries(CandlestickSeries);
@@ -203,48 +280,6 @@ const StockChartAdvanced = ({
 
 		// 设置K线数据
 		candlestickSeries.setData(candlestickData);
-
-		// 订阅十字线移动事件，更新legend
-		chart.subscribeCrosshairMove((param) => {
-			if (!param.time || !param.point) {
-				// 如果没有时间点数据，隐藏legend
-				legendElement.style.display = 'none';
-				return;
-			}
-
-			// 显示legend
-			legendElement.style.display = 'block';
-
-			// 获取当前K线数据
-			const candleData = param.seriesData.get(
-				candlestickSeries as ISeriesApi<'Candlestick'>
-			);
-			if (!candleData) {
-				return;
-			}
-
-			// 正确处理不同类型的数据
-			// 对于K线图，我们需要判断数据类型并安全地访问属性
-			const price =
-				'close' in candleData
-					? candleData.close
-					: 'value' in candleData
-						? candleData.value
-						: 0;
-			const open = 'open' in candleData ? candleData.open : price;
-
-			const formattedPrice = price.toFixed(2);
-
-			// 计算涨跌幅
-			const change = price - open;
-			const changePercent = open !== 0 ? (change / open) * 100 : 0;
-			const changeColor =
-				change >= 0 ? themeColors.upColor : themeColors.downColor;
-
-			// 更新legend内容
-			priceRow.innerHTML = `价格: <strong>${formattedPrice}</strong>`;
-			changeRow.innerHTML = `涨跌幅: <span style="color: ${changeColor}">${change >= 0 ? '+' : ''}${change.toFixed(2)} (${changePercent.toFixed(2)}%)</span>`;
-		});
 
 		// 处理成交量数据
 		volumeSeries.setData(volumeData!);
