@@ -7,7 +7,8 @@ import {
 	CandlestickSeries,
 	HistogramSeries,
 	ISeriesApi,
-	LineSeries
+	LineSeries,
+	IChartApi,
 } from 'lightweight-charts';
 import { useTheme } from 'next-themes';
 
@@ -41,6 +42,14 @@ interface StockChartAdvancedProps {
 	realtimeCandle?: ChartDataPoint; // 新增：实时蜡烛图数据
 }
 
+const MAIN_CHART_SCALE_MARGIN = 0.05;
+const MAIN_CHART_SCALE_MARGIN_BOTTOM = 0.2;
+const MAIN_CHART_PRICE_SCALE_ID = 'main-price-scale';
+
+const VOLUME_CHART_SCALE_MARGIN = 0.85;
+const VOLUME_CHART_SCALE_MARGIN_BOTTOM = 0;
+const VOLUME_CHART_PRICE_SCALE_ID = 'volume-price-scale';
+
 const StockChartAdvanced = ({
 	className,
 	candlestickData,
@@ -52,6 +61,9 @@ const StockChartAdvanced = ({
 	realtimeCandle,
 }: StockChartAdvancedProps) => {
 	const chartContainerRef = useRef<HTMLDivElement>(null);
+	// 添加图表和SMA系列的引用
+	const chartRef = useRef<IChartApi | null>(null);
+	const smaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
 	const { theme } = useTheme();
 	const isDarkMode = theme === 'dark';
 	const { preference } = useProfile();
@@ -73,6 +85,7 @@ const StockChartAdvanced = ({
 		};
 	}, [isDarkMode, preference?.chart.upColor, preference?.chart.downColor]);
 
+	// 主要图表创建和K线/成交量数据设置
 	useEffect(() => {
 		// 如果没有数据或DOM元素不存在，则不渲染图表
 		if (
@@ -85,6 +98,8 @@ const StockChartAdvanced = ({
 
 		// 清除任何现有的图表
 		chartContainerRef.current.innerHTML = '';
+		// 重置SMA系列引用
+		smaSeriesRef.current = null;
 
 		// 创建图表选项
 		const chartOptions = getChartOptions(
@@ -96,6 +111,8 @@ const StockChartAdvanced = ({
 
 		// 创建图表实例
 		const chart = createChart(chartContainerRef.current, chartOptions);
+		// 保存图表引用
+		chartRef.current = chart;
 
 		// 创建legend元素并添加到图表容器中
 		const legendElement = createLegendElement(
@@ -105,7 +122,9 @@ const StockChartAdvanced = ({
 		);
 
 		// 添加K线图系列
-		const candlestickSeries = chart.addSeries(CandlestickSeries);
+		const candlestickSeries = chart.addSeries(CandlestickSeries, {
+			priceScaleId: MAIN_CHART_PRICE_SCALE_ID, // 使用自定义价格轴ID
+		});
 
 		// 设置十字线移动事件，更新legend
 		subscribeCrosshairMove(
@@ -127,13 +146,14 @@ const StockChartAdvanced = ({
 			wickDownColor: themeColors.downColor, // 下跌蜡烛影线为红色
 		});
 
-		// 配置K线图的位置
-		candlestickSeries.priceScale().applyOptions({
+		// 配置主价格轴
+		chart.priceScale(MAIN_CHART_PRICE_SCALE_ID).applyOptions({
 			scaleMargins: {
-				top: 0.05, // 最高点距离顶部5%
-
-				bottom: 0.2, // 最低点距离底部20%
+				top: MAIN_CHART_SCALE_MARGIN, // 最高点距离顶部5%
+				bottom: MAIN_CHART_SCALE_MARGIN_BOTTOM, // 最低点距离底部20%
 			},
+			autoScale: true, // 自动缩放
+			alignLabels: true, // 对齐标签
 		});
 
 		// 添加成交量图系列
@@ -142,15 +162,15 @@ const StockChartAdvanced = ({
 			priceFormat: {
 				type: 'volume',
 			},
-			priceScaleId: 'volume', // 使用独立的价格轴ID
+			priceScaleId: VOLUME_CHART_PRICE_SCALE_ID, // 使用独立的价格轴ID
 			lastValueVisible: false, // 不显示最后一个值
 		});
 
 		// 配置成交量图的位置
 		volumeSeries.priceScale().applyOptions({
 			scaleMargins: {
-				top: 0.85, // 最高点距离顶部85%
-				bottom: 0, // 最低点在最底部
+				top: VOLUME_CHART_SCALE_MARGIN, // 最高点距离顶部85%
+				bottom: VOLUME_CHART_SCALE_MARGIN_BOTTOM, // 最低点在最底部
 			},
 		});
 
@@ -159,18 +179,6 @@ const StockChartAdvanced = ({
 			lastValueVisible: false, // 不显示最后一个值
 			priceLineVisible: false, // 关闭成交量价格线
 		});
-
-		// 添加SMA系列
-		if (smaData && smaData.length > 0) {
-			const smaSeries = chart.addSeries(LineSeries, { 
-				color: '#2962FF', // 蓝色的SMA线
-				lineWidth: 1,
-				priceScaleId: 'right' // 使用与K线图相同的价格轴
-			});
-			
-			// 设置SMA数据
-			smaSeries.setData(smaData);
-		}
 
 		// 设置K线数据
 		candlestickSeries.setData(candlestickData);
@@ -261,17 +269,47 @@ const StockChartAdvanced = ({
 		return () => {
 			window.removeEventListener('resize', handleResize);
 			chart.remove();
+			chartRef.current = null;
 		};
 	}, [
 		candlestickData,
 		volumeData,
-		smaData, // 添加SMA数据依赖
 		themeColors,
 		height,
 		fromDate,
 		toDate,
 		realtimeCandle,
 	]);
+
+	// 单独的useEffect用于处理SMA数据，不会导致整个图表重新渲染
+	useEffect(() => {
+		const chart = chartRef.current;
+		if (!chart || !smaData || smaData.length === 0) {
+			return;
+		}
+
+		// 如果已经存在SMA系列，则更新数据
+		if (smaSeriesRef.current) {
+			smaSeriesRef.current.setData(smaData);
+			return;
+		}
+
+		// 如果还没有SMA系列，创建新的
+		const smaSeries = chart.addSeries(LineSeries, {
+			color: '#8dabff', // 蓝色的SMA线
+			lineWidth: 1,
+			priceScaleId: MAIN_CHART_PRICE_SCALE_ID, // 使用与K线图相同的价格轴ID
+			lastValueVisible: false, // 不显示最后一个值的标签
+			crosshairMarkerVisible: false, // 显示十字线标记
+			crosshairMarkerRadius: 4, // 十字线标记半径
+		});
+
+		// 设置SMA数据
+		smaSeries.setData(smaData);
+
+		// 保存SMA系列引用
+		smaSeriesRef.current = smaSeries;
+	}, [smaData]);
 
 	return (
 		<div
