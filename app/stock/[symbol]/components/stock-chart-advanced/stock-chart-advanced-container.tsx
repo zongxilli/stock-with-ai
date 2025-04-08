@@ -4,12 +4,17 @@ import { useEffect, useState } from 'react';
 
 import StockChartAdvanced from './stock-chart-advanced';
 
+import { getSMA } from '@/app/actions/eodhd/indicators/sma';
 import { getSplitAdjustedData } from '@/app/actions/eodhd/indicators/splitadjusted';
-import { formatSplitAdjustedDataForChart } from '@/app/actions/eodhd/utils/format';
+import {
+	formatSmaDataForChart,
+	formatSplitAdjustedDataForChart,
+} from '@/app/actions/eodhd/utils/format';
 import { getStockRealTimeDataForChart } from '@/app/actions/yahoo/get-stock-realtime-data';
 import {
 	ChartDataPoint,
 	ChartHeightMode,
+	SmaDataPoint,
 } from '@/app/types/stock-page/chart-advanced';
 import { useProfile } from '@/hooks/use-profile';
 
@@ -44,6 +49,8 @@ export default function StockChartAdvancedContainer({
 	const [realtimeCandle, setRealtimeCandle] = useState<
 		ChartDataPoint | undefined
 	>(undefined);
+	// 新增：SMA数据状态
+	const [smaData, setSmaData] = useState<SmaDataPoint[]>([]);
 
 	// 使用 server action 获取历史数据
 	useEffect(() => {
@@ -98,6 +105,35 @@ export default function StockChartAdvancedContainer({
 		fetchRealtimeData();
 	}, [symbol, chartData]);
 
+	// 新增：获取SMA数据
+	useEffect(() => {
+		if (!chartData || chartData.candlestickData.length === 0) return;
+
+		const fetchSmaData = async () => {
+			try {
+				// 获取SMA数据，使用默认周期为20
+				const smaDataResponse = await getSMA({
+					code,
+					exchange,
+					range: 'max',
+					period: 20, // 使用20作为默认周期
+				});
+
+				// 格式化SMA数据
+				const formattedSmaData = formatSmaDataForChart(
+					smaDataResponse as { date: string; sma: number }[]
+				);
+
+				setSmaData(formattedSmaData);
+			} catch (err) {
+				console.error('获取SMA数据时出错:', err);
+				// 不设置主要错误，因为这只是辅助数据
+			}
+		};
+
+		fetchSmaData();
+	}, [code, exchange, chartData]);
+
 	return (
 		<div
 			className={`w-full rounded-lg border p-6 bg-card shadow-sm relative ${className || ''}`}
@@ -121,6 +157,7 @@ export default function StockChartAdvancedContainer({
 					className='mt-4'
 					candlestickData={chartData?.candlestickData}
 					volumeData={chartData?.volumeData}
+					smaData={smaData}
 					height={heightMode}
 					realtimeCandle={realtimeCandle}
 				/>

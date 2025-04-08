@@ -7,6 +7,7 @@ import {
 	CandlestickSeries,
 	HistogramSeries,
 	ISeriesApi,
+	LineSeries
 } from 'lightweight-charts';
 import { useTheme } from 'next-themes';
 
@@ -16,6 +17,7 @@ import { getChartOptions } from './chart-options';
 import {
 	ChartDataPoint,
 	VolumeDataPoint,
+	SmaDataPoint,
 	DEFAULT_UP_COLOR,
 	DEFAULT_DOWN_COLOR,
 } from '@/app/types/stock-page/chart-advanced';
@@ -32,6 +34,7 @@ interface StockChartAdvancedProps {
 	className?: string;
 	candlestickData?: ChartDataPoint[];
 	volumeData?: VolumeDataPoint[];
+	smaData?: SmaDataPoint[]; // 新增：SMA数据
 	height?: number; // 调整为仅接受数字高度
 	fromDate?: string; // 新增：起始日期 'YYYY-MM-DD'
 	toDate?: string; // 新增：结束日期 'YYYY-MM-DD'
@@ -42,6 +45,7 @@ const StockChartAdvanced = ({
 	className,
 	candlestickData,
 	volumeData,
+	smaData = [], // 添加SMA数据默认值
 	height = 400, // 默认高度为400px
 	fromDate,
 	toDate,
@@ -156,6 +160,18 @@ const StockChartAdvanced = ({
 			priceLineVisible: false, // 关闭成交量价格线
 		});
 
+		// 添加SMA系列
+		if (smaData && smaData.length > 0) {
+			const smaSeries = chart.addSeries(LineSeries, { 
+				color: '#2962FF', // 蓝色的SMA线
+				lineWidth: 1,
+				priceScaleId: 'right' // 使用与K线图相同的价格轴
+			});
+			
+			// 设置SMA数据
+			smaSeries.setData(smaData);
+		}
+
 		// 设置K线数据
 		candlestickSeries.setData(candlestickData);
 
@@ -249,6 +265,7 @@ const StockChartAdvanced = ({
 	}, [
 		candlestickData,
 		volumeData,
+		smaData, // 添加SMA数据依赖
 		themeColors,
 		height,
 		fromDate,

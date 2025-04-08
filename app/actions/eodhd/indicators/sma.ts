@@ -1,6 +1,7 @@
 'use server';
 
-import { BaseIndicatorParams, IndicatorDataPoint } from '../types/types';
+import { BaseIndicatorParams } from '../types/types';
+
 import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
 
 /**
@@ -14,7 +15,7 @@ import { buildIndicatorRequest, getIndicatorData } from './utils/helpers';
  */
 export async function getSMA(
 	params: BaseIndicatorParams
-): Promise<IndicatorDataPoint[]> {
+): Promise<{ date: string; sma: number | null }[]> {
 	const { code, exchange, range, period = 50 } = params;
 	const symbol = `${code}.${exchange}`;
 

@@ -2,9 +2,9 @@ import { HistoricalDataPoint } from '../get-historical-data';
 import { SplitAdjustedDataPoint } from '../indicators/splitadjusted';
 
 import {
-	ChartData,
 	ChartDataPoint,
 	VolumeDataPoint,
+	SmaDataPoint,
 	DEFAULT_UP_COLOR,
 	DEFAULT_DOWN_COLOR,
 } from '@/app/types/stock-page/chart-advanced';
@@ -23,7 +23,7 @@ export function formatHistoricalDataForChart(
 	historicalData: HistoricalDataPoint[],
 	upColor: string = DEFAULT_UP_COLOR, // 默认上涨颜色
 	downColor: string = DEFAULT_DOWN_COLOR // 默认下跌颜色
-): ChartData {
+): { candlestickData: ChartDataPoint[]; volumeData: VolumeDataPoint[] } {
 	console.log(historicalData);
 
 	// 确保数据按日期升序排列（从旧到新）
@@ -80,7 +80,7 @@ export function formatSplitAdjustedDataForChart(
 	splitAdjustedData: SplitAdjustedDataPoint[],
 	upColor: string = DEFAULT_UP_COLOR, // 默认上涨颜色
 	downColor: string = DEFAULT_DOWN_COLOR // 默认下跌颜色
-): ChartData {
+): { candlestickData: ChartDataPoint[]; volumeData: VolumeDataPoint[] } {
 	// 确保数据按日期升序排列（从旧到新）
 	// const sortedData = [...splitAdjustedData].sort(
 	// 	(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -114,4 +114,22 @@ export function formatSplitAdjustedDataForChart(
 		candlestickData,
 		volumeData,
 	};
+}
+
+/**
+ * 将SMA数据格式化为图表组件需要的格式
+ *
+ * @param smaData API获取的SMA数据
+ * @param candlestickData 对应的K线数据，用于确保日期对齐
+ * @returns 格式化后的SMA数据点数组
+ */
+export function formatSmaDataForChart(
+	smaData: { date: string; sma: number | null }[]
+): SmaDataPoint[] {
+	// 格式化SMA数据 - 只包含在K线数据中存在的日期
+	const formattedSmaData: SmaDataPoint[] = smaData.map((point) => ({
+		time: point.date,
+		value: point.sma ? parseFloat(point.sma.toFixed(2)) : null,
+	}));
+	return formattedSmaData;
 }

@@ -22,12 +22,22 @@ export interface VolumeDataPoint {
 }
 
 /**
+ * SMA 数据点接口
+ * 用于轻量级图表库展示的移动平均线数据
+ */
+export interface SmaDataPoint {
+	time: string; // 日期字符串，格式 'YYYY-MM-DD'
+	value: number | null; // SMA 值
+}
+
+/**
  * 图表数据接口
- * 包含K线数据和成交量数据
+ * 包含K线数据、成交量数据和SMA数据
  */
 export interface ChartData {
 	candlestickData: ChartDataPoint[]; // K线数据
 	volumeData: VolumeDataPoint[]; // 成交量数据
+	smaData: SmaDataPoint[]; // SMA数据
 }
 
 /**
