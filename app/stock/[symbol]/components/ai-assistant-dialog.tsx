@@ -43,8 +43,6 @@ interface AIAssistantDialogProps {
 	isOpen: boolean;
 	setIsOpen: (isOpen: boolean) => void;
 	symbol: string;
-	isLoading: boolean;
-	data: AIAssistantData | null;
 	useStream?: boolean;
 	code: string;
 	exchange: string;
@@ -435,8 +433,6 @@ export default function AIAssistantDialog({
 	isOpen,
 	setIsOpen,
 	symbol,
-	isLoading: initialIsLoading,
-	data: initialData,
 	useStream = false,
 	code,
 	exchange,
@@ -493,8 +489,8 @@ export default function AIAssistantDialog({
 	}, [progress]);
 
 	// 使用流式数据或初始数据
-	const data = streamData || initialData;
-	const isLoading = isStreaming || initialIsLoading;
+	const data = streamData;
+	const isLoading = isStreaming;
 
 	// 处理Escape键关闭对话框
 	useEffect(() => {
@@ -655,12 +651,7 @@ export default function AIAssistantDialog({
 	// 首次打开时检查Redis缓存
 	useEffect(() => {
 		// 只在首次打开对话框且没有初始数据时检查缓存
-		if (
-			isOpen &&
-			!initialData &&
-			!streamData &&
-			!isCheckedCacheRef.current
-		) {
+		if (isOpen && !streamData && !isCheckedCacheRef.current) {
 			isCheckedCacheRef.current = true;
 
 			const checkCache = async () => {
@@ -674,7 +665,7 @@ export default function AIAssistantDialog({
 
 			checkCache();
 		}
-	}, [isOpen, initialData, streamData, symbol, code, exchange]);
+	}, [isOpen, streamData, symbol, code, exchange]);
 
 	if (!isOpen)
 		return (

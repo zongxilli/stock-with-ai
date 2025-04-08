@@ -2,6 +2,7 @@
 
 import yahooFinance from 'yahoo-finance2';
 
+import { getValidYahooFinanceSymbol } from './search-stock';
 import { formatAPIDate, parsePercentage } from './utils/formatters';
 import { safeGet } from './utils/helpers';
 
@@ -17,11 +18,21 @@ export async function getStockRealTimeData(symbol: string) {
 			return cachedData;
 		}
 
+		// 先通过searchStock搜索确认股票代码是否存在
+		const validSymbol = await getValidYahooFinanceSymbol(symbol);
+		if (!validSymbol) {
+			return {
+				error: `未找到证券代码: ${symbol}。请检查代码并重试。getStockRealTimeData`,
+				errorType: 'API_ERROR',
+				originalError: `未找到证券代码: ${symbol}`,
+			};
+		}
+
 		// 请求Yahoo Finance获取实时数据和更全面的统计信息
 		try {
-			const [quote, stats] = await Promise.all([
-				yahooFinance.quote(symbol),
-				yahooFinance.quoteSummary(symbol, {
+			const [quoteResponse, stats] = await Promise.all([
+				yahooFinance.quote(validSymbol),
+				yahooFinance.quoteSummary(validSymbol, {
 					modules: [
 						'price',
 						'summaryDetail',
@@ -36,17 +47,27 @@ export async function getStockRealTimeData(symbol: string) {
 				}),
 			]);
 
+			console.log(quoteResponse);
+
+			// 从quoteResponse数组中获取第一个元素
+			// const quote =
+			// 	Array.isArray(quoteResponse) && quoteResponse.length > 0
+			// 		? quoteResponse[0]
+			// 		: null;
+
+			const quote = quoteResponse;
+
 			// 检查返回数据中的错误或空数据
 			if (!quote || !quote.symbol) {
 				// 返回结构化的错误对象，而不是抛出错误
 				return {
-					error: `找不到股票代码: ${symbol}`,
+					error: `找不到股票代码: ${validSymbol}`,
 					errorType: 'SYMBOL_NOT_FOUND',
 				};
 			}
 
 			// 提取需要的基本数据
-			const stockData: any = {
+			const stockData = {
 				// 基本识别信息
 				symbol: quote.symbol,
 				name: quote.shortName || quote.longName || quote.symbol,
@@ -346,25 +367,25 @@ export async function getStockRealTimeData(symbol: string) {
 			let cacheTime = 4; // 默认4秒
 
 			// 检查是否是交易中状态
-			if (quote.marketState === 'REGULAR') {
-				cacheTime = 4; // 交易中: 4秒
-			} else if (
-				quote.marketState === 'PRE' ||
-				quote.marketState === 'POST'
-			) {
-				cacheTime = 15; // 盘前盘后: 15秒
-			} else {
-				// 如果市场关闭，且有盘后数据，缓存8小时
-				if (
-					quote.marketState === 'CLOSED' &&
-					quote.postMarketPrice !== undefined &&
-					quote.postMarketChange !== undefined
-				) {
-					cacheTime = 28800; // 8小时 = 28800秒
-				} else {
-					cacheTime = 300; // 市场关闭无盘后数据: 5分钟
-				}
-			}
+			// if (quote.marketState === 'REGULAR') {
+			// 	cacheTime = 4; // 交易中: 4秒
+			// } else if (
+			// 	quote.marketState === 'PRE' ||
+			// 	quote.marketState === 'POST'
+			// ) {
+			// 	cacheTime = 15; // 盘前盘后: 15秒
+			// } else {
+			// 	// 如果市场关闭，且有盘后数据，缓存8小时
+			// 	if (
+			// 		quote.marketState === 'CLOSED' &&
+			// 		quote.postMarketPrice !== undefined &&
+			// 		quote.postMarketChange !== undefined
+			// 	) {
+			// 		cacheTime = 28800; // 8小时 = 28800秒
+			// 	} else {
+			// 		cacheTime = 300; // 市场关闭无盘后数据: 5分钟
+			// 	}
+			// }
 
 			// 保存结果到Redis缓存
 			await setCache(cacheKey, stockData, cacheTime);

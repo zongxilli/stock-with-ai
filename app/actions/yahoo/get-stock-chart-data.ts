@@ -2,6 +2,7 @@
 
 import yahooFinance from 'yahoo-finance2';
 
+import { getValidYahooFinanceSymbol } from './search-stock';
 import { formatDate } from './utils/formatters';
 import {
 	generateTradingTimeline,
@@ -20,6 +21,16 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 			return cachedData;
 		}
 
+		// 先通过searchStock搜索确认股票代码是否存在
+		const validSymbol = await getValidYahooFinanceSymbol(symbol);
+		if (!validSymbol) {
+			return {
+				error: `未找到证券代码: ${symbol}。请检查代码并重试。getStockChartData`,
+				errorType: 'API_ERROR',
+				originalError: `未找到证券代码: ${symbol}`,
+			};
+		}
+
 		// 设置查询参数
 		const now = new Date();
 		let period1: Date;
@@ -27,7 +38,7 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 		let interval = '1d';
 
 		// 首先获取证券的基本信息，用于确定证券类型
-		const quoteData = await yahooFinance.quote(symbol);
+		const quoteData = await yahooFinance.quote(validSymbol);
 
 		// 检查报价数据是否有效
 		if (!quoteData || !quoteData.regularMarketTime) {
@@ -141,31 +152,39 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				} else {
 					// 过滤出标准交易时间内的数据
 					if (quoteData.regularMarketTime) {
-						const marketOpenTime = new Date(quoteData.regularMarketTime);
+						const marketOpenTime = new Date(
+							quoteData.regularMarketTime
+						);
 						// 设置为当天的9:30 AM (美股标准开盘时间)
 						marketOpenTime.setHours(9, 30, 0, 0);
-						
-						const marketCloseTime = new Date(quoteData.regularMarketTime);
+
+						const marketCloseTime = new Date(
+							quoteData.regularMarketTime
+						);
 						// 设置为当天的4:00 PM (美股标准收盘时间)
 						marketCloseTime.setHours(16, 0, 0, 0);
-						
+
 						// 过滤出标准交易时间内的数据
-						filteredQuotes = filteredQuotes.filter(quote => {
+						filteredQuotes = filteredQuotes.filter((quote) => {
 							const quoteTime = new Date(quote.date);
 							const quoteHour = quoteTime.getHours();
 							const quoteMinute = quoteTime.getMinutes();
-							
+
 							// 检查是否在9:30 AM - 4:00 PM之间
 							return (
-								(quoteHour > 9 || (quoteHour === 9 && quoteMinute >= 30)) && 
-								(quoteHour < 16 || (quoteHour === 16 && quoteMinute === 0))
+								(quoteHour > 9 ||
+									(quoteHour === 9 && quoteMinute >= 30)) &&
+								(quoteHour < 16 ||
+									(quoteHour === 16 && quoteMinute === 0))
 							);
 						});
-						
+
 						// 如果过滤后没有数据，则使用原始数据
 						if (filteredQuotes.length === 0) {
 							filteredQuotes = result.quotes;
-							console.warn(`过滤后没有数据，使用原始数据 (${symbol})`);
+							console.warn(
+								`过滤后没有数据，使用原始数据 (${symbol})`
+							);
 						}
 					}
 					processedQuotes = filteredQuotes;
@@ -211,9 +230,12 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				);
 				// 返回结构化的错误对象，而不是抛出错误
 				return {
-					error: `未找到证券代码: ${symbol}。请检查代码并重试。`,
+					error: `未找到证券代码: ${symbol}。请检查代码并重试。getStockChartData2`,
 					errorType: 'API_ERROR',
-					originalError: innerError instanceof Error ? innerError.message : String(innerError)
+					originalError:
+						innerError instanceof Error
+							? innerError.message
+							: String(innerError),
 				};
 			}
 		} else {
@@ -300,9 +322,12 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 				);
 				// 返回结构化的错误对象，而不是抛出错误
 				return {
-					error: `未找到证券代码: ${symbol}。请检查代码并重试。`,
+					error: `未找到证券代码: ${symbol}。请检查代码并重试。getStockChartData3`,
 					errorType: 'API_ERROR',
-					originalError: innerError instanceof Error ? innerError.message : String(innerError)
+					originalError:
+						innerError instanceof Error
+							? innerError.message
+							: String(innerError),
 				};
 			}
 		}
@@ -312,7 +337,8 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 		return {
 			error: `获取图表数据失败: ${error instanceof Error ? error.message : String(error)}`,
 			errorType: 'UNKNOWN_ERROR',
-			originalError: error instanceof Error ? error.message : String(error)
+			originalError:
+				error instanceof Error ? error.message : String(error),
 		};
 	}
 }
