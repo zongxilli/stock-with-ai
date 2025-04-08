@@ -52,15 +52,6 @@ export default function StockChartAdvancedContainer({
 			setError(null);
 
 			try {
-				// 调用 server action 获取数据
-				// const data = await getHistoricalDataByPeriod(
-				// 	code,
-				// 	exchange,
-				// 	start,
-				// 	end,
-				// 	preference?.chart.period
-				// );
-
 				const data = await getSplitAdjustedData({
 					code,
 					exchange,
@@ -68,11 +59,6 @@ export default function StockChartAdvancedContainer({
 					aggPeriod: preference?.chart.period,
 				});
 
-				// const formattedData = formatHistoricalDataForChart(
-				// 	data,
-				// 	preference?.chart.upColor,
-				// 	preference?.chart.downColor
-				// );
 				const formattedData = formatSplitAdjustedDataForChart(
 					data,
 					preference?.chart.upColor,
