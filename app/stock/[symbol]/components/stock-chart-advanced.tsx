@@ -237,7 +237,7 @@ const StockChartAdvanced = ({
 
 		// 应用K线样式选项 - 上涨K线为空心（只有边框）
 		candlestickSeries.applyOptions({
-			upColor: themeColors.upColor, // 将上涨蜡烛填充设为透明
+			upColor: 'rgba(0, 0, 0, 0)', // 将上涨蜡烛填充设为透明，实现空心效果
 			downColor: themeColors.downColor, // 下跌蜡烛保持实心红色
 			borderVisible: true, // 显示边框
 			borderUpColor: themeColors.upColor, // 上涨蜡烛边框为绿色
