@@ -168,6 +168,7 @@ const StockChartAdvanced = ({
 			}
 
 			// 安全地访问OHLC属性
+			const date = 'time' in candleData ? candleData.time : 0;
 			const open = 'open' in candleData ? candleData.open : 0;
 			const high = 'high' in candleData ? candleData.high : 0;
 			const low = 'low' in candleData ? candleData.low : 0;
@@ -224,6 +225,7 @@ const StockChartAdvanced = ({
 
 			// 更新legend内容为一行显示
 			legendElement.innerHTML = `
+				<span style="color:${baseTextColor}; margin-right:10px">${date}</span>
 				<span style="color:${baseTextColor}">O</span><span style="margin-right:10px; color:${openColor}">${formatPrice(open)}</span>
 				<span style="color:${baseTextColor}">H</span><span style="margin-right:10px; color:${highColor}">${formatPrice(high)}</span>
 				<span style="color:${baseTextColor}">L</span><span style="margin-right:10px; color:${lowColor}">${formatPrice(low)}</span>
@@ -250,6 +252,7 @@ const StockChartAdvanced = ({
 		candlestickSeries.priceScale().applyOptions({
 			scaleMargins: {
 				top: 0.05, // 最高点距离顶部5%
+
 				bottom: 0.2, // 最低点距离底部20%
 			},
 		});
