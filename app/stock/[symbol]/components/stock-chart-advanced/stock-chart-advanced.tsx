@@ -284,6 +284,7 @@ const StockChartAdvanced = ({
 			lineWidth: 1,
 			priceScaleId: MAIN_CHART_PRICE_SCALE_ID, // 使用与K线图相同的价格轴ID
 			lastValueVisible: false, // 不显示最后一个值的标签
+			priceLineVisible: false, // 不显示最新价格的水平虚线
 			crosshairMarkerVisible: false, // 显示十字线标记
 			crosshairMarkerRadius: 4, // 十字线标记半径
 		});
