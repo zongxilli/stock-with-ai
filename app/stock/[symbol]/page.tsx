@@ -9,7 +9,7 @@ import ChartContainer from './components/chart-container';
 import ErrorView from './components/error-view';
 import RangeSelector from './components/rangeSelector';
 import StatusIndicator from './components/status-indicator';
-import StockChartAdvancedContainer from './components/stock-chart-advanced-container';
+import StockChartAdvancedContainer from './components/stock-chart-advanced/stock-chart-advanced-container';
 import StockDetails from './components/stock-details';
 import StockHeader from './components/stock-header';
 import StockNews from './components/stock-news';
