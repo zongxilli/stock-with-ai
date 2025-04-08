@@ -47,8 +47,6 @@ export async function getStockRealTimeData(symbol: string) {
 				}),
 			]);
 
-			console.log(quoteResponse);
-
 			// 从quoteResponse数组中获取第一个元素
 			// const quote =
 			// 	Array.isArray(quoteResponse) && quoteResponse.length > 0
