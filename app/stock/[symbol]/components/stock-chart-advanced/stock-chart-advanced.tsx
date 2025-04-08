@@ -44,7 +44,7 @@ interface StockChartAdvancedProps {
 
 const MAIN_CHART_SCALE_MARGIN = 0.05;
 const MAIN_CHART_SCALE_MARGIN_BOTTOM = 0.2;
-const MAIN_CHART_PRICE_SCALE_ID = 'main-price-scale';
+const MAIN_CHART_PRICE_SCALE_ID = 'left'; // 修改为使用左侧价格轴ID
 
 const VOLUME_CHART_SCALE_MARGIN = 0.85;
 const VOLUME_CHART_SCALE_MARGIN_BOTTOM = 0;
@@ -126,7 +126,21 @@ const StockChartAdvanced = ({
 
 		// 添加K线图系列
 		const candlestickSeries = chart.addSeries(CandlestickSeries, {
-			priceScaleId: MAIN_CHART_PRICE_SCALE_ID, // 使用自定义价格轴ID
+			priceScaleId: MAIN_CHART_PRICE_SCALE_ID, // 使用左侧价格轴ID
+			upColor: 'rgba(0, 0, 0, 0)', // 将上涨蜡烛填充设为透明，实现空心效果
+			downColor: themeColors.downColor,
+			borderVisible: true, // 显示边框
+			wickUpColor: themeColors.upColor, // 上影线颜色
+			wickDownColor: themeColors.downColor, // 下影线颜色
+			borderUpColor: themeColors.upColor, // 上涨蜡烛边框为绿色
+			borderDownColor: themeColors.downColor, // 下跌蜡烛边框为红色
+			priceFormat: {
+				type: 'price',
+				precision: 2, // 价格精度，小数点后两位
+				minMove: 0.01, // 最小价格变动
+			},
+			lastValueVisible: true, // 显示最后价格值
+			priceLineVisible: true, // 显示价格线
 		});
 
 		// 设置十字线移动事件，更新legend
@@ -137,17 +151,6 @@ const StockChartAdvanced = ({
 			themeColors,
 			candlestickData
 		);
-
-		// 应用K线样式选项 - 上涨K线为空心（只有边框）
-		candlestickSeries.applyOptions({
-			upColor: 'rgba(0, 0, 0, 0)', // 将上涨蜡烛填充设为透明，实现空心效果
-			downColor: themeColors.downColor, // 下跌蜡烛保持实心红色
-			borderVisible: true, // 显示边框
-			borderUpColor: themeColors.upColor, // 上涨蜡烛边框为绿色
-			borderDownColor: themeColors.downColor, // 下跌蜡烛边框为红色
-			wickUpColor: themeColors.upColor, // 上涨蜡烛影线为绿色
-			wickDownColor: themeColors.downColor, // 下跌蜡烛影线为红色
-		});
 
 		// 配置主价格轴
 		chart.priceScale(MAIN_CHART_PRICE_SCALE_ID).applyOptions({
