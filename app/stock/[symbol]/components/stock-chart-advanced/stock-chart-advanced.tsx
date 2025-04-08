@@ -261,6 +261,8 @@ const StockChartAdvanced = ({
 		height,
 		fromDate,
 		toDate,
+		isDarkMode,
+		preference?.chart.period,
 	]);
 
 	// 单独的useEffect用于处理SMA数据，不会导致整个图表重新渲染
@@ -296,7 +298,12 @@ const StockChartAdvanced = ({
 	// 新增：单独的useEffect用于处理实时蜡烛图数据更新
 	useEffect(() => {
 		// 如果没有实时数据或图表系列引用不存在，则直接返回
-		if (!realtimeCandle || !candlestickSeriesRef.current || !volumeSeriesRef.current) {
+		if (
+			!realtimeCandle ||
+			!candlestickSeriesRef.current ||
+			!volumeSeriesRef.current ||
+			preference?.chart.period !== 'd'
+		) {
 			return;
 		}
 
@@ -321,7 +328,7 @@ const StockChartAdvanced = ({
 		// if (chartRef.current) {
 		//     chartRef.current.timeScale().scrollToRealTime();
 		// }
-	}, [realtimeCandle, themeColors]);
+	}, [preference?.chart.period, realtimeCandle, themeColors]);
 
 	return (
 		<div

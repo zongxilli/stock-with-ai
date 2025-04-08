@@ -119,6 +119,8 @@ export default function StockChartAdvancedContainer({
 
 	// 新增：获取SMA数据
 	useEffect(() => {
+		if (preference?.chart.period !== 'd') return;
+
 		if (!chartData || chartData.candlestickData.length === 0) return;
 
 		const fetchSmaData = async () => {
@@ -148,7 +150,7 @@ export default function StockChartAdvancedContainer({
 		};
 
 		fetchSmaData();
-	}, [code, exchange, chartData]);
+	}, [code, exchange, chartData, preference?.chart.period]);
 
 	const isLoading = useMemo(() => {
 		return isChartDataLoading || isSmaDataLoading;
@@ -177,7 +179,7 @@ export default function StockChartAdvancedContainer({
 					className='mt-4'
 					candlestickData={chartData?.candlestickData}
 					volumeData={chartData?.volumeData}
-					smaData={smaData}
+					smaData={preference?.chart.period === 'd' ? smaData : []}
 					height={heightMode}
 					realtimeCandle={realtimeCandle}
 				/>
