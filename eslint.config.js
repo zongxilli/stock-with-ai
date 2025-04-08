@@ -32,10 +32,14 @@ module.exports = defineConfig([
 					ignoreRestSiblings: false,
 				},
 			],
+			// 添加React Hooks依赖检查规则
+			'react-hooks/rules-of-hooks': 'error', // 检查Hooks规则
+			'react-hooks/exhaustive-deps': 'warn', // 检查依赖项
 		},
 		plugins: {
 			'@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
 			import: require('eslint-plugin-import'),
+			'react-hooks': require('eslint-plugin-react-hooks'), // 添加react-hooks插件
 		},
 		languageOptions: {
 			parser: require('@typescript-eslint/parser'),
