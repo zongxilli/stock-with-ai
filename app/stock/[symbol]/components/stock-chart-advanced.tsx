@@ -104,7 +104,21 @@ const StockChartAdvanced = ({
 					visible: true, // 显示水平线
 					color: isDarkMode
 						? 'rgba(255, 255, 255, 0.05)'
-						: 'rgba(0, 0, 0, 0.05)', // 设置水平线低透明度
+						: 'rgba(0, 0, 0, 0.035)', // 设置水平线低透明度
+				},
+			},
+			crosshair: {
+				// 十字线配置
+				mode: 0, // 0 = 普通, 1 = 吸附
+				vertLine: {
+					visible: true,
+					labelVisible: true,
+					style: 0, // 0 = 实线 1 = 虚线 2 = 更密集的虚线
+				},
+				horzLine: {
+					visible: true,
+					labelVisible: true,
+					style: 0, // 0 = 实线 1 = 虚线 2 = 更密集的虚线
 				},
 			},
 		};
