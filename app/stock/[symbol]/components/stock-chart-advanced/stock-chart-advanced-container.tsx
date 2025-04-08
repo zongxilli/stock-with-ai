@@ -103,7 +103,18 @@ export default function StockChartAdvancedContainer({
 			setRealtimeCandle(realtimeChartData);
 		};
 
+		// 立即获取实时数据
 		fetchRealtimeData();
+
+		// 设置定时器，每15秒更新一次实时数据
+		const intervalId = setInterval(() => {
+			fetchRealtimeData();
+		}, 4000); // 15秒钟更新一次
+
+		// 清理函数，组件卸载时清除定时器
+		return () => {
+			clearInterval(intervalId);
+		};
 	}, [symbol, chartData]);
 
 	// 新增：获取SMA数据

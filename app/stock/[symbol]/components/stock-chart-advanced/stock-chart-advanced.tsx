@@ -61,9 +61,12 @@ const StockChartAdvanced = ({
 	realtimeCandle,
 }: StockChartAdvancedProps) => {
 	const chartContainerRef = useRef<HTMLDivElement>(null);
-	// 添加图表和SMA系列的引用
+	// 添加图表和系列的引用
 	const chartRef = useRef<IChartApi | null>(null);
 	const smaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+	// 新增：K线图和成交量图的引用
+	const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+	const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
 	const { theme } = useTheme();
 	const isDarkMode = theme === 'dark';
 	const { preference } = useProfile();
@@ -182,9 +185,13 @@ const StockChartAdvanced = ({
 
 		// 设置K线数据
 		candlestickSeries.setData(candlestickData);
+		// 保存K线系列引用
+		candlestickSeriesRef.current = candlestickSeries;
 
 		// 处理成交量数据
 		volumeSeries.setData(volumeData!);
+		// 保存成交量系列引用
+		volumeSeriesRef.current = volumeSeries;
 
 		// 显示指定日期范围的数据，或默认显示最近90天
 		if (candlestickData.length > 0) {
@@ -230,30 +237,6 @@ const StockChartAdvanced = ({
 			chart.timeScale().fitContent();
 		}
 
-		// 实时数据更新处理
-		// 如果为同一天，数据会override最后一条数据
-		if (realtimeCandle) {
-			// 如果有实时数据，添加到现有数据中
-			candlestickSeries.update(realtimeCandle);
-
-			// 更新成交量数据
-			if (realtimeCandle.volume) {
-				const volumeColor =
-					realtimeCandle.close >= realtimeCandle.open
-						? themeColors.upColor
-						: themeColors.downColor;
-
-				volumeSeries.update({
-					time: realtimeCandle.time,
-					value: realtimeCandle.volume,
-					color: volumeColor,
-				});
-			}
-
-			// 自动滚动到最新数据
-			chart.timeScale().scrollToRealTime();
-		}
-
 		// 处理窗口大小变化，使图表响应式
 		const handleResize = () => {
 			if (chartContainerRef.current) {
@@ -278,7 +261,6 @@ const StockChartAdvanced = ({
 		height,
 		fromDate,
 		toDate,
-		realtimeCandle,
 	]);
 
 	// 单独的useEffect用于处理SMA数据，不会导致整个图表重新渲染
@@ -310,6 +292,36 @@ const StockChartAdvanced = ({
 		// 保存SMA系列引用
 		smaSeriesRef.current = smaSeries;
 	}, [smaData]);
+
+	// 新增：单独的useEffect用于处理实时蜡烛图数据更新
+	useEffect(() => {
+		// 如果没有实时数据或图表系列引用不存在，则直接返回
+		if (!realtimeCandle || !candlestickSeriesRef.current || !volumeSeriesRef.current) {
+			return;
+		}
+
+		// 更新K线图数据
+		candlestickSeriesRef.current.update(realtimeCandle);
+
+		// 更新成交量数据
+		if (realtimeCandle.volume) {
+			const volumeColor =
+				realtimeCandle.close >= realtimeCandle.open
+					? themeColors.upColor
+					: themeColors.downColor;
+
+			volumeSeriesRef.current.update({
+				time: realtimeCandle.time,
+				value: realtimeCandle.volume,
+				color: volumeColor,
+			});
+		}
+
+		// 自动滚动到最新数据
+		if (chartRef.current) {
+			chartRef.current.timeScale().scrollToRealTime();
+		}
+	}, [realtimeCandle, themeColors]);
 
 	return (
 		<div
