@@ -7,6 +7,7 @@ import {
 	CandlestickSeries,
 	ColorType,
 	HistogramSeries,
+	ISeriesApi,
 } from 'lightweight-charts';
 import { useTheme } from 'next-themes';
 
@@ -126,6 +127,34 @@ const StockChartAdvanced = ({
 		// 创建图表实例
 		const chart = createChart(chartContainerRef.current, chartOptions);
 
+		// 创建legend元素并添加到图表容器中
+		const legendElement = document.createElement('div');
+		legendElement.style.position = 'absolute';
+		legendElement.style.left = '12px';
+		legendElement.style.top = '12px';
+		legendElement.style.zIndex = '1';
+		legendElement.style.fontSize = '14px';
+		legendElement.style.fontFamily = 'sans-serif';
+		legendElement.style.lineHeight = '18px';
+		legendElement.style.fontWeight = '300';
+		legendElement.style.color = themeColors.textColor;
+		legendElement.style.padding = '4px 8px';
+		legendElement.style.backgroundColor = isDarkMode
+			? 'rgba(0, 0, 0, 0.6)'
+			: 'rgba(255, 255, 255, 0.6)';
+		legendElement.style.borderRadius = '4px';
+		legendElement.style.backdropFilter = 'blur(4px)';
+		legendElement.style.maxWidth = '200px';
+		legendElement.style.display = 'none'; // 默认隐藏，只在hover时显示
+		chartContainerRef.current.appendChild(legendElement);
+
+		// 创建价格和涨跌幅的行
+		const priceRow = document.createElement('div');
+		legendElement.appendChild(priceRow);
+
+		const changeRow = document.createElement('div');
+		legendElement.appendChild(changeRow);
+
 		// 添加K线图系列
 		const candlestickSeries = chart.addSeries(CandlestickSeries);
 
@@ -174,6 +203,48 @@ const StockChartAdvanced = ({
 
 		// 设置K线数据
 		candlestickSeries.setData(candlestickData);
+
+		// 订阅十字线移动事件，更新legend
+		chart.subscribeCrosshairMove((param) => {
+			if (!param.time || !param.point) {
+				// 如果没有时间点数据，隐藏legend
+				legendElement.style.display = 'none';
+				return;
+			}
+
+			// 显示legend
+			legendElement.style.display = 'block';
+
+			// 获取当前K线数据
+			const candleData = param.seriesData.get(
+				candlestickSeries as ISeriesApi<'Candlestick'>
+			);
+			if (!candleData) {
+				return;
+			}
+
+			// 正确处理不同类型的数据
+			// 对于K线图，我们需要判断数据类型并安全地访问属性
+			const price =
+				'close' in candleData
+					? candleData.close
+					: 'value' in candleData
+						? candleData.value
+						: 0;
+			const open = 'open' in candleData ? candleData.open : price;
+
+			const formattedPrice = price.toFixed(2);
+
+			// 计算涨跌幅
+			const change = price - open;
+			const changePercent = open !== 0 ? (change / open) * 100 : 0;
+			const changeColor =
+				change >= 0 ? themeColors.upColor : themeColors.downColor;
+
+			// 更新legend内容
+			priceRow.innerHTML = `价格: <strong>${formattedPrice}</strong>`;
+			changeRow.innerHTML = `涨跌幅: <span style="color: ${changeColor}">${change >= 0 ? '+' : ''}${change.toFixed(2)} (${changePercent.toFixed(2)}%)</span>`;
+		});
 
 		// 处理成交量数据
 		volumeSeries.setData(volumeData!);
