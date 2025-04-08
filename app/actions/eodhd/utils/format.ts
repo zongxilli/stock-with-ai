@@ -124,12 +124,19 @@ export function formatSplitAdjustedDataForChart(
  * @returns 格式化后的SMA数据点数组
  */
 export function formatSmaDataForChart(
-	smaData: { date: string; sma: number | null }[]
+	smaData: { date: string; sma: number | null }[],
+	candlestickData: ChartDataPoint[]
 ): SmaDataPoint[] {
+	// 创建K线图日期集合，用于快速查找
+	const candlestickDates = new Set(candlestickData.map(candle => candle.time));
+	
 	// 格式化SMA数据 - 只包含在K线数据中存在的日期
-	const formattedSmaData: SmaDataPoint[] = smaData.map((point) => ({
-		time: point.date,
-		value: point.sma ? parseFloat(point.sma.toFixed(2)) : null,
-	}));
+	const formattedSmaData: SmaDataPoint[] = smaData
+		.filter(point => candlestickDates.has(point.date)) // 只保留K线图中存在的日期
+		.map((point) => ({
+			time: point.date,
+			value: point.sma ? parseFloat(point.sma.toFixed(2)) : null,
+		}));
+	
 	return formattedSmaData;
 }

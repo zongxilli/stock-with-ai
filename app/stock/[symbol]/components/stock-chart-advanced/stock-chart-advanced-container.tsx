@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import StockChartAdvanced from './stock-chart-advanced';
 
@@ -39,7 +39,8 @@ export default function StockChartAdvancedContainer({
 }: StockChartAdvancedContainerProps) {
 	const { preference } = useProfile();
 
-	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [isChartDataLoading, setIsChartDataLoading] = useState<boolean>(true);
+	const [isSmaDataLoading, setIsSmaDataLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
 	const [chartData, setChartData] = useState<{
 		candlestickData: any[];
@@ -55,7 +56,7 @@ export default function StockChartAdvancedContainer({
 	// 使用 server action 获取历史数据
 	useEffect(() => {
 		const fetchHistoricalData = async () => {
-			setIsLoading(true);
+			setIsChartDataLoading(true);
 			setError(null);
 
 			try {
@@ -76,7 +77,7 @@ export default function StockChartAdvancedContainer({
 				console.error('获取历史数据时出错:', err);
 				setError(err instanceof Error ? err.message : '获取数据失败');
 			} finally {
-				setIsLoading(false);
+				setIsChartDataLoading(false);
 			}
 		};
 
@@ -110,6 +111,7 @@ export default function StockChartAdvancedContainer({
 		if (!chartData || chartData.candlestickData.length === 0) return;
 
 		const fetchSmaData = async () => {
+			setIsSmaDataLoading(true);
 			try {
 				// 获取SMA数据，使用默认周期为20
 				const smaDataResponse = await getSMA({
@@ -121,18 +123,25 @@ export default function StockChartAdvancedContainer({
 
 				// 格式化SMA数据
 				const formattedSmaData = formatSmaDataForChart(
-					smaDataResponse as { date: string; sma: number }[]
+					smaDataResponse as { date: string; sma: number | null }[],
+					chartData.candlestickData // 传入K线图数据用于日期筛选
 				);
 
 				setSmaData(formattedSmaData);
 			} catch (err) {
 				console.error('获取SMA数据时出错:', err);
 				// 不设置主要错误，因为这只是辅助数据
+			} finally {
+				setIsSmaDataLoading(false);
 			}
 		};
 
 		fetchSmaData();
 	}, [code, exchange, chartData]);
+
+	const isLoading = useMemo(() => {
+		return isChartDataLoading || isSmaDataLoading;
+	}, [isChartDataLoading, isSmaDataLoading]);
 
 	return (
 		<div
