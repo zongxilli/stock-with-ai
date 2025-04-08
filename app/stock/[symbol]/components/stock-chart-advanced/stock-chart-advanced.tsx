@@ -317,10 +317,10 @@ const StockChartAdvanced = ({
 			});
 		}
 
-		// 自动滚动到最新数据
-		if (chartRef.current) {
-			chartRef.current.timeScale().scrollToRealTime();
-		}
+		// 移除自动滚动到最新数据的功能
+		// if (chartRef.current) {
+		//     chartRef.current.timeScale().scrollToRealTime();
+		// }
 	}, [realtimeCandle, themeColors]);
 
 	return (
