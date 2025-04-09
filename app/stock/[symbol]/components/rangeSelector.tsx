@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { ChartCandlestick, Maximize } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -38,22 +38,30 @@ export default function RangeSelector({
 		exchangeName.toLowerCase().includes('nyse');
 
 	// 定义可用的时间范围选项，增加了MAX选项
-	const ranges = [
-		...(isUSMarket ? [{ label: '1D', value: '1d' }] : []), // 只在美股市场显示1D选项
-		{ label: '5D', value: '5d' },
-		{ label: '1M', value: '1mo' },
-		{ label: '3M', value: '3mo' },
-		{ label: '6M', value: '6mo' },
-		{ label: '1Y', value: '1y' },
-		{ label: '5Y', value: '5y' },
-		{ label: 'MAX', value: 'max' }, // 新增MAX选项，显示全部历史数据
-	];
+	const ranges = useMemo(
+		() =>
+			[
+				...(isUSMarket ? [{ label: '1D', value: '1d' }] : []), // 只在美股市场显示1D选项
+				{ label: '5D', value: '5d' },
+				// { label: '1M', value: '1mo' },
+				// { label: '3M', value: '3mo' },
+				// { label: '6M', value: '6mo' },
+				{ label: '1Y', value: '1y' },
+				{ label: '5Y', value: '5y' },
+				{ label: 'MAX', value: 'max' }, // 新增MAX选项，显示全部历史数据
+			] as const,
+		[isUSMarket]
+	);
 
-	const periods: { label: string; value: 'd' | 'w' | 'm' }[] = [
-		{ label: '1D', value: 'd' },
-		{ label: '1W', value: 'w' },
-		{ label: '1M', value: 'm' },
-	];
+	const periods = useMemo(
+		() =>
+			[
+				{ label: '1D', value: 'd' },
+				{ label: '1W', value: 'w' },
+				{ label: '1M', value: 'm' },
+			] as const,
+		[]
+	);
 
 	// 使用客户端路由而不是Link组件，以便于保持滚动位置
 	const handleRangeChange = useCallback(
@@ -77,7 +85,7 @@ export default function RangeSelector({
 				window.scrollTo(0, scrollPosition);
 			}, 0);
 		},
-		[router, symbol, currentRange, isLoading]
+		[currentRange, isLoading, searchParams, router, symbol]
 	);
 
 	// 切换图表高度模式
@@ -136,7 +144,7 @@ export default function RangeSelector({
 				},
 			});
 		},
-		[updatePreference, preference?.chart]
+		[preference, updatePreference]
 	);
 
 	const renderPeriodSelectors = useCallback(() => {
@@ -165,11 +173,11 @@ export default function RangeSelector({
 			</div>
 		);
 	}, [
-		handleRangeChange,
-		currentRange,
-		isLoading,
-		periods,
 		preference?.advancedView,
+		preference?.chart.period,
+		periods,
+		isLoading,
+		updatePreferencePeriod,
 	]);
 
 	return (
