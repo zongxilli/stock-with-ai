@@ -105,16 +105,6 @@ export default function StockChart({
 				return `${normalizedState} • ${exchangeShort}`;
 		}
 	};
-	// 如果没有数据，显示提示信息
-	if (!data || data.length === 0) {
-		return (
-			<div className='h-full w-full flex items-center justify-center'>
-				<div className='text-muted-foreground'>
-					No chart data available
-				</div>
-			</div>
-		);
-	}
 
 	// 为tooltip格式化价格
 	const formatPrice = (value: number | null) => {
