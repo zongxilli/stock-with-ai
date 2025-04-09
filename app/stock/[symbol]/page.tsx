@@ -162,9 +162,6 @@ export default function StockPage() {
 	// AI Assistant dialog state
 	const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
 
-	// 添加重定向状态
-	const [isRedirecting, setIsRedirecting] = useState(false);
-
 	// 图表高度模式状态
 	const [chartHeightMode, setChartHeightMode] = useState<ChartHeightMode>(
 		ChartHeightMode.NORMAL
@@ -273,18 +270,18 @@ export default function StockPage() {
 			const data = await getStockRealTimeData(symbol);
 
 			// 检查真正的Yahoo代码是否正确(API已经handle了正确股票定向)
-			if (data.symbol !== undefined && data.symbol !== symbol) {
-				// 如果股票代码发生变化，重定向到正确的股票页面
-				setIsRedirecting(true);
+			// if (data.symbol !== undefined && data.symbol !== symbol) {
+			// 	// 如果股票代码发生变化，重定向到正确的股票页面
+			// 	setIsRedirecting(true);
 
-				const newSearchParams = new URLSearchParams(
-					searchParams.toString()
-				);
+			// 	const newSearchParams = new URLSearchParams(
+			// 		searchParams.toString()
+			// 	);
 
-				router.replace(
-					`/stock/${data.symbol}?${newSearchParams.toString()}`
-				);
-			}
+			// 	router.replace(
+			// 		`/stock/${data.symbol}?${newSearchParams.toString()}`
+			// 	);
+			// }
 
 			// 检查返回的数据是否包含错误
 			if (data && 'error' in data) {
@@ -330,7 +327,7 @@ export default function StockPage() {
 				setStopAutoRefresh(true);
 			}
 		}
-	}, [error, router, searchParams, symbol]);
+	}, [error, symbol]);
 
 	// 处理数据刷新
 	const handleRefresh = () => {
@@ -455,7 +452,7 @@ export default function StockPage() {
 		realTimeData?.symbol || chartData?.meta?.symbol || symbol;
 
 	// 如果有错误，显示错误界面
-	if (error && !loading && stopAutoRefresh && !isRedirecting) {
+	if (error && !loading && stopAutoRefresh) {
 		return <ErrorView error={error} onRetry={handleRefresh} />;
 	}
 

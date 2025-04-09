@@ -7,8 +7,6 @@ import { AlertTriangle, Home, MessageSquare, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
 
 interface ErrorPageProps {
 	error?: Error | null;
@@ -17,9 +15,6 @@ interface ErrorPageProps {
 
 export default function ErrorPage({ error, eventId }: ErrorPageProps) {
 	const router = useRouter();
-	const { toast } = useToast();
-	const [feedback, setFeedback] = useState('');
-	const [showFeedback, setShowFeedback] = useState(false);
 	const [sentryEventId, setSentryEventId] = useState(eventId);
 
 	useEffect(() => {

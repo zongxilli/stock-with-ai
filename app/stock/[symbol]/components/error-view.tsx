@@ -1,12 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
-import { searchStock } from '@/app/actions/yahoo/search-stock';
 import { Button } from '@/components/ui/button';
 
 // 热门股票推荐列表
@@ -25,50 +21,50 @@ interface ErrorViewProps {
 }
 
 export default function ErrorView({ error, onRetry }: ErrorViewProps) {
-	const router = useRouter();
-	const [suggestions, setSuggestions] = useState<any[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
+	// const router = useRouter();
+	// const [suggestions, setSuggestions] = useState<any[]>([]);
+	// const [isLoading, setIsLoading] = useState(false);
 
 	// 从错误信息中提取可能的搜索关键字
-	useEffect(() => {
-		const searchForAlternatives = async () => {
-			// 如果错误信息包含找不到股票的提示
-			if (
-				error.toLowerCase().includes('symbol not found') ||
-				error.toLowerCase().includes('找不到股票') ||
-				error.toLowerCase().includes('未找到证券代码') ||
-				error.toLowerCase().includes('找不到股票数据')
-			) {
-				try {
-					setIsLoading(true);
+	// useEffect(() => {
+	// 	const searchForAlternatives = async () => {
+	// 		// 如果错误信息包含找不到股票的提示
+	// 		if (
+	// 			error.toLowerCase().includes('symbol not found') ||
+	// 			error.toLowerCase().includes('找不到股票') ||
+	// 			error.toLowerCase().includes('未找到证券代码') ||
+	// 			error.toLowerCase().includes('找不到股票数据')
+	// 		) {
+	// 			try {
+	// 				setIsLoading(true);
 
-					// 从错误信息中提取搜索关键词
-					const keywords = error.match(/[A-Za-z0-9.]+/g);
-					if (keywords && keywords.length > 0) {
-						// 使用第一个找到的关键词进行搜索
-						const keyword = keywords[0];
-						const result = await searchStock(keyword);
+	// 				// 从错误信息中提取搜索关键词
+	// 				const keywords = error.match(/[A-Za-z0-9.]+/g);
+	// 				if (keywords && keywords.length > 0) {
+	// 					// 使用第一个找到的关键词进行搜索
+	// 					const keyword = keywords[0];
+	// 					const result = await searchStock(keyword);
 
-						if (result && !('error' in result) && result.results) {
-							// 设置建议列表（最多5个）
-							setSuggestions(result.results.slice(0, 5));
-						}
-					}
-				} catch (err) {
-					console.error('搜索建议时出错:', err);
-				} finally {
-					setIsLoading(false);
-				}
-			}
-		};
+	// 					if (result && !('error' in result) && result.results) {
+	// 						// 设置建议列表（最多5个）
+	// 						setSuggestions(result.results.slice(0, 5));
+	// 					}
+	// 				}
+	// 			} catch (err) {
+	// 				console.error('搜索建议时出错:', err);
+	// 			} finally {
+	// 				setIsLoading(false);
+	// 			}
+	// 		}
+	// 	};
 
-		searchForAlternatives();
-	}, [error]);
+	// 	searchForAlternatives();
+	// }, [error]);
 
 	// 处理建议点击
-	const handleSuggestionClick = (symbol: string) => {
-		router.push(`/stock/${symbol}?range=1y`);
-	};
+	// const handleSuggestionClick = (symbol: string) => {
+	// 	router.push(`/stock/${symbol}?range=1y`);
+	// };
 
 	return (
 		<div className='w-full px-6 py-8'>
@@ -102,7 +98,7 @@ export default function ErrorView({ error, onRetry }: ErrorViewProps) {
 						{POPULAR_STOCKS.map((stock) => (
 							<Link
 								key={stock.symbol}
-								href={`/stock/${stock.symbol}`}
+								href={`/stock/${stock.symbol}?code=${stock.symbol}&exchange=US&range=1y`}
 								className='bg-card hover:bg-card/90 transition-colors border rounded-lg px-4 py-3 text-center'
 							>
 								<div className='font-bold'>{stock.symbol}</div>
@@ -114,13 +110,13 @@ export default function ErrorView({ error, onRetry }: ErrorViewProps) {
 					</div>
 				</div>
 
-				{isLoading && (
+				{/* {isLoading && (
 					<p className='text-gray-500 mb-4'>
 						Searching for alternatives...
 					</p>
-				)}
+				)} */}
 
-				{suggestions.length > 0 && (
+				{/* {suggestions.length > 0 && (
 					<div className='w-full max-w-md'>
 						<h3 className='text-lg font-medium mb-3'>
 							Did you mean:
@@ -159,7 +155,7 @@ export default function ErrorView({ error, onRetry }: ErrorViewProps) {
 							))}
 						</ul>
 					</div>
-				)}
+				)} */}
 			</div>
 		</div>
 	);
