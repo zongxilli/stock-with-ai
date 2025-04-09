@@ -1,53 +1,55 @@
-# Smart Stock Market Analysis Platform
+# Stock With AI 📈 智能股票市场分析平台
 
-一个基于Next.js 14、Prisma、Redis和Supabase构建的股票市场分析应用，利用AI提供市场洞察和交易建议。
+一个先进的股票市场分析应用，基于Next.js 14、Prisma、Redis和Supabase构建，结合AI技术提供实时市场洞察和个性化交易建议。
 
-## ✨ 功能特点
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![React](https://img.shields.io/badge/React-19-61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6)
 
-- **实时市场数据仪表板** - 自动刷新的股票、期货和商品市场数据（5秒间隔）
-- **交互式图表** - 多时间范围的专业股票价格图表，包括日内、周、月、年视图
-- **高级图表视图** - 支持切换高级图表分析模式，提供更丰富的图表数据和功能
-- **智能搜索** - 实时股票搜索功能，支持股票、ETF、指数和加密货币
-- **AI市场分析** - 智能分析市场趋势、情绪和波动性，提供每日市场总结和交易建议
-- **行业板块分析** - 详细的行业板块表现分析，包括表现得分和前景展望
-- **技术指标分析** - 提供超过20种专业技术指标，如RSI、MACD、布林带等
-- **历史数据分析** - 支持多个时间跨度的历史数据查询和分析
-- **拆分调整数据** - 支持对股票的拆分调整数据进行处理和展示
-- **深色/浅色模式** - 支持主题切换，适合各种使用环境
-- **响应式设计** - 完全兼容移动端和桌面端的现代用户界面
-- **高性能架构** - 利用Redis缓存提升应用性能和响应速度
-- **用户认证系统** - 基于Supabase的安全身份验证和用户管理
-- **错误监控与追踪** - 集成Sentry进行错误监控和性能分析
+<p align="center">
+  <img src="https://via.placeholder.com/800x400?text=Stock+With+AI+Dashboard" alt="Stock With AI Dashboard" />
+</p>
+
+## 🌟 主要特点
+
+- **实时市场数据** - 自动刷新的股票、指数和商品市场数据（5秒间隔）
+- **专业交互式图表** - 多时间范围（日内到5年）的高级股票价格图表
+- **AI驱动的市场分析** - 智能分析市场趋势、情绪和波动性，提供每日市场总结
+- **技术指标分析** - 支持超过20种专业技术指标（RSI、MACD、布林带等）
+- **智能搜索功能** - 实时股票搜索，支持多种金融工具类型
+- **完整行业板块分析** - 详细的行业板块表现分析和前景展望
+- **高性能缓存策略** - 基于Redis的多层缓存系统，优化数据加载速度
+- **完全响应式设计** - 从移动设备到桌面的全面自适应界面
+- **深色/浅色主题** - 支持主题切换，适应不同使用场景
 
 ## 🚀 快速开始
 
 ### 前提条件
 
-- Node.js 18+和npm/yarn
-- Supabase账号（已设置）
-- Redis数据库（本地或云服务如Redis Cloud）
+- Node.js 18+
+- Supabase账号（用于认证功能）
+- Redis数据库（本地或云服务）
 - PostgreSQL数据库（由Prisma管理）
 
 ### 安装步骤
 
-1. 克隆仓库
+1. **克隆仓库**
 
 ```bash
-git clone https://github.com/your-username/smart-stock-analysis.git
-cd smart-stock-analysis
+git clone https://github.com/zongxilli/stock-with-ai.git
+cd stock-with-ai
 ```
 
-2. 安装依赖
+2. **安装依赖**
 
 ```bash
 npm install
-# 或
-yarn install
 ```
 
-3. 配置环境变量
+3. **配置环境变量**
 
-创建`.env.local`文件并添加以下内容：
+创建`.env.local`文件并添加以下必要配置：
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -59,312 +61,216 @@ EODHD_API_KEY=your_eodhd_api_key
 SENTRY_DSN=your_sentry_dsn
 ```
 
-4. 初始化数据库
+4. **数据库初始化**
 
 ```bash
-# 运行prisma迁移
+# 运行Prisma迁移
 npx prisma migrate dev
 
 # 填充示例数据
 npm run seed
 ```
 
-5. 运行开发服务器
+5. **启动开发服务器**
 
 ```bash
+# 使用Turbopack加速开发（推荐）
 npm run dev
-# 或使用Turbopack加速开发
-npm run dev -- --turbopack
+
+# 或不使用Turbopack
+npm run dev:non-turbopack
 ```
 
-6. 打开浏览器访问 [http://localhost:3000](http://localhost:3000)
+6. **访问应用**
 
-## 📚 项目结构
+打开浏览器访问 [http://localhost:3000](http://localhost:3000)
+
+## 💻 核心功能详解
+
+### 市场数据仪表板
+
+首页展示关键市场指标和实时数据，包括：
+
+- **主要市场指数** - 标普500、道琼斯、纳斯达克等
+- **商品期货** - 原油、黄金等关键商品价格
+- **加密货币** - 比特币和主要加密货币价格
+- **债券市场** - 10年期美国国债收益率等
+- **自动数据刷新** - 每5秒更新一次，确保实时数据准确性
+
+### AI市场分析系统
+
+应用集成了先进的AI分析模型，提供：
+
+- **市场总结报告** - 每日市场状况的简明概述
+- **多维情绪分析** - 使用-10到10的量表评估市场情绪
+- **风险评估** - 0-100的安全评分指标
+- **波动性监测** - 量化市场波动程度
+- **领涨领跌股分析** - 实时识别表现最佳和最差的股票
+- **关键事件追踪** - 分析重要新闻和事件对市场的影响
+
+### 高级股票详情页
+
+每个股票详情页提供全面的数据和分析：
+
+- **基本价格数据** - 实时价格、涨跌幅、成交量等
+- **多时间范围图表** - 支持从1天到5年的不同时间视图
+- **关键价格指标** - 日内高低价、52周高低价等
+- **公司基本面数据** - 市值、PE比率、股息等
+- **拆分调整数据** - 显示和分析历史拆分调整数据
+- **高级图表模式** - 通过切换开关启用更丰富的图表功能
+
+### 技术指标分析套件
+
+支持多种专业技术指标分析：
+
+- **动量指标** - RSI（相对强弱指标）、随机指标等
+- **趋势指标** - MACD、移动平均线（SMA、EMA、WMA）
+- **波动性指标** - 布林带、ATR（真实波动幅度）
+- **其他高级指标** - ADX（平均方向指数）、CCI（商品通道指数）等
+- **可视化分析** - 直观展示各种技术指标结果
+
+### 用户账户与设置
+
+基于Supabase的用户系统提供：
+
+- **安全认证** - 邮箱注册和登录功能
+- **个人资料管理** - 用户信息维护
+- **偏好设置** - 界面和分析偏好定制
+- **语言偏好** - 多语言支持（中文/英文）
+
+## 🛠️ 架构与技术栈
+
+### 前端技术
+
+- **Next.js 14** - 全栈React框架，使用App Router
+- **React 19** - 前端UI库的最新版本
+- **TypeScript** - 类型安全的JavaScript超集
+- **TailwindCSS** - 实用优先的CSS框架
+- **shadcn/ui** - 高度可定制的UI组件库
+- **TradingView轻量级图表** - 专业金融图表库
+
+### 后端技术
+
+- **Server Actions** - Next.js 14的服务器端操作
+- **Prisma 6** - 现代化ORM工具
+- **Redis** - 高性能缓存解决方案
+- **PostgreSQL** - 强大的关系型数据库
+- **Supabase** - 开源后端服务平台提供认证
+- **Sentry** - 错误监控和性能分析
+
+### 数据源和API
+
+- **Yahoo Finance API** - 财经市场实时数据
+- **EODHD API** - 高质量金融历史数据和技术指标
+- **OpenAI API** - 先进的AI分析和内容生成
+
+### 状态管理与优化
+
+- **Zustand** - 轻量级状态管理
+- **React Query** - 数据获取和缓存
+- **数据缓存策略** - 多层次的Redis缓存架构
+
+## 📚 文件结构概览
 
 ```
 stock-with-ai/
-├── app/                  # Next.js App Router目录
-│   ├── actions/          # 服务器操作（Server Actions）
-│   │   ├── marketAnalysis.ts      # 市场分析数据操作
-│   │   ├── redis-actions.ts       # Redis数据操作
-│   │   ├── user/                  # 用户相关操作
-│   │   ├── yahoo/                 # Yahoo财经API相关操作
-│   │   │   ├── get-stock-realtime-data.ts     # 实时股票数据获取
-│   │   │   ├── get-comprehensive-stock-data.ts # 综合股票数据获取
-│   │   │   ├── get-volatile-stocks.ts         # 波动性股票获取
-│   │   │   ├── get-stock-chart-data.ts        # 股票图表数据获取
-│   │   │   ├── get-main-indices.ts            # 主要指数数据获取
-│   │   │   ├── search-stock.ts                # 股票搜索功能
-│   │   │   └── utils/                         # Yahoo API工具函数
-│   │   └── eodhd/                 # EODHD API相关操作
-│   │       ├── get-technical-indicators.ts            # 技术指标获取
-│   │       ├── get-historical-data.ts                 # 历史数据获取
-│   │       ├── get-historical-data-1-month-full.ts    # 完整月度历史数据
-│   │       ├── get-historical-data-by-period.ts       # 按周期获取历史数据
-│   │       ├── search-stock.ts                        # EODHD股票搜索
-│   │       ├── indicators/                            # 技术指标实现
-│   │       │   ├── rsi.ts                             # 相对强弱指标
-│   │       │   ├── macd.ts                            # 移动平均收敛/发散
-│   │       │   ├── bollinger.ts                       # 布林带
-│   │       │   ├── stochastic.ts                      # 随机指标
-│   │       │   ├── adx.ts                             # 平均方向指数
-│   │       │   ├── atr.ts                             # 真实波动幅度
-│   │       │   └── ...                                # 其他技术指标
-│   │       ├── utils/                                 # EODHD工具函数
-│   │       └── types/                                 # EODHD类型定义
-│   ├── (auth-pages)/     # 认证相关页面
-│   ├── auth/             # 认证相关API和组件
-│   ├── home/             # 首页和相关组件
-│   ├── account/          # 用户账户管理页面
-│   ├── stock/            # 股票详情页
-│   │   ├── [symbol]/     # 动态路由股票页面
-│   │   │   ├── page.tsx  # 股票详情页面
-│   │   │   └── components/  # 股票页面组件
-│   │   │       ├── stoct-chart.tsx          # 基本股票图表组件
-│   │   │       ├── rangeSelector.tsx        # 时间范围选择器
-│   │   │       ├── stock-chart-advanced/    # 高级图表组件
-│   │   │       │   ├── stock-chart-advanced.tsx     # 高级图表实现
-│   │   │       │   ├── chart-legend.ts              # 图表图例配置
-│   │   │       │   └── chart-options.ts             # 图表选项配置
-│   │   │       ├── ai-analysis-result.tsx   # AI分析结果组件
-│   │   │       ├── ai-assistant-dialog.tsx  # AI助手对话组件
-│   │   │       ├── stock-details.tsx        # 股票详情组件
-│   │   │       ├── stock-header.tsx         # 股票页头部组件
-│   │   │       └── stock-news.tsx           # 股票新闻组件
-│   │   └── actions/      # 股票相关操作
-│   ├── sentry-example-page/ # Sentry示例页面
-│   ├── api/              # API路由
-│   ├── types/            # 全局类型定义
-│   ├── protected/        # 需要认证的页面
-│   ├── error.tsx         # 错误处理组件
-│   ├── global-error.tsx  # 全局错误处理
-│   └── not-found.tsx     # 404页面
-├── components/           # 可重用React组件
-│   ├── custom/           # 自定义组件
-│   ├── ui/               # shadcn/ui组件
-│   ├── error/            # 错误处理相关组件
-│   ├── typography/       # 排版相关组件
-│   ├── stock-search.tsx  # 股票搜索组件
-│   ├── theme-switcher.tsx # 主题切换组件
-│   ├── header-auth.tsx   # 带认证的头部组件
-│   └── submit-button.tsx # 提交按钮组件
-├── hooks/                # 自定义React钩子
-│   ├── useDebounce.tsx   # 防抖钩子
-│   └── useIsMounted.tsx  # 挂载状态钩子
-├── lib/                  # 核心库文件
-│   ├── prisma.ts         # Prisma客户端
-│   ├── redis.ts          # Redis客户端和工具
-│   ├── format.ts         # 数据格式化工具
-│   ├── services/         # 服务层
-│   │   └── marketAnalysisService.ts # 市场分析服务
-│   └── utils.ts          # 工具函数
-├── prisma/               # Prisma相关文件
-│   ├── migrations/       # 数据库迁移
-│   ├── schema.prisma     # 数据库模型
-│   ├── services/         # 数据库服务
-│   └── seeds/            # 数据填充脚本
-├── stores/               # 状态管理
-│   └── marketStore.ts    # 市场数据状态存储
-├── utils/                # 工具函数
-│   └── supabase/         # Supabase客户端
-├── middleware.ts         # Next.js中间件（用于路由保护等）
-├── sentry.client.config.ts  # Sentry客户端配置
-├── sentry.server.config.ts  # Sentry服务器配置
-├── sentry.edge.config.ts    # Sentry边缘运行时配置
-├── tailwind.config.ts    # Tailwind CSS配置
-├── next.config.ts        # Next.js配置
-└── eslint.config.js      # ESLint配置
+├── app/                   # Next.js App Router目录
+│   ├── actions/           # 服务器操作
+│   │   ├── eodhd/         # EODHD API相关操作
+│   │   ├── redis/         # Redis缓存操作
+│   │   ├── yahoo/         # Yahoo财经API操作
+│   │   └── ...
+│   ├── (auth-pages)/      # 认证相关页面
+│   ├── account/           # 用户账户管理
+│   ├── home/              # 首页和组件
+│   ├── stock/             # 股票详情页
+│   │   └── [symbol]/      # 动态路由股票页面
+│   │       ├── components/  # 股票页面组件
+│   │       └── page.tsx   # 股票详情页面
+│   ├── api/               # API路由
+│   └── ...
+├── components/            # 可重用组件
+│   ├── custom/            # 自定义组件
+│   ├── ui/                # shadcn/ui组件
+│   └── ...
+├── hooks/                 # 自定义React钩子
+├── lib/                   # 核心库文件
+├── prisma/                # Prisma数据库配置
+├── stores/                # 状态管理
+├── public/                # 静态资源
+└── ...
 ```
 
-## 💡 技术栈
+## 🔧 高级配置
 
-- **Next.js 14**: 全栈React框架，带App Router和Server Actions
-- **React 19**: 前端UI库
-- **TypeScript**: 类型安全的JavaScript
-- **Prisma 6**: 现代ORM工具简化数据库操作
-- **PostgreSQL**: 强大的关系型数据库
-- **Redis**: 高性能缓存解决方案
-- **Supabase**: 开源后端服务平台，提供认证
-- **Sentry**: 错误监控和性能分析
-- **Tailwind CSS**: 实用优先的CSS框架
-- **shadcn/ui**: 高度可定制的UI组件库
-- **Zustand**: 轻量级状态管理
-- **Yahoo Finance API**: 财经市场数据
-- **EODHD API**: 高质量金融数据和技术指标
-- **TradingView Lightweight Charts**: 专业金融图表库
-- **Recharts**: 强大的React图表库
-- **Zod**: 运行时类型验证
-- **React Hook Form**: 表单处理和验证
-- **Turbopack**: 加速开发体验
+### 缓存策略设置
 
-## 📊 主要功能详解
+应用使用多层缓存策略优化性能：
 
-### 首页市场概览
+- **短期缓存** - 实时市场数据缓存4秒
+- **中期缓存** - 图表数据根据时间范围从1分钟到1小时不等
+- **长期缓存** - 搜索结果缓存24小时
 
-首页展示主要市场指数和实时数据，包括：
+要自定义缓存时间，可以修改`app/actions/redis/`目录下相关文件中的TTL值。
 
-- 标普500、道琼斯、纳斯达克期货
-- 罗素2000指数
-- 原油和黄金期货
-- 比特币价格
-- 10年期美国国债收益率
+### 图表配置
 
-数据每5秒自动刷新，使用Zustand进行状态管理，确保用户获得最新的市场信息。
+高级图表视图可以通过以下方式配置：
 
-### AI市场分析
+1. 检查用户偏好设置中的`advancedView`选项
+2. 修改`app/stock/[symbol]/components/stock-chart-advanced/chart-options.ts`文件自定义图表属性
 
-系统利用AI分析每日市场数据，提供以下见解：
+### 错误监控
 
-- 市场总结：对当日市场情况的简明概述
-- 情绪分析：量化市场整体情绪的得分指标
-- 安全评估：市场交易风险水平分析
-- 波动性监测：市场波动程度的量化指标
-- 领涨领跌股：当日表现最佳和最差的股票列表
-- 关键事件：影响市场的重要新闻和事件
-- 交易建议：基于市场分析的投资策略建议
-- 行业板块分析：各主要行业的表现和前景评估
+Sentry集成提供全面的错误监控：
 
-### 股票详情页
+1. 确保在`.env.local`中设置了`SENTRY_DSN`
+2. 可通过`sentry.client.config.ts`和`sentry.server.config.ts`文件调整监控配置
 
-股票详情页提供全面的个股信息：
+## 📊 数据获取与处理
 
-- 基本价格数据（当前价格、涨跌幅、交易量）
-- 交互式价格图表，支持多个时间范围（1天到5年）
-- 日内高低价、52周高低价等关键指标
-- 公司基本面数据（市值、PE比率、股息等）
-- 全面的技术指标分析
-- 灵活的图表UI，支持深色/浅色主题
+### 实时数据流
 
-### 高级图表视图
+应用使用多种技术确保数据实时性：
 
-股票详情页支持高级图表视图模式：
+- **轮询机制** - 根据市场状态自动调整轮询频率（交易时段5秒，非交易时段更长）
+- **缓存优化** - 使用Redis减少对外部API的请求次数
+- **增量更新** - 只更新变化的数据，减少网络负载
 
-- 通过RangeSelector组件右侧的Toggle开关切换
-- 更丰富的图表配置和数据展示
-- 自定义图表图例和选项
-- 支持拆分调整数据的显示和分析
-- 整合专业技术分析功能
+### AI分析流程
 
-### 技术指标分析
+AI分析功能通过以下步骤工作：
 
-支持超过20种专业技术指标：
+1. 收集综合股票数据（价格、指标、新闻等）
+2. 将数据发送到OpenAI或DeepSeek API进行分析
+3. 使用流式响应实时展示分析进度
+4. 处理和格式化返回的分析结果
+5. 缓存分析结果以优化性能
 
-- RSI (相对强弱指标)
-- MACD (移动平均收敛/发散)
-- 布林带
-- 随机指标
-- ADX (平均方向指数)
-- 移动平均线 (SMA, EMA, WMA)
-- ATR (真实波动幅度)
-- CCI (商品通道指数)
-- 波动率指标
-- 标准差
-- 趋势线分析
-- 更多专业分析指标
+## 🔮 未来计划
 
-### 全局搜索功能
+- [ ] **高级图表分析工具完善** - 添加更多专业图表工具和模式识别
+- [ ] **用户投资组合管理** - 个人投资组合跟踪和分析功能
+- [ ] **实时新闻集成** - 直接整合财经新闻源
+- [ ] **社区功能** - 允许用户分享交易想法和策略
+- [ ] **移动应用开发** - 打造原生移动体验
+- [ ] **推送通知系统** - 价格警报和重要事件提醒
+- [ ] **历史数据回测工具** - 交易策略回测功能
+- [ ] **市场异常检测系统** - 自动识别市场异常模式
 
-应用顶部的搜索栏支持查找各类金融工具：
+## 📝 贡献指南
 
-- 股票、ETF、指数和加密货币
-- 实时搜索建议
-- 搜索结果分类显示
-- 键盘导航支持
-- 多数据源搜索（Yahoo Finance和EODHD）
+欢迎贡献代码、报告问题或提出新功能建议。请遵循以下步骤：
 
-### 用户账户管理
-
-基于Supabase的用户管理系统：
-
-- 安全的邮箱注册和登录
-- 用户资料管理
-- 个性化设置管理
-- 账户安全控制
-
-### 自适应设计
-
-- 完全响应式界面，适配从手机到桌面的各种设备尺寸
-- 针对小屏幕优化的组件布局
-- 自动调整的图表尺寸
-- 优化的触摸操作支持
-
-### 数据缓存策略
-
-应用利用Redis实现高效的数据缓存：
-
-- 短期缓存实时市场数据（4秒）
-- 中等期限缓存图表数据（根据时间范围从1分钟到1小时不等）
-- 长期缓存搜索结果（24小时）
-- 技术指标数据缓存（根据复杂度从5分钟到1小时）
-- AI分析结果缓存（按日期）
-
-这种分层缓存策略显著提高了应用性能和用户体验。
-
-### 错误监控与性能分析
-
-集成Sentry进行全面的错误监控和性能分析：
-
-- 客户端错误捕获与报告
-- 服务器端错误监控
-- 边缘运行时错误处理
-- 性能指标收集与分析
-- 用户体验监控
-- 错误详细报告与Stack Trace
-
-## 🧰 自定义钩子
-
-项目包含多个自定义React钩子，提升开发效率：
-
-- **useDebounce**: 防抖实现，用于搜索输入优化
-- **useIsMounted**: 安全处理组件挂载状态
-- **useMarketStore**: Zustand状态管理钩子，处理市场数据
-
-## 🔮 AI分析模型
-
-项目使用多维度分析模型，评估市场状况：
-
-- **情绪评分(Sentiment Score)**: 从-10到10的量表，反映市场情绪
-- **安全评分(Safety Score)**: 从0到100的量表，评估市场风险水平
-- **波动性指标(Volatility Level)**: 从0到100的量表，衡量市场波动程度
-- **市场趋势(Market Trend)**: 分为看涨(bullish)、看跌(bearish)和中性(neutral)
-- **行业板块分析**: 对技术、金融、医疗、能源和消费等主要行业提供详细分析
-
-## 📝 当前进度和未来计划
-
-已完成:
-
-- [x] 基础应用架构设计和开发
-- [x] Supabase认证系统集成
-- [x] 市场数据获取和显示
-- [x] AI市场分析模型实现
-- [x] 响应式UI开发
-- [x] 技术指标分析系统
-- [x] 历史数据查询和分析
-- [x] 错误监控与报告系统
-- [x] 高级图表视图基础功能
-
-进行中:
-
-- [ ] 高级图表分析工具完善
-- [ ] 拆分调整数据处理优化
-- [ ] 用户个人投资组合管理
-- [ ] 实时新闻流集成
-- [ ] 优化技术指标可视化
-
-未来计划:
-
-- [ ] 高级技术分析指标和图表模式识别
-- [ ] 社区功能和交易想法分享
-- [ ] 移动应用开发
-- [ ] 推送通知系统
-- [ ] AI驱动的投资建议优化
-- [ ] 历史数据回测工具
-- [ ] 个性化投资组合分析
-- [ ] 市场异常检测系统
+1. Fork仓库
+2. 创建您的特性分支 (`git checkout -b feature/amazing-feature`)
+3. 提交您的更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 打开Pull Request
 
 ## 📄 许可证
 
-[MIT](LICENSE)
+本项目采用MIT许可证 - 详情请见[LICENSE](LICENSE)文件
 
 ## 🙏 致谢
 
@@ -372,9 +278,18 @@ stock-with-ai/
 - [Supabase](https://supabase.com/)
 - [Prisma](https://www.prisma.io/)
 - [Redis](https://redis.io/)
-- [Tailwind CSS](https://tailwindcss.com/)
+- [TailwindCSS](https://tailwindcss.com/)
 - [shadcn/ui](https://ui.shadcn.com/)
 - [Yahoo Finance](https://finance.yahoo.com/)
 - [EODHD](https://eodhistoricaldata.com/)
 - [TradingView Lightweight Charts](https://tradingview.github.io/lightweight-charts/)
 - [Sentry](https://sentry.io/)
+
+---
+
+<p align="center">
+  <b>📫 联系方式</b><br>
+  如果您有任何问题或建议，请随时联系我们<br>
+  <a href="mailto:example@domain.com">Email</a> | 
+  <a href="https://github.com/zongxilli">GitHub</a>
+</p>
