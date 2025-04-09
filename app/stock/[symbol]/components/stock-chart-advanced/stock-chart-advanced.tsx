@@ -67,6 +67,8 @@ const StockChartAdvanced = ({
 	// 新增：K线图和成交量图的引用
 	const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
 	const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+	// 跟踪上一次的SMA数据引用
+	const lastSmaDataRef = useRef<SmaDataPoint[] | null>(null);
 	const { theme } = useTheme();
 	const isDarkMode = theme === 'dark';
 	const { preference } = useProfile();
@@ -99,9 +101,16 @@ const StockChartAdvanced = ({
 			return;
 		}
 
+		// 保存当前SMA数据的引用，以便重建后恢复
+		const currentSmaData =
+			smaData && smaData.length > 0 ? [...smaData] : null;
+
 		// 清除任何现有的图表
 		chartContainerRef.current.innerHTML = '';
-		// 重置SMA系列引用
+
+		// 重置所有系列引用
+		candlestickSeriesRef.current = null;
+		volumeSeriesRef.current = null;
 		smaSeriesRef.current = null;
 
 		// 创建图表选项
@@ -196,6 +205,27 @@ const StockChartAdvanced = ({
 		// 保存成交量系列引用
 		volumeSeriesRef.current = volumeSeries;
 
+		// 如果有SMA数据，立即添加SMA系列
+		if (currentSmaData && currentSmaData.length > 0) {
+			const smaSeries = chart.addSeries(LineSeries, {
+				color: '#8dabff', // 蓝色的SMA线
+				lineWidth: 1,
+				priceScaleId: MAIN_CHART_PRICE_SCALE_ID, // 使用与K线图相同的价格轴ID
+				lastValueVisible: false, // 不显示最后一个值的标签
+				priceLineVisible: false, // 不显示最新价格的水平虚线
+				crosshairMarkerVisible: false, // 显示十字线标记
+				crosshairMarkerRadius: 4, // 十字线标记半径
+			});
+
+			// 设置SMA数据
+			smaSeries.setData(currentSmaData);
+
+			// 保存SMA系列引用
+			smaSeriesRef.current = smaSeries;
+			// 更新最后使用的SMA数据引用
+			lastSmaDataRef.current = currentSmaData;
+		}
+
 		// 显示指定日期范围的数据，或默认显示最近90天
 		if (candlestickData.length > 0) {
 			// 获取最新的数据点
@@ -266,37 +296,61 @@ const StockChartAdvanced = ({
 		toDate,
 		isDarkMode,
 		preference?.chart.period,
+		smaData,
 	]);
 
-	// 单独的useEffect用于处理SMA数据，不会导致整个图表重新渲染
+	// 修改SMA数据处理的useEffect
 	useEffect(() => {
+		// 先检查图表引用是否存在
+		if (!chartRef.current) {
+			return;
+		}
+
+		// 现在我们确保了chartRef.current不为null，可以安全地在以下代码中使用它
 		const chart = chartRef.current;
-		if (!chart || !smaData || smaData.length === 0) {
+
+		// 如果SMA数据为空，则不处理
+		if (!smaData || smaData.length === 0) {
+			// 如果有SMA系列但新数据为空，则移除现有的SMA系列
+			if (smaSeriesRef.current) {
+				chart.removeSeries(smaSeriesRef.current);
+				smaSeriesRef.current = null;
+				lastSmaDataRef.current = null;
+			}
 			return;
 		}
 
-		// 如果已经存在SMA系列，则更新数据
-		if (smaSeriesRef.current) {
+		// 检查数据是否已经更改
+		const isDataChanged =
+			JSON.stringify(smaData) !== JSON.stringify(lastSmaDataRef.current);
+
+		// 如果已经存在SMA系列且数据已更改，则更新数据
+		if (smaSeriesRef.current && isDataChanged) {
 			smaSeriesRef.current.setData(smaData);
+			lastSmaDataRef.current = [...smaData];
 			return;
 		}
 
-		// 如果还没有SMA系列，创建新的
-		const smaSeries = chart.addSeries(LineSeries, {
-			color: '#8dabff', // 蓝色的SMA线
-			lineWidth: 1,
-			priceScaleId: MAIN_CHART_PRICE_SCALE_ID, // 使用与K线图相同的价格轴ID
-			lastValueVisible: false, // 不显示最后一个值的标签
-			priceLineVisible: false, // 不显示最新价格的水平虚线
-			crosshairMarkerVisible: false, // 显示十字线标记
-			crosshairMarkerRadius: 4, // 十字线标记半径
-		});
+		// 如果没有SMA系列但有图表和有效数据，则创建新的SMA系列
+		if (!smaSeriesRef.current) {
+			const smaSeries = chart.addSeries(LineSeries, {
+				color: '#8dabff', // 蓝色的SMA线
+				lineWidth: 1,
+				priceScaleId: MAIN_CHART_PRICE_SCALE_ID, // 使用与K线图相同的价格轴ID
+				lastValueVisible: false, // 不显示最后一个值的标签
+				priceLineVisible: false, // 不显示最新价格的水平虚线
+				crosshairMarkerVisible: false, // 显示十字线标记
+				crosshairMarkerRadius: 4, // 十字线标记半径
+			});
 
-		// 设置SMA数据
-		smaSeries.setData(smaData);
+			// 设置SMA数据
+			smaSeries.setData(smaData);
 
-		// 保存SMA系列引用
-		smaSeriesRef.current = smaSeries;
+			// 保存SMA系列引用
+			smaSeriesRef.current = smaSeries;
+			// 更新最后使用的SMA数据引用
+			lastSmaDataRef.current = [...smaData];
+		}
 	}, [smaData]);
 
 	// 新增：单独的useEffect用于处理实时蜡烛图数据更新
