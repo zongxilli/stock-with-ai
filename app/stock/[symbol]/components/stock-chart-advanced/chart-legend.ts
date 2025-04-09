@@ -136,7 +136,7 @@ export const updateLegendContent = (
 	// 如果有SMA数据，添加到第二行
 	if (smaData && 'value' in smaData) {
 		const smaValue = smaData.value;
-		legendContent += `<br/><span style="color:${baseTextColor}; margin-right:10px">SMA</span><span style="color:#8dabff">${formatPrice(smaValue)}</span>`;
+		legendContent += `<br/><span style="color:#8dabff; margin-right:10px;">MA20:${formatPrice(smaValue)}</span>`;
 	}
 
 	// 设置legend内容
