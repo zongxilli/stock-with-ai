@@ -44,7 +44,7 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 		if (!quoteData || !quoteData.regularMarketTime) {
 			// 返回结构化的错误对象，而不是抛出错误
 			return {
-				error: `无法获取${symbol}的实时市场数据`,
+				error: `无法获取${validSymbol}的实时市场数据`,
 				errorType: 'QUOTE_NOT_FOUND',
 			};
 		}
@@ -116,128 +116,108 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 			period2 = new Date(tradingDay);
 			period2.setHours(tradingEndHour, tradingEndMinute, 0, 0);
 
-			try {
-				// 查询Yahoo Finance获取交易日的数据
-				const queryOptions = {
-					period1,
-					period2,
-					interval: interval as any,
-					includePrePost: false,
-				};
+			// 查询Yahoo Finance获取交易日的数据
+			const queryOptions = {
+				period1,
+				period2,
+				interval: interval as any,
+				includePrePost: false,
+			};
 
-				const result = await yahooFinance.chart(symbol, queryOptions);
+			const result = await yahooFinance.chart(validSymbol, queryOptions);
 
-				// 检查结果是否有效
-				if (!result || !result.quotes || result.quotes.length === 0) {
-					throw new Error(`无法获取${symbol}的历史数据`);
-				}
-
-				// 过滤出交易时间段内的数据
-				let filteredQuotes = result.quotes;
-				let processedQuotes = filteredQuotes; // 初始化processedQuotes变量
-
-				// 仅对特定类型的证券填充完整交易时间点
-				if (shouldFillMissingData && isMarketOpen) {
-					// 生成完整的交易时间点
-					const completeTimeline = generateTradingTimeline(
-						period1,
-						period2
-					);
-
-					// 将实际数据与完整时间轴合并
-					processedQuotes = mergeDataWithTimeline(
-						filteredQuotes,
-						completeTimeline
-					);
-				} else {
-					// 过滤出标准交易时间内的数据
-					if (quoteData.regularMarketTime) {
-						const marketOpenTime = new Date(
-							quoteData.regularMarketTime
-						);
-						// 设置为当天的9:30 AM (美股标准开盘时间)
-						marketOpenTime.setHours(9, 30, 0, 0);
-
-						const marketCloseTime = new Date(
-							quoteData.regularMarketTime
-						);
-						// 设置为当天的4:00 PM (美股标准收盘时间)
-						marketCloseTime.setHours(16, 0, 0, 0);
-
-						// 过滤出标准交易时间内的数据
-						filteredQuotes = filteredQuotes.filter((quote) => {
-							const quoteTime = new Date(quote.date);
-							const quoteHour = quoteTime.getHours();
-							const quoteMinute = quoteTime.getMinutes();
-
-							// 检查是否在9:30 AM - 4:00 PM之间
-							return (
-								(quoteHour > 9 ||
-									(quoteHour === 9 && quoteMinute >= 30)) &&
-								(quoteHour < 16 ||
-									(quoteHour === 16 && quoteMinute === 0))
-							);
-						});
-
-						// 如果过滤后没有数据，则使用原始数据
-						if (filteredQuotes.length === 0) {
-							filteredQuotes = result.quotes;
-							console.warn(
-								`过滤后没有数据，使用原始数据 (${symbol})`
-							);
-						}
-					}
-					processedQuotes = filteredQuotes;
-				}
-
-				// 添加格式化的日期字符串
-				const formattedData = processedQuotes.map((quote) => ({
-					...quote,
-					dateFormatted: quote.date
-						? formatDate(quote.date, range)
-						: '',
-				}));
-
-				// 构建市场状态信息
-				let marketStatusInfo = {
-					isPartialDay: isMarketOpen, // 如果市场开放，说明是部分日数据
-					isPreviousTradingDay:
-						!isMarketOpen &&
-						lastTradeDate.getDate() !== now.getDate(), // 如果市场关闭且不是今天，表示是前一交易日
-					marketState: marketState,
-					tradingDate: lastTradeDate.toLocaleDateString(),
-					exchangeName:
-						quoteData.fullExchangeName || quoteData.exchange,
-					quoteType: quoteType, // 添加证券类型信息
-				};
-
-				// 返回图表元数据和处理后的报价数据
-				const chartData = {
-					meta: result.meta,
-					quotes: formattedData,
-					...marketStatusInfo,
-				};
-
-				// 缓存设置
-				const chart1dCacheTime = isMarketOpen ? 10 : 300; // 如果市场开放，10秒缓存；否则5分钟
-				await setCache(cacheKey, chartData, chart1dCacheTime);
-
-				return chartData;
-			} catch (innerError) {
-				console.error(
-					`Yahoo Finance Chart API错误 (${symbol}):`,
-					innerError
-				);
-				// 返回结构化的错误对象，而不是抛出错误
-				return {
-					error: `未找到证券代码: ${symbol}。请检查代码并重试。getStockChartData2`,
-					errorType: 'API_ERROR',
-					originalError:
-						innerError instanceof Error
-							? innerError.message
-							: String(innerError),
-				};
+			// 检查结果是否有效
+			if (!result || !result.quotes || result.quotes.length === 0) {
+				throw new Error(`无法获取${validSymbol}的历史数据`);
 			}
+
+			// 过滤出交易时间段内的数据
+			let filteredQuotes = result.quotes;
+			let processedQuotes = filteredQuotes; // 初始化processedQuotes变量
+
+			// 仅对特定类型的证券填充完整交易时间点
+			if (shouldFillMissingData && isMarketOpen) {
+				// 生成完整的交易时间点
+				const completeTimeline = generateTradingTimeline(
+					period1,
+					period2
+				);
+
+				// 将实际数据与完整时间轴合并
+				processedQuotes = mergeDataWithTimeline(
+					filteredQuotes,
+					completeTimeline
+				);
+			} else {
+				// 过滤出标准交易时间内的数据
+				if (quoteData.regularMarketTime) {
+					const marketOpenTime = new Date(
+						quoteData.regularMarketTime
+					);
+					// 设置为当天的9:30 AM (美股标准开盘时间)
+					marketOpenTime.setHours(9, 30, 0, 0);
+
+					const marketCloseTime = new Date(
+						quoteData.regularMarketTime
+					);
+					// 设置为当天的4:00 PM (美股标准收盘时间)
+					marketCloseTime.setHours(16, 0, 0, 0);
+
+					// 过滤出标准交易时间内的数据
+					filteredQuotes = filteredQuotes.filter((quote) => {
+						const quoteTime = new Date(quote.date);
+						const quoteHour = quoteTime.getHours();
+						const quoteMinute = quoteTime.getMinutes();
+
+						// 检查是否在9:30 AM - 4:00 PM之间
+						return (
+							(quoteHour > 9 ||
+								(quoteHour === 9 && quoteMinute >= 30)) &&
+							(quoteHour < 16 ||
+								(quoteHour === 16 && quoteMinute === 0))
+						);
+					});
+
+					// 如果过滤后没有数据，则使用原始数据
+					if (filteredQuotes.length === 0) {
+						filteredQuotes = result.quotes;
+						console.warn(
+							`过滤后没有数据，使用原始数据 (${validSymbol})`
+						);
+					}
+				}
+				processedQuotes = filteredQuotes;
+			}
+
+			// 添加格式化的日期字符串
+			const formattedData = processedQuotes.map((quote) => ({
+				...quote,
+				dateFormatted: quote.date ? formatDate(quote.date, range) : '',
+			}));
+
+			// 构建市场状态信息
+			let marketStatusInfo = {
+				isPartialDay: isMarketOpen, // 如果市场开放，说明是部分日数据
+				isPreviousTradingDay:
+					!isMarketOpen && lastTradeDate.getDate() !== now.getDate(), // 如果市场关闭且不是今天，表示是前一交易日
+				marketState: marketState,
+				tradingDate: lastTradeDate.toLocaleDateString(),
+				exchangeName: quoteData.fullExchangeName || quoteData.exchange,
+				quoteType: quoteType, // 添加证券类型信息
+			};
+
+			// 返回图表元数据和处理后的报价数据
+			const chartData = {
+				meta: result.meta,
+				quotes: formattedData,
+				...marketStatusInfo,
+			};
+
+			// 缓存设置
+			const chart1dCacheTime = isMarketOpen ? 10 : 300; // 如果市场开放，10秒缓存；否则5分钟
+			await setCache(cacheKey, chartData, chart1dCacheTime);
+
+			return chartData;
 		} else {
 			// 对于其他时间范围的处理保持不变
 			switch (range) {
@@ -277,59 +257,43 @@ export async function getStockChartData(symbol: string, range: string = '1mo') {
 					period1.setMonth(now.getMonth() - 1);
 			}
 
-			try {
-				const queryOptions = {
-					period1,
-					period2,
-					interval: interval as any,
-					includePrePost: false,
-				};
+			const queryOptions = {
+				period1,
+				period2,
+				interval: interval as any,
+				includePrePost: false,
+			};
 
-				const result = await yahooFinance.chart(symbol, queryOptions);
+			const result = await yahooFinance.chart(validSymbol, queryOptions);
 
-				// 检查结果是否有效
-				if (!result || !result.quotes || result.quotes.length === 0) {
-					throw new Error(`无法找到${symbol}的图表数据`);
-				}
-
-				const formattedData = result.quotes.map((quote) => ({
-					...quote,
-					dateFormatted: formatDate(quote.date, range),
-				}));
-
-				const chartData = {
-					meta: result.meta,
-					quotes: formattedData,
-					isPartialDay: false,
-					quoteType: quoteType, // 添加证券类型信息
-				};
-
-				// 设置缓存时间
-				let chartOtherRangeCacheTime = 60; // 默认1分钟
-				if (range === '5d') chartOtherRangeCacheTime = 120; // 2分钟
-				if (range === '1mo') chartOtherRangeCacheTime = 300; // 5分钟
-				if (range === '3mo' || range === '6mo')
-					chartOtherRangeCacheTime = 1800; // 30分钟
-				if (range === '1y' || range === '5y')
-					chartOtherRangeCacheTime = 3600; // 1小时
-
-				await setCache(cacheKey, chartData, chartOtherRangeCacheTime);
-				return chartData;
-			} catch (innerError) {
-				console.error(
-					`Yahoo Finance Chart API错误 (${symbol}):`,
-					innerError
-				);
-				// 返回结构化的错误对象，而不是抛出错误
-				return {
-					error: `未找到证券代码: ${symbol}。请检查代码并重试。getStockChartData3`,
-					errorType: 'API_ERROR',
-					originalError:
-						innerError instanceof Error
-							? innerError.message
-							: String(innerError),
-				};
+			// 检查结果是否有效
+			if (!result || !result.quotes || result.quotes.length === 0) {
+				throw new Error(`无法找到${validSymbol}的图表数据`);
 			}
+
+			const formattedData = result.quotes.map((quote) => ({
+				...quote,
+				dateFormatted: formatDate(quote.date, range),
+			}));
+
+			const chartData = {
+				meta: result.meta,
+				quotes: formattedData,
+				isPartialDay: false,
+				quoteType: quoteType, // 添加证券类型信息
+			};
+
+			// 设置缓存时间
+			let chartOtherRangeCacheTime = 60; // 默认1分钟
+			if (range === '5d') chartOtherRangeCacheTime = 120; // 2分钟
+			if (range === '1mo') chartOtherRangeCacheTime = 300; // 5分钟
+			if (range === '3mo' || range === '6mo')
+				chartOtherRangeCacheTime = 1800; // 30分钟
+			if (range === '1y' || range === '5y')
+				chartOtherRangeCacheTime = 3600; // 1小时
+
+			await setCache(cacheKey, chartData, chartOtherRangeCacheTime);
+			return chartData;
 		}
 	} catch (error) {
 		console.error(`获取${symbol}图表数据失败:`, error);
