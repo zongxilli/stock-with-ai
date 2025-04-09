@@ -153,13 +153,7 @@ const StockChartAdvanced = ({
 		});
 
 		// 设置十字线移动事件，更新legend
-		subscribeCrosshairMove(
-			chart,
-			legendElement,
-			candlestickSeries as ISeriesApi<'Candlestick'>,
-			themeColors,
-			candlestickData
-		);
+		// 先不调用subscribeCrosshairMove，等待SMA系列创建后再调用
 
 		// 配置主价格轴
 		chart.priceScale(MAIN_CHART_PRICE_SCALE_ID).applyOptions({
@@ -224,6 +218,25 @@ const StockChartAdvanced = ({
 			smaSeriesRef.current = smaSeries;
 			// 更新最后使用的SMA数据引用
 			lastSmaDataRef.current = currentSmaData;
+
+			// 现在SMA系列已创建，可以调用subscribeCrosshairMove
+			subscribeCrosshairMove(
+				chart,
+				legendElement,
+				candlestickSeries as ISeriesApi<'Candlestick'>,
+				themeColors,
+				candlestickData,
+				smaSeries as ISeriesApi<'Line'> // 传递SMA系列给subscribeCrosshairMove
+			);
+		} else {
+			// 如果没有SMA数据，仍然调用subscribeCrosshairMove，但不传递SMA系列
+			subscribeCrosshairMove(
+				chart,
+				legendElement,
+				candlestickSeries as ISeriesApi<'Candlestick'>,
+				themeColors,
+				candlestickData
+			);
 		}
 
 		// 显示指定日期范围的数据，或默认显示最近90天
@@ -350,8 +363,39 @@ const StockChartAdvanced = ({
 			smaSeriesRef.current = smaSeries;
 			// 更新最后使用的SMA数据引用
 			lastSmaDataRef.current = [...smaData];
+
+			// 当创建新的SMA系列时，重新设置subscribeCrosshairMove来包含SMA信息
+			if (chartContainerRef.current && candlestickSeriesRef.current) {
+				const legendElements =
+					chartContainerRef.current.querySelectorAll('div');
+				// 找到之前创建的legend元素
+				let legendElement = null;
+				for (let i = 0; i < legendElements.length; i++) {
+					const el = legendElements[i];
+					if (
+						el.style &&
+						el.style.position === 'absolute' &&
+						el.style.zIndex === '1'
+					) {
+						legendElement = el;
+						break;
+					}
+				}
+
+				if (legendElement && chart) {
+					// 更新subscribeCrosshairMove，包含SMA系列
+					subscribeCrosshairMove(
+						chart,
+						legendElement as HTMLDivElement,
+						candlestickSeriesRef.current,
+						themeColors,
+						candlestickData,
+						smaSeries
+					);
+				}
+			}
 		}
-	}, [smaData]);
+	}, [smaData, themeColors, candlestickData]);
 
 	// 新增：单独的useEffect用于处理实时蜡烛图数据更新
 	useEffect(() => {

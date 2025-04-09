@@ -52,13 +52,15 @@ export const formatPrice = (price: number): string => price.toFixed(2);
  * @param baseTextColor 基本文本颜色
  * @param themeColors 主题颜色配置
  * @param candlestickData 完整的K线数据数组，用于查找前一天收盘价
+ * @param smaData SMA数据点，用于在图例中显示SMA值
  */
 export const updateLegendContent = (
 	legendElement: HTMLDivElement,
 	candleData: any,
 	baseTextColor: string,
 	themeColors: ThemeColors,
-	candlestickData?: any[]
+	candlestickData?: any[],
+	smaData?: any
 ): void => {
 	if (!candleData) {
 		legendElement.style.display = 'none';
@@ -122,15 +124,23 @@ export const updateLegendContent = (
 			close >= open ? themeColors.upColor : themeColors.downColor;
 	}
 
-	// 更新legend内容为一行显示
-	legendElement.innerHTML = `
+	// 更新legend内容为一行显示OHLC
+	let legendContent = `
     <span style="color:${baseTextColor}; margin-right:10px">${date}</span>
     <span style="color:${baseTextColor}">O</span><span style="margin-right:10px; color:${openColor}">${formatPrice(open)}</span>
     <span style="color:${baseTextColor}">H</span><span style="margin-right:10px; color:${highColor}">${formatPrice(high)}</span>
     <span style="color:${baseTextColor}">L</span><span style="margin-right:10px; color:${lowColor}">${formatPrice(low)}</span>
     <span style="color:${baseTextColor}">C</span><span style="margin-right:10px; color:${closeColor}">${formatPrice(close)}</span>
-    <span style="color:${changeColor}">${change >= 0 ? '+' : ''}${formatPrice(change)} (${changePercent.toFixed(2)}%)</span>
-  `;
+    <span style="color:${changeColor}">${change >= 0 ? '+' : ''}${formatPrice(change)} (${changePercent.toFixed(2)}%)</span>`;
+
+	// 如果有SMA数据，添加到第二行
+	if (smaData && 'value' in smaData) {
+		const smaValue = smaData.value;
+		legendContent += `<br/><span style="color:${baseTextColor}; margin-right:10px">SMA</span><span style="color:#8dabff">${formatPrice(smaValue)}</span>`;
+	}
+
+	// 设置legend内容
+	legendElement.innerHTML = legendContent;
 };
 
 /**
@@ -140,13 +150,15 @@ export const updateLegendContent = (
  * @param candlestickSeries K线图系列
  * @param themeColors 主题颜色配置
  * @param candlestickData 完整的K线数据数组
+ * @param smaSeries SMA线系列，用于获取SMA数据
  */
 export const subscribeCrosshairMove = (
 	chart: any,
 	legendElement: HTMLDivElement,
 	candlestickSeries: ISeriesApi<'Candlestick'>,
 	themeColors: ThemeColors,
-	candlestickData?: any[]
+	candlestickData?: any[],
+	smaSeries?: ISeriesApi<'Line'>
 ): void => {
 	chart.subscribeCrosshairMove((param: any) => {
 		if (!param.time || !param.point) {
@@ -158,13 +170,17 @@ export const subscribeCrosshairMove = (
 		// 获取当前K线数据
 		const candleData = param.seriesData.get(candlestickSeries);
 
-		// 更新图例内容
+		// 获取SMA数据（如果有SMA系列）
+		const smaData = smaSeries ? param.seriesData.get(smaSeries) : null;
+
+		// 更新图例内容，包含SMA数据
 		updateLegendContent(
 			legendElement,
 			candleData,
 			themeColors.textColor,
 			themeColors,
-			candlestickData
+			candlestickData,
+			smaData
 		);
 	});
 };
