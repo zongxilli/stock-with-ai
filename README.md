@@ -6,11 +6,13 @@
 
 - **实时市场数据仪表板** - 自动刷新的股票、期货和商品市场数据（5秒间隔）
 - **交互式图表** - 多时间范围的专业股票价格图表，包括日内、周、月、年视图
+- **高级图表视图** - 支持切换高级图表分析模式，提供更丰富的图表数据和功能
 - **智能搜索** - 实时股票搜索功能，支持股票、ETF、指数和加密货币
 - **AI市场分析** - 智能分析市场趋势、情绪和波动性，提供每日市场总结和交易建议
 - **行业板块分析** - 详细的行业板块表现分析，包括表现得分和前景展望
 - **技术指标分析** - 提供超过20种专业技术指标，如RSI、MACD、布林带等
 - **历史数据分析** - 支持多个时间跨度的历史数据查询和分析
+- **拆分调整数据** - 支持对股票的拆分调整数据进行处理和展示
 - **深色/浅色模式** - 支持主题切换，适合各种使用环境
 - **响应式设计** - 完全兼容移动端和桌面端的现代用户界面
 - **高性能架构** - 利用Redis缓存提升应用性能和响应速度
@@ -80,7 +82,7 @@ npm run dev -- --turbopack
 ## 📚 项目结构
 
 ```
-smart-stock-analysis/
+stock-with-ai/
 ├── app/                  # Next.js App Router目录
 │   ├── actions/          # 服务器操作（Server Actions）
 │   │   ├── marketAnalysis.ts      # 市场分析数据操作
@@ -98,6 +100,7 @@ smart-stock-analysis/
 │   │       ├── get-technical-indicators.ts            # 技术指标获取
 │   │       ├── get-historical-data.ts                 # 历史数据获取
 │   │       ├── get-historical-data-1-month-full.ts    # 完整月度历史数据
+│   │       ├── get-historical-data-by-period.ts       # 按周期获取历史数据
 │   │       ├── search-stock.ts                        # EODHD股票搜索
 │   │       ├── indicators/                            # 技术指标实现
 │   │       │   ├── rsi.ts                             # 相对强弱指标
@@ -107,6 +110,7 @@ smart-stock-analysis/
 │   │       │   ├── adx.ts                             # 平均方向指数
 │   │       │   ├── atr.ts                             # 真实波动幅度
 │   │       │   └── ...                                # 其他技术指标
+│   │       ├── utils/                                 # EODHD工具函数
 │   │       └── types/                                 # EODHD类型定义
 │   ├── (auth-pages)/     # 认证相关页面
 │   ├── auth/             # 认证相关API和组件
@@ -114,8 +118,19 @@ smart-stock-analysis/
 │   ├── account/          # 用户账户管理页面
 │   ├── stock/            # 股票详情页
 │   │   ├── [symbol]/     # 动态路由股票页面
+│   │   │   ├── page.tsx  # 股票详情页面
 │   │   │   └── components/  # 股票页面组件
-│   │   ├── historical/   # 历史数据分析页面
+│   │   │       ├── stoct-chart.tsx          # 基本股票图表组件
+│   │   │       ├── rangeSelector.tsx        # 时间范围选择器
+│   │   │       ├── stock-chart-advanced/    # 高级图表组件
+│   │   │       │   ├── stock-chart-advanced.tsx     # 高级图表实现
+│   │   │       │   ├── chart-legend.ts              # 图表图例配置
+│   │   │       │   └── chart-options.ts             # 图表选项配置
+│   │   │       ├── ai-analysis-result.tsx   # AI分析结果组件
+│   │   │       ├── ai-assistant-dialog.tsx  # AI助手对话组件
+│   │   │       ├── stock-details.tsx        # 股票详情组件
+│   │   │       ├── stock-header.tsx         # 股票页头部组件
+│   │   │       └── stock-news.tsx           # 股票新闻组件
 │   │   └── actions/      # 股票相关操作
 │   ├── sentry-example-page/ # Sentry示例页面
 │   ├── api/              # API路由
@@ -139,6 +154,7 @@ smart-stock-analysis/
 ├── lib/                  # 核心库文件
 │   ├── prisma.ts         # Prisma客户端
 │   ├── redis.ts          # Redis客户端和工具
+│   ├── format.ts         # 数据格式化工具
 │   ├── services/         # 服务层
 │   │   └── marketAnalysisService.ts # 市场分析服务
 │   └── utils.ts          # 工具函数
@@ -175,6 +191,7 @@ smart-stock-analysis/
 - **Zustand**: 轻量级状态管理
 - **Yahoo Finance API**: 财经市场数据
 - **EODHD API**: 高质量金融数据和技术指标
+- **TradingView Lightweight Charts**: 专业金融图表库
 - **Recharts**: 强大的React图表库
 - **Zod**: 运行时类型验证
 - **React Hook Form**: 表单处理和验证
@@ -217,6 +234,16 @@ smart-stock-analysis/
 - 公司基本面数据（市值、PE比率、股息等）
 - 全面的技术指标分析
 - 灵活的图表UI，支持深色/浅色主题
+
+### 高级图表视图
+
+股票详情页支持高级图表视图模式：
+
+- 通过RangeSelector组件右侧的Toggle开关切换
+- 更丰富的图表配置和数据展示
+- 自定义图表图例和选项
+- 支持拆分调整数据的显示和分析
+- 整合专业技术分析功能
 
 ### 技术指标分析
 
@@ -314,10 +341,12 @@ smart-stock-analysis/
 - [x] 技术指标分析系统
 - [x] 历史数据查询和分析
 - [x] 错误监控与报告系统
+- [x] 高级图表视图基础功能
 
 进行中:
 
-- [ ] 高级图表分析工具开发
+- [ ] 高级图表分析工具完善
+- [ ] 拆分调整数据处理优化
 - [ ] 用户个人投资组合管理
 - [ ] 实时新闻流集成
 - [ ] 优化技术指标可视化
@@ -347,4 +376,5 @@ smart-stock-analysis/
 - [shadcn/ui](https://ui.shadcn.com/)
 - [Yahoo Finance](https://finance.yahoo.com/)
 - [EODHD](https://eodhistoricaldata.com/)
+- [TradingView Lightweight Charts](https://tradingview.github.io/lightweight-charts/)
 - [Sentry](https://sentry.io/)
