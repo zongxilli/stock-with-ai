@@ -163,7 +163,7 @@ export default function StockChartAdvancedContainer({
 			{isLoading && (
 				<div className='h-full w-full flex items-center justify-center min-h-[400px]'>
 					<div className='animate-pulse text-muted-foreground'>
-						正在加载图表数据...
+						Loading chart data...
 					</div>
 				</div>
 			)}
