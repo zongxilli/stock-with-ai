@@ -26,6 +26,7 @@ interface StockChartAdvancedContainerProps {
 	symbol: string; // 股票代码 Yahoo Finance
 	className?: string; // 可选的样式类
 	heightMode?: ChartHeightMode; // 图表高度模式
+	showSMA?: boolean; // 是否显示SMA
 }
 
 export default function StockChartAdvancedContainer({
@@ -36,11 +37,13 @@ export default function StockChartAdvancedContainer({
 	symbol,
 	className,
 	heightMode = ChartHeightMode.NORMAL, // 默认为普通高度
+	showSMA = false, // 默认不显示SMA
 }: StockChartAdvancedContainerProps) {
 	const { preference } = useProfile();
 
-	const [isChartDataLoading, setIsChartDataLoading] = useState<boolean>(true);
-	const [isSmaDataLoading, setIsSmaDataLoading] = useState<boolean>(true);
+	const [isChartDataLoading, setIsChartDataLoading] =
+		useState<boolean>(false);
+	const [isSmaDataLoading, setIsSmaDataLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
 	const [chartData, setChartData] = useState<{
 		candlestickData: any[];
@@ -119,6 +122,8 @@ export default function StockChartAdvancedContainer({
 
 	// 新增：获取SMA数据
 	useEffect(() => {
+		if (!showSMA) return;
+
 		if (preference?.chart.period !== 'd') return;
 
 		if (!chartData || chartData.candlestickData.length === 0) return;
@@ -150,7 +155,7 @@ export default function StockChartAdvancedContainer({
 		};
 
 		fetchSmaData();
-	}, [code, exchange, chartData, preference?.chart.period]);
+	}, [code, exchange, chartData, preference?.chart.period, showSMA]);
 
 	const isLoading = useMemo(() => {
 		return isChartDataLoading || isSmaDataLoading;
