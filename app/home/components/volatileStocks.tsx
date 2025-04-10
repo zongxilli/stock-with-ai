@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
 	TrendingUp,
@@ -17,6 +17,7 @@ import { MarketCard } from '@/components/custom/card';
 import { MarketCardSkeleton } from '@/components/custom/marketCardSkeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LocalStorageUtils } from '@/utils/localstorage-utils';
 
 // 股票数据类型定义
 interface StockData {
@@ -59,7 +60,7 @@ export default function VolatileStocks() {
 	};
 
 	// 获取异常波动数据
-	const fetchVolatileStocks = async () => {
+	const fetchVolatileStocks = useCallback(async () => {
 		try {
 			setState((prev) => ({ ...prev, loading: true, error: null }));
 			const data = await getVolatileStocks();
@@ -82,7 +83,7 @@ export default function VolatileStocks() {
 				error: 'Failed to load market movers data',
 			}));
 		}
-	};
+	}, [state.activeTab]);
 
 	// 初始化和刷新数据
 	useEffect(() => {
@@ -92,7 +93,7 @@ export default function VolatileStocks() {
 		const refreshInterval = setInterval(fetchVolatileStocks, 300000);
 
 		return () => clearInterval(refreshInterval);
-	}, []);
+	}, [fetchVolatileStocks]);
 
 	// 渲染骨架屏
 	const renderSkeletons = (count: number) => {
@@ -119,7 +120,7 @@ export default function VolatileStocks() {
 			<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
 				{stocks.map((stock) => (
 					<Link
-						href={`/stock/${stock.symbol}?code=${stock.symbol}&exchange=US&range=1y`}
+						href={`/stock/${stock.symbol}?code=${stock.symbol}&exchange=US&range=${LocalStorageUtils.getItem('AIkie_range', '1d')}`}
 						key={stock.symbol}
 						className='w-full'
 					>

@@ -19,7 +19,6 @@ import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-dat
 import { ChartHeightMode } from '@/app/types/stock-page/chart-advanced';
 import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
 import { usePrevious } from '@/hooks/use-previous';
-import { useProfile } from '@/hooks/use-profile';
 
 // 定义股票实时数据类型
 interface StockRealTimeData {
@@ -129,8 +128,6 @@ export default function StockPage() {
 	const params = useParams();
 	const searchParams = useSearchParams();
 	const router = useRouter();
-
-	const { preference } = useProfile();
 
 	// 解码 symbol 参数
 	const symbol = !params.symbol
@@ -418,6 +415,7 @@ export default function StockPage() {
 	const prevRange = usePrevious(range);
 	useEffect(() => {
 		if (prevRange !== range) {
+			
 			fetchChartData(false);
 		}
 	}, [range, fetchChartData, prevRange, realTimeData]);
@@ -492,7 +490,7 @@ export default function StockPage() {
 	const exchange = searchParams.get('exchange');
 
 	const renderChart = () => {
-		if (preference?.advancedView) {
+		if (range === 'daily-candle') {
 			return (
 				<StockChartAdvancedContainer
 					start={

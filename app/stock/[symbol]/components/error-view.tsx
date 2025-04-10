@@ -98,7 +98,7 @@ export default function ErrorView({ error, onRetry }: ErrorViewProps) {
 						{POPULAR_STOCKS.map((stock) => (
 							<Link
 								key={stock.symbol}
-								href={`/stock/${stock.symbol}?code=${stock.symbol}&exchange=US&range=1y`}
+								href={`/stock/${stock.symbol}?code=${stock.symbol}&exchange=US&range=1d`}
 								className='bg-card hover:bg-card/90 transition-colors border rounded-lg px-4 py-3 text-center'
 							>
 								<div className='font-bold'>{stock.symbol}</div>

@@ -2,13 +2,14 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { ChartCandlestick, Maximize } from 'lucide-react';
+import { Maximize, ChartCandlestick } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { ChartHeightMode } from '@/app/types/stock-page/chart-advanced';
 import { Toggle } from '@/components/ui/toggle';
-import { useProfile } from '@/hooks/use-profile';
 import { cn } from '@/lib/utils';
+import { LocalStorageUtils } from '@/utils/localstorage-utils';
+import { MarketUtils } from '@/utils/market-utils';
 
 interface RangeSelectorProps {
 	currentRange: string;
@@ -29,20 +30,21 @@ export default function RangeSelector({
 }: RangeSelectorProps) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const { preference, updatePreference } = useProfile();
+	// const { preference, updatePreference } = useProfile();
 
 	// 判断是否为美股市场
-	const isUSMarket =
-		!exchangeName ||
-		exchangeName.toLowerCase().includes('nasdaq') ||
-		exchangeName.toLowerCase().includes('nyse');
+	const isUSMarket = MarketUtils.isUSMarket(exchangeName);
 
 	// 定义可用的时间范围选项，增加了MAX选项
 	const ranges = useMemo(
 		() =>
 			[
+				{
+					label: <ChartCandlestick className='h-4 w-4' />,
+					value: 'daily-candle',
+				},
 				...(isUSMarket ? [{ label: '1D', value: '1d' }] : []), // 只在美股市场显示1D选项
-				{ label: '5D', value: '5d' },
+				// { label: '5D', value: '5d' },
 				// { label: '1M', value: '1mo' },
 				// { label: '3M', value: '3mo' },
 				// { label: '6M', value: '6mo' },
@@ -53,21 +55,23 @@ export default function RangeSelector({
 		[isUSMarket]
 	);
 
-	const periods = useMemo(
-		() =>
-			[
-				{ label: '1D', value: 'd' },
-				{ label: '1W', value: 'w' },
-				{ label: '1M', value: 'm' },
-			] as const,
-		[]
-	);
+	// const periods = useMemo(
+	// 	() =>
+	// 		[
+	// 			{ label: '1D', value: 'd' },
+	// 			{ label: '1W', value: 'w' },
+	// 			{ label: '1M', value: 'm' },
+	// 		] as const,
+	// 	[]
+	// );
 
 	// 使用客户端路由而不是Link组件，以便于保持滚动位置
 	const handleRangeChange = useCallback(
 		(rangeValue: string) => {
 			// 如果已经是当前选择的范围或者正在加载中，不执行操作
 			if (currentRange === rangeValue || isLoading) return;
+
+			LocalStorageUtils.setItem('AIkie_range', rangeValue);
 
 			// 保存当前滚动位置
 			const scrollPosition = window.scrollY;
@@ -101,8 +105,6 @@ export default function RangeSelector({
 	);
 
 	const renderRangeSelectors = useCallback(() => {
-		if (preference?.advancedView) return null;
-
 		return (
 			<div className='flex flex-wrap gap-2'>
 				{ranges.map((range) => (
@@ -125,79 +127,71 @@ export default function RangeSelector({
 				))}
 			</div>
 		);
-	}, [
-		handleRangeChange,
-		preference?.advancedView,
-		currentRange,
-		isLoading,
-		ranges,
-	]);
+	}, [handleRangeChange, currentRange, isLoading, ranges]);
 
-	const updatePreferencePeriod = useCallback(
-		(period: 'd' | 'w' | 'm') => {
-			if (!preference) return;
+	// const updatePreferencePeriod = useCallback(
+	// 	(period: 'd' | 'w' | 'm') => {
+	// 		if (!preference) return;
 
-			updatePreference({
-				chart: {
-					...preference.chart,
-					period,
-				},
-			});
-		},
-		[preference, updatePreference]
-	);
+	// 		updatePreference({
+	// 			chart: {
+	// 				...preference.chart,
+	// 				period,
+	// 			},
+	// 		});
+	// 	},
+	// 	[preference, updatePreference]
+	// );
 
-	const renderPeriodSelectors = useCallback(() => {
-		if (!preference?.advancedView) return null;
+	// const renderPeriodSelectors = useCallback(() => {
+	// 	if (!preference?.advancedView) return null;
 
-		return (
-			<div className='flex flex-wrap gap-2'>
-				{periods.map((period) => (
-					<button
-						key={period.value}
-						onClick={() => updatePreferencePeriod(period.value)}
-						disabled={isLoading} // 当正在加载时禁用所有按钮
-						className={cn(
-							'px-3 py-1 rounded-md text-sm font-medium transition-colors',
-							preference?.chart.period === period.value
-								? isLoading
-									? 'bg-primary/70 text-primary-foreground animate-pulse' // 当前正在加载的范围
-									: 'bg-primary text-primary-foreground' // 当前选中的范围
-								: 'bg-secondary hover:bg-secondary/80 text-secondary-foreground', // 未选中的范围
-							isLoading && 'cursor-not-allowed opacity-70' // 加载中时降低所有按钮的不透明度
-						)}
-					>
-						{period.label}
-					</button>
-				))}
-			</div>
-		);
-	}, [
-		preference?.advancedView,
-		preference?.chart.period,
-		periods,
-		isLoading,
-		updatePreferencePeriod,
-	]);
+	// 	return (
+	// 		<div className='flex flex-wrap gap-2'>
+	// 			{periods.map((period) => (
+	// 				<button
+	// 					key={period.value}
+	// 					onClick={() => updatePreferencePeriod(period.value)}
+	// 					disabled={isLoading} // 当正在加载时禁用所有按钮
+	// 					className={cn(
+	// 						'px-3 py-1 rounded-md text-sm font-medium transition-colors',
+	// 						preference?.chart.period === period.value
+	// 							? isLoading
+	// 								? 'bg-primary/70 text-primary-foreground animate-pulse' // 当前正在加载的范围
+	// 								: 'bg-primary text-primary-foreground' // 当前选中的范围
+	// 							: 'bg-secondary hover:bg-secondary/80 text-secondary-foreground', // 未选中的范围
+	// 						isLoading && 'cursor-not-allowed opacity-70' // 加载中时降低所有按钮的不透明度
+	// 					)}
+	// 				>
+	// 					{period.label}
+	// 				</button>
+	// 			))}
+	// 		</div>
+	// 	);
+	// }, [
+	// 	preference?.advancedView,
+	// 	preference?.chart.period,
+	// 	periods,
+	// 	isLoading,
+	// 	updatePreferencePeriod,
+	// ]);
 
 	return (
 		<div className='flex flex-wrap items-center justify-between gap-2'>
 			{renderRangeSelectors()}
-			{renderPeriodSelectors()}
+			{/* {renderPeriodSelectors()} */}
 			<div className='flex items-center gap-2'>
 				{/* 当在高级视图模式下，显示图表高度模式切换按钮 */}
-				{preference?.advancedView && (
-					<Toggle
-						pressed={chartHeightMode === ChartHeightMode.LARGE}
-						onPressedChange={toggleHeightMode}
-						disabled={isLoading}
-						aria-label='Switch to large chart size'
-					>
-						<Maximize className='h-4 w-4' />
-					</Toggle>
-				)}
-
 				<Toggle
+					pressed={chartHeightMode === ChartHeightMode.LARGE}
+					onPressedChange={toggleHeightMode}
+					disabled={isLoading}
+					aria-label='Switch to large chart size'
+				>
+					<Maximize className='h-4 w-4' />
+				</Toggle>
+
+				{/* <Toggle
 					pressed={preference?.advancedView || false}
 					onPressedChange={() =>
 						updatePreference({
@@ -209,7 +203,7 @@ export default function RangeSelector({
 				>
 					<ChartCandlestick className='h-4 w-4' />
 					Adv
-				</Toggle>
+				</Toggle> */}
 			</div>
 		</div>
 	);

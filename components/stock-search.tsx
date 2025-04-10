@@ -6,7 +6,7 @@ import { Search, X, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { searchStock } from '@/app/actions/eodhd/search-stock';
-import { getValidYahooFinanceSymbol } from '@/app/actions/yahoo/search-stock';
+import { redirectToStockPage } from '@/app/actions/helpers/redirect-to-stock-page';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -46,12 +46,7 @@ export function StockSearch() {
 		eodhdSymbol: string,
 		exchange: string = ''
 	) => {
-		const validSymbol = await getValidYahooFinanceSymbol(eodhdSymbol);
-
-		const symbol = validSymbol || eodhdSymbol;
-		// 构建包含股票代码和交易所的URL
-		const url = `/stock/${symbol}?code=${symbol}&exchange=${exchange}&range=1y`;
-		router.push(url);
+		await redirectToStockPage(eodhdSymbol, exchange, router);
 		clearSearch();
 	};
 

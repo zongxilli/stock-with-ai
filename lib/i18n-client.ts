@@ -12,6 +12,8 @@ import {
 import { stockDetailsCN, stockDetailsEN } from './i18n/stock/details';
 import { stockHeaderCN, stockHeaderEN } from './i18n/stock/header';
 
+import { LocalStorageUtils } from '@/utils/localstorage-utils';
+
 // 内联翻译字典
 const resources = {
 	EN: {
@@ -40,7 +42,7 @@ i18n.use(initReactI18next).init({
 	resources,
 	lng:
 		typeof window !== 'undefined'
-			? localStorage.getItem('lang') || 'EN'
+			? LocalStorageUtils.getItem('lang', 'EN')
 			: 'EN',
 	fallbackLng: 'EN',
 	interpolation: {
