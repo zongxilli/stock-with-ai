@@ -77,24 +77,34 @@ export const updateLegendContent = (
 	const low = 'low' in candleData ? candleData.low : 0;
 	const close = 'close' in candleData ? candleData.close : 0;
 
-	// 获取当前柱的索引（如果可能）
+	// 获取前一天的收盘价（如果可能）
 	let previousClose = null;
-	if (candlestickData && 'time' in candleData && candleData.time) {
+	if (
+		candlestickData &&
+		candlestickData.length > 0 &&
+		'time' in candleData &&
+		candleData.time
+	) {
 		const currentTime = candleData.time.toString();
 		const currentIndex = candlestickData.findIndex(
 			(item) => item.time === currentTime
 		);
 
+		// 找到前一个交易日的收盘价
 		if (currentIndex > 0) {
 			previousClose = candlestickData[currentIndex - 1].close;
+		} else if (currentIndex === -1 && candlestickData.length > 0) {
+			// 对于实时 candle，它可能不在 candlestickData 中
+			// 使用最后一个有效数据点的收盘价作为 previousClose
+			previousClose = candlestickData[candlestickData.length - 1].close;
 		}
 	}
 
+	// 计算涨跌幅和设置颜色
 	let openColor = themeColors.textColor;
 	let closeColor = themeColors.textColor;
 	let highColor = themeColors.textColor;
 	let lowColor = themeColors.textColor;
-
 	let changeColor = themeColors.textColor;
 	let changePercent = 0;
 	let change = 0;
@@ -106,18 +116,21 @@ export const updateLegendContent = (
 		changePercent = (change / previousClose) * 100;
 		changeColor = change >= 0 ? themeColors.upColor : themeColors.downColor;
 		openColor =
-			open > previousClose ? themeColors.upColor : themeColors.downColor;
-		closeColor = changeColor;
+			open >= previousClose ? themeColors.upColor : themeColors.downColor;
 		highColor =
-			high > previousClose ? themeColors.upColor : themeColors.downColor;
+			high >= previousClose ? themeColors.upColor : themeColors.downColor;
 		lowColor =
-			low < previousClose ? themeColors.downColor : themeColors.upColor;
+			low >= previousClose ? themeColors.upColor : themeColors.downColor;
+		closeColor =
+			close >= previousClose
+				? themeColors.upColor
+				: themeColors.downColor;
 	} else {
 		// 如果没有前一天的收盘价，使用当天开盘价和收盘价比较
 		change = close - open;
 		changePercent = (change / open) * 100;
 		changeColor = change >= 0 ? themeColors.upColor : themeColors.downColor;
-		openColor = open <= close ? themeColors.upColor : themeColors.downColor;
+		openColor = themeColors.textColor; // 没有参考点，使用默认文本颜色
 		highColor = themeColors.upColor;
 		lowColor = themeColors.downColor;
 		closeColor =
