@@ -133,6 +133,25 @@ const StockChartAdvanced = ({
 			isDarkMode
 		);
 
+		// // ------------------------------------------------- Area Series -------------------------------------------------
+		// const areaSeries = chart.addSeries(AreaSeries, {
+		// 	lastValueVisible: false, // hide the last value marker for this series
+		// 	crosshairMarkerVisible: false, // hide the crosshair marker for this series
+		// 	lineColor: 'transparent', // hide the line
+		// 	topColor: 'rgba(56, 33, 110,0.6)',
+		// 	bottomColor: 'rgba(56, 33, 110, 0.1)',
+		// });
+
+		// // 转换 K线数据为 AreaSeries 所需的格式 (使用收盘价作为 value)
+		// const areaData = candlestickData.map((candle) => ({
+		// 	time: candle.time,
+		// 	value: (candle.open + candle.close) / 2,
+		// }));
+
+		// // 设置面积图数据
+		// areaSeries.setData(areaData);
+		// // ------------------------------------------------- Candlestick Series -------------------------------------------
+
 		// 添加K线图系列
 		const candlestickSeries = chart.addSeries(CandlestickSeries, {
 			priceScaleId: MAIN_CHART_PRICE_SCALE_ID, // 使用左侧价格轴ID
