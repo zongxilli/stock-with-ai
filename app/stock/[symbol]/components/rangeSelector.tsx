@@ -176,20 +176,29 @@ export default function RangeSelector({
 	// 	updatePreferencePeriod,
 	// ]);
 
+	const renderMaxChartButton = () => {
+		if (currentRange !== 'daily-candle') return null;
+
+		return (
+			<Toggle
+				pressed={chartHeightMode === ChartHeightMode.LARGE}
+				onPressedChange={toggleHeightMode}
+				disabled={isLoading}
+				aria-label='Switch to large chart size'
+				title='Switch to large chart size'
+			>
+				<Maximize className='h-4 w-4' />
+			</Toggle>
+		);
+	};
+
 	return (
 		<div className='flex flex-wrap items-center justify-between gap-2'>
 			{renderRangeSelectors()}
 			{/* {renderPeriodSelectors()} */}
 			<div className='flex items-center gap-2'>
 				{/* 当在高级视图模式下，显示图表高度模式切换按钮 */}
-				<Toggle
-					pressed={chartHeightMode === ChartHeightMode.LARGE}
-					onPressedChange={toggleHeightMode}
-					disabled={isLoading}
-					aria-label='Switch to large chart size'
-				>
-					<Maximize className='h-4 w-4' />
-				</Toggle>
+				{renderMaxChartButton()}
 
 				{/* <Toggle
 					pressed={preference?.advancedView || false}

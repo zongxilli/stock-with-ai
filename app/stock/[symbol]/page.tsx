@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { Minimize } from 'lucide-react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 
 import AIAssistantDialog from './components/ai-assistant-dialog';
@@ -17,6 +18,7 @@ import StockNews from './components/stock-news';
 import { getStockChartData } from '@/app/actions/yahoo/get-stock-chart-data';
 import { getStockRealTimeData } from '@/app/actions/yahoo/get-stock-realtime-data';
 import { ChartHeightMode } from '@/app/types/stock-page/chart-advanced';
+import { Button } from '@/components/ui/button';
 import { usePreserveScroll } from '@/hooks/use-preserve-scroll';
 import { usePrevious } from '@/hooks/use-previous';
 
@@ -415,7 +417,6 @@ export default function StockPage() {
 	const prevRange = usePrevious(range);
 	useEffect(() => {
 		if (prevRange !== range) {
-			
 			fetchChartData(false);
 		}
 	}, [range, fetchChartData, prevRange, realTimeData]);
@@ -492,23 +493,55 @@ export default function StockPage() {
 	const renderChart = () => {
 		if (range === 'daily-candle') {
 			return (
-				<StockChartAdvancedContainer
-					start={
-						new Date(
-							new Date().setFullYear(
-								new Date().getFullYear() - 100
-							)
-						)
-							.toISOString()
-							.split('T')[0]
+				<div
+					className={
+						chartHeightMode === ChartHeightMode.LARGE
+							? 'z-50 fixed top-16 left-0 w-[100vw] h-[100dvh] bg-background'
+							: ''
 					}
-					end={new Date().toISOString().split('T')[0]}
-					code={code || ''}
-					exchange={exchange || ''}
-					symbol={symbol || ''}
-					className='mb-4'
-					heightMode={chartHeightMode}
-				/>
+				>
+					<div
+						className={
+							chartHeightMode === ChartHeightMode.LARGE
+								? 'absolute top-2 left-1/2 z-50 transform -translate-x-1/2'
+								: 'hidden'
+						}
+					>
+						<Button
+							onClick={() =>
+								setChartHeightMode(ChartHeightMode.NORMAL)
+							}
+							aria-label='Close'
+							className='rounded-full'
+							variant='default'
+						>
+							<Minimize className='mr-2 h-4 w-4' />
+							Minimize
+						</Button>
+					</div>
+
+					<StockChartAdvancedContainer
+						start={
+							new Date(
+								new Date().setFullYear(
+									new Date().getFullYear() - 100
+								)
+							)
+								.toISOString()
+								.split('T')[0]
+						}
+						end={new Date().toISOString().split('T')[0]}
+						code={code || ''}
+						exchange={exchange || ''}
+						symbol={symbol || ''}
+						className={
+							chartHeightMode === ChartHeightMode.LARGE
+								? ''
+								: 'mb-4'
+						}
+						heightMode={chartHeightMode}
+					/>
+				</div>
 			);
 		}
 

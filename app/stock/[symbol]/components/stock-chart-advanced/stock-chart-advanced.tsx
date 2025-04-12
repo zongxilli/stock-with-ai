@@ -21,6 +21,7 @@ import {
 	SmaDataPoint,
 	DEFAULT_UP_COLOR,
 	DEFAULT_DOWN_COLOR,
+	ChartHeightMode,
 } from '@/app/types/stock-page/chart-advanced';
 import { useProfile } from '@/hooks/use-profile';
 
@@ -455,7 +456,9 @@ const StockChartAdvanced = ({
 		<div
 			ref={chartContainerRef}
 			className={`w-full ${className || ''}`}
-			style={{ height: `${height}px` }}
+			style={{
+				height: `${height === ChartHeightMode.LARGE ? '100dvh' : '400px'}`,
+			}}
 		/>
 	);
 };

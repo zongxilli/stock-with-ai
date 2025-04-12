@@ -163,7 +163,11 @@ export default function StockChartAdvancedContainer({
 
 	return (
 		<div
-			className={`w-full rounded-lg border p-6 bg-card shadow-sm relative ${className || ''}`}
+			className={`w-full rounded-lg border p-6 bg-card ${
+				heightMode === ChartHeightMode.LARGE
+					? 'rounded-none shadow-none'
+					: 'shadow-sm'
+			} ${className || ''}`}
 		>
 			{isLoading && (
 				<div className='h-full w-full flex items-center justify-center min-h-[400px]'>
@@ -185,7 +189,11 @@ export default function StockChartAdvancedContainer({
 					candlestickData={chartData?.candlestickData}
 					volumeData={chartData?.volumeData}
 					smaData={preference?.chart.period === 'd' ? smaData : []}
-					height={heightMode}
+					height={
+						heightMode === ChartHeightMode.LARGE
+							? window.innerHeight - 120 // 全屏模式下减去顶部和底部的padding
+							: ChartHeightMode.NORMAL // 普通模式下的默认高度
+					}
 					realtimeCandle={realtimeCandle}
 				/>
 			)}
