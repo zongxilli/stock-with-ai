@@ -396,7 +396,11 @@ export async function getStockRealTimeData(symbol: string) {
 				const chartDataCacheKey = `stock_realtime_for_chart:${symbol}`;
 				// 创建图表所需的实时蜡烛图数据点
 				const realtimeCandle = {
-					time: new Date().toISOString().split('T')[0], // 使用今天的日期，格式化为 'YYYY-MM-DD'
+					time: quote.regularMarketTime
+						? new Date(quote.regularMarketTime)
+								.toISOString()
+								.split('T')[0] // 使用交易日期，格式化为 'YYYY-MM-DD'
+						: new Date().toISOString().split('T')[0], // 使用当前日期，格式化为 'YYYY-MM-DD'
 					open: quote.regularMarketOpen || quote.regularMarketPrice,
 					high:
 						quote.regularMarketDayHigh || quote.regularMarketPrice,
